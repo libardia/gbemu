@@ -5,17 +5,17 @@ const CARRY_FLAG_MASK: u8 = 0x10; // 0001 0000
 
 #[derive(Default, Debug)]
 pub struct Registers {
-    a: u8,
-    f: u8,
+    pub a: u8,
+    pub f: u8,
 
-    b: u8,
-    c: u8,
+    pub b: u8,
+    pub c: u8,
 
-    d: u8,
-    e: u8,
+    pub d: u8,
+    pub e: u8,
 
-    h: u8,
-    l: u8,
+    pub h: u8,
+    pub l: u8,
 }
 
 macro_rules! make_r16_getset {
@@ -26,7 +26,7 @@ macro_rules! make_r16_getset {
 
         pub fn $set_name(&mut self, value: u16) {
             self.$r1 = ((value & 0xFF00) >> 8) as u8;
-            self.$r1 = (value & 0x00FF) as u8;
+            self.$r2 = (value & 0x00FF) as u8;
         }
     };
 }
