@@ -3,9 +3,11 @@ use cpu::*;
 
 fn main() {
     let mut cpu = CPU::default();
-    cpu.registers.set_af(0xDEAD);
-    cpu.registers.set_bc(0xBEEF);
-    cpu.registers.set_de(0xCAFE);
-    cpu.registers.set_hl(0xF00D);
-    println!("{cpu}")
+    cpu.pc = 0xDEAD;
+    cpu.sp = 0xBEEF;
+    cpu.reg.set_af(0xDEAD);
+    cpu.reg.set_bc(0xBEEF);
+    cpu.reg.set_de(0xF00D);
+    cpu.reg.set_hl(0xCAFE);
+    println!("{cpu}");
 }
