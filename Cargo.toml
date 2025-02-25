@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+beryllium = "0.13.3"
 bytemuck = "1.21.0"
-gl33 = "0.2.1"
+imagine = "0.5.1"
+ogl33 = "0.3.0"
+ultraviolet = "0.9.2"
