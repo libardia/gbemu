@@ -2,9 +2,18 @@
 // and
 // https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
 
+#[allow(non_camel_case_types)]
 pub enum Instruction {
     NOP,
-    ADD(ArgR8),
+    LD_r16_n16(ArgR16, u16),
+    LD_m16_a(ArgR16MEM),
+    INC_r16(ArgR16),
+    INC_r8(ArgR8),
+    DEC_r8(ArgR8),
+    LD_r8_n8(ArgR8, u8),
+
+    ADD_a_r8(ArgR8),
+    ADC_a_r8(ArgR8),
 }
 
 pub enum ArgR8 {

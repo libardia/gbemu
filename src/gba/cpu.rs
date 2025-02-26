@@ -16,27 +16,18 @@ pub struct CPU  {
     pub regs: Registers,
 }
 
-macro_rules! match_all_r8 {
-    ($match_on:ident, $for_b:block, $for_c:block, $for_d:block, $for_e:block, $for_h:block, $for_l:block, $for_mhl:block, $for_a:block) => {
+macro_rules! ArgR8_to_a {
+    ($callr:expr, $mmu:expr, $func:ident, $match_on:expr $(, $other_args:expr)*) => {
         match $match_on {
-            ArgR8::B => $for_b
-            ArgR8::C => $for_c
-            ArgR8::D => $for_d
-            ArgR8::E => $for_e
-            ArgR8::H => $for_h
-            ArgR8::L => $for_l
-            ArgR8::MHL => $for_mhl
-            ArgR8::A => $for_a
+            ArgR8::B => $callr.regs.a = $callr.$func($callr.regs.b $(, $other_args)*),
+            ArgR8::C => $callr.regs.a = $callr.$func($callr.regs.c $(, $other_args)*),
+            ArgR8::D => $callr.regs.a = $callr.$func($callr.regs.d $(, $other_args)*),
+            ArgR8::E => $callr.regs.a = $callr.$func($callr.regs.e $(, $other_args)*),
+            ArgR8::H => $callr.regs.a = $callr.$func($callr.regs.h $(, $other_args)*),
+            ArgR8::L => $callr.regs.a = $callr.$func($callr.regs.l $(, $other_args)*),
+            ArgR8::MHL => $callr.regs.a = $callr.$func($mmu.read_byte($callr.regs.get_hl()) $(, $other_args)*),
+            ArgR8::A => $callr.regs.a = $callr.$func($callr.regs.a $(, $other_args)*),
         }
-    };
-}
-
-macro_rules! add_target_r8 {
-    ($callr:ident, $target:ident) => {
-        $callr.regs.a = $callr.add_8bit($callr.regs.$target)
-    };
-    ($callr:ident, mhl, $gba_ref:expr) => {
-        $callr.regs.a = $callr.add_8bit_at_hl($gba_ref, $callr.regs.get_hl());
     };
 }
 
@@ -51,34 +42,45 @@ impl CPU {
         self.regs = Registers::new();
     }
 
+    fn add_8bit(&mut self, value: u8, with_carry: bool) -> u8 {
+        let carry_value = if with_carry && self.regs.getf_carry() {1u16} else {0u16};
+        let mod_value = value as u16 + carry_value;
+        let add_result = self.regs.a as u16 + mod_value;
+        let final_value = (add_result & 0xFF) as u8;
+        let nibble_sum = (self.regs.a & 0xF) + ((mod_value & 0xF) as u8);
+        self.regs.set_all_flags(
+            final_value == 0,
+            false,
+            nibble_sum > 0xF,
+            add_result > 0xFF
+        );
+        final_value
+    }
+
+    fn sub_8bit(&mut self, value: u8, with_carry: bool) -> u8 {
+        let carry_value = if with_carry && self.regs.getf_carry() {1i16} else {0i16};
+        let mod_value = value as i16 - carry_value;
+        let sub_result = self.regs.a as i16 - mod_value;
+        let final_value = (sub_result & 0xFF) as u8;
+        let nibble_diff = ((self.regs.a as i8) & 0xF) - ((mod_value & 0xF) as i8);
+        self.regs.set_all_flags(
+            final_value == 0,
+            true,
+            nibble_diff < 0,
+            sub_result < 0
+        );
+        final_value
+    }
+}
+
+impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
         match instruction {
-            Instruction::NOP => {}
-            Instruction::ADD(target) => {
-                match_all_r8!(target,
-                    { add_target_r8!(self, b); },
-                    { add_target_r8!(self, c); },
-                    { add_target_r8!(self, d); },
-                    { add_target_r8!(self, e); },
-                    { add_target_r8!(self, h); },
-                    { add_target_r8!(self, l); },
-                    { add_target_r8!(self, mhl, mmu); },
-                    { add_target_r8!(self, a); }
-                );
-            }
+            Instruction::NOP => (),
+            Instruction::ADD_a_r8(target) => ArgR8_to_a!(self, mmu, add_8bit, target, false),
+            Instruction::ADC_a_r8(target) => ArgR8_to_a!(self, mmu, add_8bit, target, true),
             _ => todo!()
         }
-    }
-
-    fn add_8bit(&mut self, value: u8) -> u8 {
-        let (new_value, did_overflow) = self.regs.a.overflowing_add(value);
-        self.regs.calculate_flags(value, new_value, did_overflow, false);
-        new_value
-    }
-
-    fn add_8bit_at_hl(&mut self, mmu: &MMU, address: u16) -> u8 {
-        // TODO: Add value pointed to by HL to A
-        todo!();
     }
 }
 

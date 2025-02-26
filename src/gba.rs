@@ -16,6 +16,6 @@ impl GBA {
     }
 
     pub fn mainloop(&mut self) {
-        self.cpu.execute(&mut self.mmu, Instruction::ADD(ArgR8::A));
+        self.cpu.execute(&mut self.mmu, Instruction::ADC_a_r8(ArgR8::A));
     }
 }

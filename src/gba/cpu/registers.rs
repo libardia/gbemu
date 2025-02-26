@@ -62,6 +62,9 @@ impl Registers {
     }
 
     // Getters and setters for the combined "16 bit" registers
+    // NOTE: The bytes in the two component registers are in BIG-ENDIAN order. This is very
+    // important to note because the memory, and the order two-byte instruction arguments are read,
+    // are in LITTLE-ENDIAN order.
     make_r16_getset!(get_af, set_af, a, f);
     make_r16_getset!(get_bc, set_bc, b, c);
     make_r16_getset!(get_de, set_de, d, e);
