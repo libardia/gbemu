@@ -68,10 +68,10 @@ impl Registers {
     make_r16_getset!(get_hl, set_hl, h, l);
 
     // Getters and setters for the flags stored in the F register
-    make_flag_getset!(getf_zero, setf_zero, flag_masks::F_ZERO);
-    make_flag_getset!(getf_subtract, setf_subtract, flag_masks::F_SUB);
-    make_flag_getset!(getf_half_carry, setf_half_carry, flag_masks::F_HCARRY);
-    make_flag_getset!(getf_carry, setf_carry, flag_masks::F_CARRY);
+    make_flag_getset!(getf_zero,       setf_zero,       F_ZERO);
+    make_flag_getset!(getf_subtract,   setf_subtract,   F_SUB);
+    make_flag_getset!(getf_half_carry, setf_half_carry, F_HCARRY);
+    make_flag_getset!(getf_carry,      setf_carry,      F_CARRY);
 
     pub fn calculate_flags(&mut self, added_value: u8, new_value: u8, did_overflow: bool, was_subtraction: bool) {
         self.set_all_flags(

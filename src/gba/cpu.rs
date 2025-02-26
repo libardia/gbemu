@@ -72,18 +72,7 @@ impl CPU {
 
     fn add_8bit(&mut self, value: u8) -> u8 {
         let (new_value, did_overflow) = self.regs.a.overflowing_add(value);
-        self.regs.set_all_flags(
-            // Set if the result of the operation was zero
-            new_value == 0,
-            // Set if the operation was a subtraction
-            false,
-            // Set if adding the lower nibbles of the value and register A together result in a
-            // value bigger than 0xF. If the result is larger than 0xF than the addition caused a
-            // carry from the lower nibble to the upper nibble.
-            (self.regs.a & 0xF) + (value & 0xF) > 0xF,
-            // Set if the operation fully overflowed a u8
-            did_overflow
-        );
+        self.regs.calculate_flags(value, new_value, did_overflow, false);
         new_value
     }
 
