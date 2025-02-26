@@ -4,7 +4,7 @@ macro_rules! test_r16_getset {
     ($test_get_name:ident, $get_func:ident, $test_set_name:ident, $set_func:ident, $r1:ident, $r2:ident) => {
         #[test]
         fn $test_get_name() {
-            let mut regs = Registers::default();
+            let mut regs = Registers::new();
             regs.$r1 = 0xDE;
             regs.$r2 = 0xAD;
             assert_eq!(regs.$get_func(), 0xDEAD);
@@ -12,7 +12,7 @@ macro_rules! test_r16_getset {
 
         #[test]
         fn $test_set_name() {
-            let mut regs = Registers::default();
+            let mut regs = Registers::new();
             regs.$set_func(0xDEAD);
             assert_eq!(regs.$r1, 0xDE);
             assert_eq!(regs.$r2, 0xAD);
@@ -24,7 +24,7 @@ macro_rules! test_flag_getset {
     ($test_get_name:ident, $get_func:ident, $test_set_name:ident, $set_func:ident, $mask:expr) => {
         #[test]
         fn $test_get_name() {
-            let mut regs = Registers::default();
+            let mut regs = Registers::new();
             regs.f = $mask;
             assert!(regs.$get_func());
             regs.f = !$mask;
@@ -33,7 +33,7 @@ macro_rules! test_flag_getset {
 
         #[test]
         fn $test_set_name() {
-            let mut regs = Registers::default();
+            let mut regs = Registers::new();
             regs.f = !$mask;
             regs.$set_func(true);
             assert_eq!(regs.f, 0xFF);

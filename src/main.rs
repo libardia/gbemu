@@ -3,6 +3,6 @@ mod gba;
 use gba::*;
 
 fn main() {
-    let gba = GBA::default();
+    let gba = GBA::new();
     println!("{gba:?}")
 }

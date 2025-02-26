@@ -7,7 +7,7 @@ pub mod flag_masks {
 
 use flag_masks::*;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Registers {
     pub a: u8,
     pub f: u8,
@@ -52,6 +52,15 @@ macro_rules! make_flag_getset {
 }
 
 impl Registers {
+    pub fn new() -> Self {
+        Registers {
+            a: 0, f: 0,
+            b: 0, c: 0,
+            d: 0, e: 0,
+            h: 0, l: 0
+        }
+    }
+
     // Getters and setters for the combined "16 bit" registers
     make_r16_getset!(get_af, set_af, a, f);
     make_r16_getset!(get_bc, set_bc, b, c);

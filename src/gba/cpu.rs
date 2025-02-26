@@ -1,11 +1,12 @@
 mod registers;
-mod instructions;
+pub mod instructions;
 
 use registers::Registers;
 use instructions::*;
 use std::{fmt, fmt::Display, fmt::Formatter};
+use super::MMU;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct CPU  {
     // Program counter
     pub pc: u16,
@@ -31,16 +32,26 @@ macro_rules! match_all_r8 {
 }
 
 macro_rules! add_target_r8 {
-    ($callr:ident, mhl) => {
-        $callr.regs.a = $callr.add_8bit_at_hl($callr.regs.get_hl());
-    };
     ($callr:ident, $target:ident) => {
         $callr.regs.a = $callr.add_8bit($callr.regs.$target)
+    };
+    ($callr:ident, mhl, $gba_ref:expr) => {
+        $callr.regs.a = $callr.add_8bit_at_hl($gba_ref, $callr.regs.get_hl());
     };
 }
 
 impl CPU {
-    pub fn execute(&mut self, instruction: Instruction) {
+    pub fn new() -> Self {
+        CPU { pc: 0, sp: 0, regs: Registers::new() }
+    }
+
+    pub fn reset(&mut self) {
+        self.pc = 0;
+        self.sp = 0;
+        self.regs = Registers::new();
+    }
+
+    pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
         match instruction {
             Instruction::NOP => {}
             Instruction::ADD(target) => {
@@ -51,7 +62,7 @@ impl CPU {
                     { add_target_r8!(self, e); },
                     { add_target_r8!(self, h); },
                     { add_target_r8!(self, l); },
-                    { add_target_r8!(self, mhl); },
+                    { add_target_r8!(self, mhl, mmu); },
                     { add_target_r8!(self, a); }
                 );
             }
@@ -76,7 +87,7 @@ impl CPU {
         new_value
     }
 
-    fn add_8bit_at_hl(&mut self, address: u16) -> u8 {
+    fn add_8bit_at_hl(&mut self, mmu: &MMU, address: u16) -> u8 {
         // TODO: Add value pointed to by HL to A
         todo!();
     }
