@@ -1,7 +1,7 @@
-pub mod registers;
-pub mod instructions;
+mod registers;
+mod instructions;
 
-use registers::*;
+use registers::Registers;
 use instructions::*;
 use std::{fmt, fmt::Display, fmt::Formatter};
 
@@ -15,45 +15,51 @@ pub struct CPU  {
     pub regs: Registers,
 }
 
-macro_rules! match_all_targets {
-    ($match_on:ident, $for_a:block, $for_b:block, $for_c:block, $for_d:block, $for_e:block, $for_h:block, $for_l:block) => {
+macro_rules! match_all_r8 {
+    ($match_on:ident, $for_b:block, $for_c:block, $for_d:block, $for_e:block, $for_h:block, $for_l:block, $for_mhl:block, $for_a:block) => {
         match $match_on {
-            Target::A => $for_a
-            Target::B => $for_b
-            Target::C => $for_c
-            Target::D => $for_d
-            Target::E => $for_e
-            Target::H => $for_h
-            Target::L => $for_l
+            ArgR8::B => $for_b
+            ArgR8::C => $for_c
+            ArgR8::D => $for_d
+            ArgR8::E => $for_e
+            ArgR8::H => $for_h
+            ArgR8::L => $for_l
+            ArgR8::MHL => $for_mhl
+            ArgR8::A => $for_a
         }
     };
 }
 
-macro_rules! add_target {
+macro_rules! add_target_r8 {
+    ($callr:ident, mhl) => {
+        $callr.regs.a = $callr.add_8bit_at_hl($callr.regs.get_hl());
+    };
     ($callr:ident, $target:ident) => {
-        $callr.regs.a = $callr.add($callr.regs.$target)
+        $callr.regs.a = $callr.add_8bit($callr.regs.$target)
     };
 }
 
 impl CPU {
     pub fn execute(&mut self, instruction: Instruction) {
         match instruction {
+            Instruction::NOP => {}
             Instruction::ADD(target) => {
-                match_all_targets!(target,
-                    { add_target!(self, a); },
-                    { add_target!(self, b); },
-                    { add_target!(self, c); },
-                    { add_target!(self, d); },
-                    { add_target!(self, e); },
-                    { add_target!(self, h); },
-                    { add_target!(self, l); }
+                match_all_r8!(target,
+                    { add_target_r8!(self, b); },
+                    { add_target_r8!(self, c); },
+                    { add_target_r8!(self, d); },
+                    { add_target_r8!(self, e); },
+                    { add_target_r8!(self, h); },
+                    { add_target_r8!(self, l); },
+                    { add_target_r8!(self, mhl); },
+                    { add_target_r8!(self, a); }
                 );
             }
             _ => todo!()
         }
     }
 
-    fn add(&mut self, value: u8) -> u8 {
+    fn add_8bit(&mut self, value: u8) -> u8 {
         let (new_value, did_overflow) = self.regs.a.overflowing_add(value);
         self.regs.set_all_flags(
             // Set if the result of the operation was zero
@@ -68,6 +74,11 @@ impl CPU {
             did_overflow
         );
         new_value
+    }
+
+    fn add_8bit_at_hl(&mut self, address: u16) -> u8 {
+        // TODO: Add value pointed to by HL to A
+        todo!();
     }
 }
 
@@ -88,4 +99,4 @@ impl Display for CPU {
 
 // Tests ==========================================================================================
 #[cfg(test)]
-mod tests;
+mod cpu_tests;

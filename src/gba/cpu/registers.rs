@@ -1,7 +1,11 @@
-pub const ZERO_FLAG_MASK: u8        = 0b1000_0000;
-pub const SUBTRACT_FLAG_MASK: u8    = 0b0100_0000;
-pub const HALF_CARRY_FLAG_MASK: u8  = 0b0010_0000;
-pub const CARRY_FLAG_MASK: u8       = 0b0001_0000;
+pub mod flag_masks {
+    pub const F_ZERO:   u8 = 0b1000_0000;
+    pub const F_SUB:    u8 = 0b0100_0000;
+    pub const F_HCARRY: u8 = 0b0010_0000;
+    pub const F_CARRY:  u8 = 0b0001_0000;
+}
+
+use flag_masks::*;
 
 #[derive(Default, Debug)]
 pub struct Registers {
@@ -55,10 +59,10 @@ impl Registers {
     make_r16_getset!(get_hl, set_hl, h, l);
 
     // Getters and setters for the flags stored in the F register
-    make_flag_getset!(getf_zero, setf_zero, ZERO_FLAG_MASK);
-    make_flag_getset!(getf_subtract, setf_subtract, SUBTRACT_FLAG_MASK);
-    make_flag_getset!(getf_half_carry, setf_half_carry, HALF_CARRY_FLAG_MASK);
-    make_flag_getset!(getf_carry, setf_carry, CARRY_FLAG_MASK);
+    make_flag_getset!(getf_zero, setf_zero, flag_masks::F_ZERO);
+    make_flag_getset!(getf_subtract, setf_subtract, flag_masks::F_SUB);
+    make_flag_getset!(getf_half_carry, setf_half_carry, flag_masks::F_HCARRY);
+    make_flag_getset!(getf_carry, setf_carry, flag_masks::F_CARRY);
 
     pub fn calculate_flags(&mut self, added_value: u8, new_value: u8, did_overflow: bool, was_subtraction: bool) {
         self.set_all_flags(
@@ -76,10 +80,10 @@ impl Registers {
     }
 
     pub fn set_all_flags(&mut self, zero: bool, subtract: bool, half_carry: bool, carry: bool) {
-        self.f = if zero        { ZERO_FLAG_MASK        } else { 0 }
-               | if subtract    { SUBTRACT_FLAG_MASK    } else { 0 }
-               | if half_carry  { HALF_CARRY_FLAG_MASK  } else { 0 }
-               | if carry       { CARRY_FLAG_MASK       } else { 0 };
+        self.f = if zero       { F_ZERO   } else { 0 }
+               | if subtract   { F_SUB    } else { 0 }
+               | if half_carry { F_HCARRY } else { 0 }
+               | if carry      { F_CARRY  } else { 0 };
     }
 
     pub fn clear_flags(&mut self) {
@@ -89,4 +93,4 @@ impl Registers {
 
 // Tests ==========================================================================================
 #[cfg(test)]
-mod tests;
+mod registers_tests;
