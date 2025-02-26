@@ -10,9 +10,6 @@ fn main() {
     cpu.regs.set_bc(0xBEEF);
     cpu.regs.set_de(0xF00D);
     cpu.regs.set_hl(0xCAFE);
-    println!("{cpu}");
-    println!("{:x}", cpu.regs.get_af());
-    println!("{:x}", cpu.regs.get_bc());
-    println!("{:x}", cpu.regs.get_de());
-    println!("{:x}", cpu.regs.get_hl());
+    println!("Example CPU:\n{cpu}");
+    cpu = CPU::default();
 }

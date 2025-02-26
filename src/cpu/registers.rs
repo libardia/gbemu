@@ -1,7 +1,7 @@
-const ZERO_FLAG_MASK: u8        = 0b_1000_0000;
-const SUBTRACT_FLAG_MASK: u8    = 0b_0100_0000;
-const HALF_CARRY_FLAG_MASK: u8  = 0b_0010_0000;
-const CARRY_FLAG_MASK: u8       = 0b_0001_0000;
+pub const ZERO_FLAG_MASK: u8        = 0b1000_0000;
+pub const SUBTRACT_FLAG_MASK: u8    = 0b0100_0000;
+pub const HALF_CARRY_FLAG_MASK: u8  = 0b0010_0000;
+pub const CARRY_FLAG_MASK: u8       = 0b0001_0000;
 
 #[derive(Default, Debug)]
 pub struct Registers {
@@ -59,65 +59,34 @@ impl Registers {
     make_flag_getset!(getf_subtract, setf_subtract, SUBTRACT_FLAG_MASK);
     make_flag_getset!(getf_half_carry, setf_half_carry, HALF_CARRY_FLAG_MASK);
     make_flag_getset!(getf_carry, setf_carry, CARRY_FLAG_MASK);
+
+    pub fn calculate_flags(&mut self, added_value: u8, new_value: u8, did_overflow: bool, was_subtraction: bool) {
+        self.set_all_flags(
+            // Set if the result of the operation was zero
+            new_value == 0,
+            // Set if the operation was a subtraction
+            was_subtraction,
+            // Set if adding the lower nibbles of the value and register A together result in a
+            // value bigger than 0xF. If the result is larger than 0xF than the addition caused a
+            // carry from the lower nibble to the upper nibble.
+            (self.a & 0xF) + (added_value & 0xF) > 0xF,
+            // Set if the operation fully overflowed a u8
+            did_overflow
+        );
+    }
+
+    pub fn set_all_flags(&mut self, zero: bool, subtract: bool, half_carry: bool, carry: bool) {
+        self.f = if zero        { ZERO_FLAG_MASK        } else { 0 }
+               | if subtract    { SUBTRACT_FLAG_MASK    } else { 0 }
+               | if half_carry  { HALF_CARRY_FLAG_MASK  } else { 0 }
+               | if carry       { CARRY_FLAG_MASK       } else { 0 };
+    }
+
+    pub fn clear_flags(&mut self) {
+        self.f = 0;
+    }
 }
 
-// TESTS
-
+// Tests ==========================================================================================
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    macro_rules! test_r16_getset {
-        ($test_get_name:ident, $get_func:ident, $test_set_name:ident, $set_func:ident, $r1:ident, $r2:ident) => {
-            #[test]
-            fn $test_get_name() {
-                let mut regs = Registers::default();
-                regs.$r1 = 0xDE;
-                regs.$r2 = 0xAD;
-                assert_eq!(regs.$get_func(), 0xDEAD);
-            }
-
-            #[test]
-            fn $test_set_name() {
-                let mut regs = Registers::default();
-                regs.$set_func(0xDEAD);
-                assert_eq!(regs.$r1, 0xDE);
-                assert_eq!(regs.$r2, 0xAD);
-            }
-        };
-    }
-
-    macro_rules! test_flag_getset {
-        ($test_get_name:ident, $get_func:ident, $test_set_name:ident, $set_func:ident, $mask:expr) => {
-            #[test]
-            fn $test_get_name() {
-                let mut regs = Registers::default();
-                regs.f = $mask;
-                assert!(regs.$get_func());
-                regs.f = !$mask;
-                assert!(!regs.$get_func())
-            }
-
-            #[test]
-            fn $test_set_name() {
-                let mut regs = Registers::default();
-                regs.f = !$mask;
-                regs.$set_func(true);
-                assert_eq!(regs.f, 0xFF);
-                regs.f = $mask;
-                regs.$set_func(false);
-                assert_eq!(regs.f, 0);
-            }
-        };
-    }
-
-    test_r16_getset!(test_get_af, get_af, test_set_af, set_af, a, f);
-    test_r16_getset!(test_get_bc, get_bc, test_set_bc, set_bc, b, c);
-    test_r16_getset!(test_get_de, get_de, test_set_de, set_de, d, e);
-    test_r16_getset!(test_get_hl, get_hl, test_set_hl, set_hl, h, l);
-
-    test_flag_getset!(test_getf_zero, getf_zero, test_setf_zero, setf_zero, ZERO_FLAG_MASK);
-    test_flag_getset!(test_getf_subtract, getf_subtract, test_setf_subtract, setf_subtract, SUBTRACT_FLAG_MASK);
-    test_flag_getset!(test_getf_half_carry, getf_half_carry, test_setf_half_carry, setf_half_carry, HALF_CARRY_FLAG_MASK);
-    test_flag_getset!(test_getf_carry, getf_carry, test_setf_carry, setf_carry, CARRY_FLAG_MASK);
-}
+mod registers_tests;
