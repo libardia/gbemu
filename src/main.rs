@@ -3,6 +3,7 @@ mod gba;
 use gba::*;
 
 fn main() {
-    let gba = GBA::new();
+    let mut gba = GBA::new();
+    gba.mainloop();
     println!("{gba:?}")
 }
