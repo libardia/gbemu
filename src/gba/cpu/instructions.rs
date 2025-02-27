@@ -79,9 +79,7 @@ pub enum Instruction {
     LD_mn16_sp(u16),
     LD_hl_sp_plus_e8(i8),
     LD_sp_hl,
-    POP_af,
     POP_r16(ArgR16STK),
-    PUSH_af,
     PUSH_r16(ArgR16STK),
 
     // Interrupt-related
