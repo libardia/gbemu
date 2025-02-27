@@ -1,6 +1,8 @@
 mod cpu;
 mod mmu;
 
+use std::{fmt, fmt::Display, fmt::Formatter};
+
 use cpu::{CPU, instructions::*};
 use mmu::MMU;
 
@@ -16,6 +18,13 @@ impl GBA {
     }
 
     pub fn mainloop(&mut self) {
-        self.cpu.execute(&mut self.mmu, Instruction::ADC_a_r8(ArgR8::A));
+        self.cpu.execute(&mut self.mmu, Instruction::ADD_a_r8(ArgR8::D));
+    }
+}
+
+
+impl Display for GBA {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.cpu)
     }
 }

@@ -2,7 +2,7 @@ mod registers;
 pub mod instructions;
 
 use registers::Registers;
-use instructions::*;
+use instructions::{*, Instruction::*};
 use std::{fmt, fmt::Display, fmt::Formatter};
 use super::MMU;
 
@@ -16,7 +16,7 @@ pub struct CPU  {
     pub regs: Registers,
 }
 
-macro_rules! ArgR8_to_a {
+macro_rules! value_at_ArgR8_to_a {
     ($callr:expr, $mmu:expr, $func:ident, $match_on:expr $(, $other_args:expr)*) => {
         match $match_on {
             ArgR8::B => $callr.regs.a = $callr.$func($callr.regs.b $(, $other_args)*),
@@ -43,42 +43,40 @@ impl CPU {
     }
 
     fn add_8bit(&mut self, value: u8, with_carry: bool) -> u8 {
-        let carry_value = if with_carry && self.regs.getf_carry() {1u16} else {0u16};
-        let mod_value = value as u16 + carry_value;
-        let add_result = self.regs.a as u16 + mod_value;
-        let final_value = (add_result & 0xFF) as u8;
-        let nibble_sum = (self.regs.a & 0xF) + ((mod_value & 0xF) as u8);
+        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
+        let (result, overflow1) = self.regs.a.overflowing_add(value);
+        let (result, overflow2) = result.overflowing_add(cv);
+        let nibble_sum = (self.regs.a & 0xF) + (value & 0xF) + cv;
         self.regs.set_all_flags(
-            final_value == 0,
+            result == 0,
             false,
             nibble_sum > 0xF,
-            add_result > 0xFF
+            overflow1 || overflow2
         );
-        final_value
+        result
     }
 
     fn sub_8bit(&mut self, value: u8, with_carry: bool) -> u8 {
-        let carry_value = if with_carry && self.regs.getf_carry() {1i16} else {0i16};
-        let mod_value = value as i16 - carry_value;
-        let sub_result = self.regs.a as i16 - mod_value;
-        let final_value = (sub_result & 0xFF) as u8;
-        let nibble_diff = ((self.regs.a as i8) & 0xF) - ((mod_value & 0xF) as i8);
+        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
+        let (result, overflow1) = self.regs.a.overflowing_sub(value);
+        let (result, overflow2) = result.overflowing_sub(cv);
+        let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
         self.regs.set_all_flags(
-            final_value == 0,
+            result == 0,
             true,
             nibble_diff < 0,
-            sub_result < 0
+            overflow1 || overflow2
         );
-        final_value
+        result
     }
 }
 
 impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
         match instruction {
-            Instruction::NOP => (),
-            Instruction::ADD_a_r8(target) => ArgR8_to_a!(self, mmu, add_8bit, target, false),
-            Instruction::ADC_a_r8(target) => ArgR8_to_a!(self, mmu, add_8bit, target, true),
+            NOP => (),
+            ADD_a_r8(target) => value_at_ArgR8_to_a!(self, mmu, add_8bit, target, false),
+            ADC_a_r8(target) => value_at_ArgR8_to_a!(self, mmu, add_8bit, target, true),
             _ => todo!()
         }
     }

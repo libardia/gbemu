@@ -165,3 +165,99 @@ pub enum ArgCOND {
     NC,
     C,
 }
+
+// pub fn inst_len(inst: Instruction) -> u8 {
+//     use Instruction::*;
+//     match inst {
+//         // Load (LD_dest_source)
+//         LD_r8_r8(_, _) => 1,
+//         LD_r8_n8(_, _) => 1,
+//         LD_r16_n16(_, _) => 1,
+//         LD_mr16_a(_) => 1,
+//         LD_mn16_a(_) => 1,
+//         LDH_mn8_a(_) => 1,
+//         LDH_mc_a => 1,
+//         LD_a_mr16(_) => 1,
+//         LD_a_mn16(_) => 1,
+//         LDH_a_mn16(_) => 1,
+//         LDH_a_mc => 1,
+//         // 8-bit arithmetic
+//         ADC_a_r8(_) => 1,
+//         ADC_a_n8(_) => 1,
+//         ADD_a_r8(_) => 1,
+//         ADD_a_n8(_) => 1,
+//         CP_a_r8(_) => 1,
+//         CP_a_n8(_) => 1,
+//         DEC_r8(_) => 1,
+//         INC_r8(_) => 1,
+//         SBC_a_r8(_) => 1,
+//         SBC_a_n8(_) => 1,
+//         SUB_a_r8(_) => 1,
+//         SUB_a_n8(_) => 1,
+//         // 16-bit arithmetic
+//         ADD_hl_r16(_) => 1,
+//         DEC_r16(_) => 1,
+//         INC_r16(_) => 1,
+//         // Bitwise logic
+//         AND_a_r8(_) => 1,
+//         AND_a_n8(_) => 1,
+//         CPL => 1,
+//         OR_a_r8(_) => 1,
+//         OR_a_n8(_) => 1,
+//         XOR_a_r8(_) => 1,
+//         XOR_a_n8(_) => 1,
+//         // Bit flags
+//         BIT_u3_r8(_, _) => 1,
+//         RES_u3_r8(_, _) => 1,
+//         SET_u3_r8(_, _) => 1,
+//         // Bit shift
+//         RL_r8(_) => 1,
+//         RLA => 1,
+//         RLC_r8(_) => 1,
+//         RLCA => 1,
+//         RR_r8(_) => 1,
+//         RRA => 1,
+//         RRC_r8(_) => 1,
+//         RRCA => 1,
+//         SLA_r8(_) => 1,
+//         SRA_r8(_) => 1,
+//         SRL_r8(_) => 1,
+//         SWAP_r8(_) => 1,
+//         // Jumps and subroutines
+//         CALL_n16(_) => 1,
+//         CALL_cc_n16(_, _) => 1,
+//         JP_hl => 1,
+//         JP_n16(_) => 1,
+//         JP_cc_n16(_, _) => 1,
+//         JR_n16(_) => 1,
+//         JR_cc_n16(_, _) => 1,
+//         RET_cc(_) => 1,
+//         RET => 1,
+//         RETI => 1,
+//         RST_vec(_) => 1,
+//         // Carry flag
+//         CCF => 1,
+//         SCF => 1,
+//         // Stack manipulation
+//         ADD_hl_sp => 1,
+//         ADD_sp_e8(_) => 1,
+//         DEC_sp => 1,
+//         INC_sp => 1,
+//         LD_sp_n16(_) => 1,
+//         LD_mn16_sp(_) => 1,
+//         LD_hl_sp_plus_e8(_) => 1,
+//         LD_sp_hl => 1,
+//         POP_af => 1,
+//         POP_r16(_) => 1,
+//         PUSH_af => 1,
+//         PUSH_r16(_) => 1,
+//         // Interrupt-related
+//         DI => 1,
+//         EI => 1,
+//         HALT => 1,
+//         // Miscellaneous
+//         DAA => 1,
+//         NOP => 1,
+//         STOP => 1
+//     }
+// }
