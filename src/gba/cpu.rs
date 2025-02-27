@@ -62,16 +62,9 @@ impl CPU {
         }
     }
 
-    fn guard_only_const(arg_r8: ArgR8) {
-        match arg_r8 {
-            ArgR8::CONST(_) => (),
-            _ => panic!("Only constants allowed here"),
-        }
-    }
-
-    fn add_8bit(&mut self, mmu: &MMU, target: ArgR8, with_carry: bool) {
+    fn add_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         // Load value from target
-        let value = self.get_value_at_r8(mmu, target);
+        let value = self.get_value_at_r8(mmu, operand);
 
         // Calculate
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
@@ -91,18 +84,26 @@ impl CPU {
         self.regs.a = result;
     }
 
-    fn sub_8bit(&mut self, value: u8, with_carry: bool) -> u8 {
+    fn sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+        // Load value from target
+        let value = self.get_value_at_r8(mmu, operand);
+
+        // Calculate
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
         let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
+
+        // Set flags
         self.regs.set_all_flags(
             result == 0,
             true,
             nibble_diff < 0,
             overflow1 || overflow2
         );
-        result
+
+        // Write result to A
+        self.regs.a = result;
     }
 }
 
@@ -125,8 +126,8 @@ impl CPU {
             CP_a_r8(operand) => todo!(),
             DEC_r8(target) => todo!(),
             INC_r8(target) => todo!(),
-            SBC_a_r8(operand) => todo!(),
-            SUB_a_r8(operand) => todo!(),
+            SBC_a_r8(operand) => self.sub_8bit(mmu, operand, true),
+            SUB_a_r8(operand) => self.sub_8bit(mmu, operand, false),
 
             // 16-bit arithmetic
             ADD_hl_r16(operand) => todo!(),
