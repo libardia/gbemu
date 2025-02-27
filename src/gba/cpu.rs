@@ -14,11 +14,14 @@ pub struct CPU {
     pub sp: u16,
     // The 8 main registers
     pub regs: Registers,
+    // Timers
+    pub m_time: u64,
+    pub t_time: u64,
 }
 
 impl CPU {
     pub fn new() -> Self {
-        CPU { pc: 0, sp: 0, regs: Registers::new() }
+        CPU { pc: 0, sp: 0, regs: Registers::new(), m_time: 0, t_time: 0 }
     }
 
     pub fn reset(&mut self) {
@@ -27,7 +30,12 @@ impl CPU {
         self.regs = Registers::new();
     }
 
-    fn get_value_at_r8(&self, mmu: &MMU, target: ArgR8) -> u8 {
+    fn add_m_time(&mut self, m: u64) {
+        self.m_time += m;
+        self.t_time = self.m_time * 4;
+    }
+
+    fn get_value_at_r8(&self, mmu: &MMU, target: &ArgR8) -> u8 {
         match target {
             ArgR8::B => self.regs.b,
             ArgR8::C => self.regs.c,
@@ -37,11 +45,11 @@ impl CPU {
             ArgR8::L => self.regs.l,
             ArgR8::MHL => mmu.read_byte(self.regs.get_hl()),
             ArgR8::A => self.regs.a,
-            ArgR8::CONST(value) => value,
+            ArgR8::CONST(value) => *value,
         }
     }
 
-    fn set_value_at_r8(&mut self, mmu: &mut MMU, target: ArgR8, value: u8) {
+    fn set_value_at_r8(&mut self, mmu: &mut MMU, target: &ArgR8, value: u8) {
         match target {
             ArgR8::B => self.regs.b = value,
             ArgR8::C => self.regs.c = value,
@@ -63,47 +71,55 @@ impl CPU {
     }
 
     fn add_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        // Load value from target
-        let value = self.get_value_at_r8(mmu, operand);
-
-        // Calculate
+        let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_add(value);
         let (result, overflow2) = result.overflowing_add(cv);
         let nibble_sum = (self.regs.a & 0xF) + (value & 0xF) + cv;
-
-        // Set flags
         self.regs.set_all_flags(
             result == 0,
             false,
             nibble_sum > 0xF,
             overflow1 || overflow2
         );
-
-        // Write result to A
         self.regs.a = result;
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
     fn sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        // Load value from target
-        let value = self.get_value_at_r8(mmu, operand);
-
-        // Calculate
+        let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
         let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
-
-        // Set flags
         self.regs.set_all_flags(
             result == 0,
             true,
             nibble_diff < 0,
             overflow1 || overflow2
         );
-
-        // Write result to A
         self.regs.a = result;
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
+    }
+
+    fn inc_8bit(&mut self, mmu: &mut MMU, target: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &target);
+        let (new_value, _) = value.overflowing_add(1);
+        self.regs.setf_zero(new_value == 0);
+        self.regs.setf_subtract(false);
+        self.regs.setf_half_carry(value & 0xF == 0xF);
+        self.set_value_at_r8(mmu, &target, new_value);
+        self.add_m_time(1);
+    }
+
+    fn dec_8bit(&mut self, mmu: &mut MMU, target: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &target);
+        let (new_value, _) = value.overflowing_sub(1);
+        self.regs.setf_zero(new_value == 0);
+        self.regs.setf_subtract(true);
+        self.regs.setf_half_carry(value & 0xF == 0);
+        self.set_value_at_r8(mmu, &target, new_value);
+        self.add_m_time(1);
     }
 }
 
@@ -124,8 +140,8 @@ impl CPU {
             ADC_a_r8(operand) => self.add_8bit(mmu, operand, true),
             ADD_a_r8(operand) => self.add_8bit(mmu, operand, false),
             CP_a_r8(operand) => todo!(),
-            DEC_r8(target) => todo!(),
-            INC_r8(target) => todo!(),
+            DEC_r8(target) => self.dec_8bit(mmu, target),
+            INC_r8(target) => self.inc_8bit(mmu, target),
             SBC_a_r8(operand) => self.sub_8bit(mmu, operand, true),
             SUB_a_r8(operand) => self.sub_8bit(mmu, operand, false),
 
@@ -207,12 +223,12 @@ impl Display for CPU {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let Registers { a, f, b, c, d, e, h, l } = &self.regs;
         write!(formatter, "+--------------------------+\n")?;
-        write!(formatter, "| PC: 0x{:0>4X}    SP: 0x{:0>4X} |\n", self.pc, self.sp)?;
-        write!(formatter, "| A:  0x{a:0>2X}      F:  0x{f:0>2X}   |\n")?;
+        write!(formatter, "| PC: 0x{:0>4X}    SP: 0x{:0>4X} | M-time: {}\n", self.pc, self.sp, self.m_time)?;
+        write!(formatter, "| A:  0x{:0>2X}      F:  {:0>4b}   | T-time: {}\n", a, f >> 4, self.t_time)?;
         write!(formatter, "| B:  0x{b:0>2X}      C:  0x{c:0>2X}   |\n")?;
         write!(formatter, "| D:  0x{d:0>2X}      E:  0x{e:0>2X}   |\n")?;
         write!(formatter, "| H:  0x{h:0>2X}      L:  0x{l:0>2X}   |\n")?;
-        write!(formatter, "+--------------------------+")
+        write!(formatter, "+--------------------------+\n")
     }
 }
 

@@ -18,7 +18,20 @@ impl GBA {
     }
 
     pub fn mainloop(&mut self) {
-        self.cpu.execute(&mut self.mmu, Instruction::ADD_a_r8(ArgR8::CONST(15)));
+        use Instruction::*;
+        let ops = [
+            ADD_a_r8(ArgR8::CONST(8)),
+            ADD_a_r8(ArgR8::CONST(35)),
+            ADD_a_r8(ArgR8::CONST(250)),
+            ADC_a_r8(ArgR8::A),
+            SUB_a_r8(ArgR8::CONST(0xFF)),
+            SUB_a_r8(ArgR8::A),
+        ];
+
+        for i in ops {
+            self.cpu.execute(&mut self.mmu, i);
+            println!("{:?}\n{}\n", i, self);
+        }
     }
 }
 
