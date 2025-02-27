@@ -128,7 +128,7 @@ pub enum ArgR16MEM {
     DE,
     HLI,
     HLD,
-    
+
     CONST(u16),
 }
 
@@ -164,6 +164,6 @@ pub enum ArgCOND {
 pub fn inst_len(inst: Instruction) -> u8 {
     use Instruction::*;
     match inst {
-        _ => todo!()
+        _ => todo!(),
     }
 }

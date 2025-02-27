@@ -1,13 +1,13 @@
-mod registers;
 pub mod instructions;
+mod registers;
 
-use registers::Registers;
-use instructions::{*, Instruction::*};
-use std::fmt::{self, Display, Formatter};
 use super::MMU;
+use instructions::{Instruction::*, *};
+use registers::Registers;
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
-pub struct CPU  {
+pub struct CPU {
     // Program counter
     pub pc: u16,
     // Stack pointer
@@ -58,7 +58,7 @@ impl CPU {
     fn guard_no_const(arg_r8: ArgR8) {
         match arg_r8 {
             ArgR8::CONST(_) => panic!("Constant not allowed here"),
-            _ => ()
+            _ => (),
         }
     }
 
@@ -118,7 +118,7 @@ impl CPU {
             LD_a_mr16(src_address) => todo!(),
             LDH_a_mn16(src_address) => todo!(),
             LDH_a_mc => todo!(),
-            
+
             // 8-bit arithmetic
             ADC_a_r8(src) => self.add_8bit(mmu, src, true),
             ADD_a_r8(src) => self.add_8bit(mmu, src, false),
@@ -127,23 +127,23 @@ impl CPU {
             INC_r8(target) => todo!(),
             SBC_a_r8(src) => todo!(),
             SUB_a_r8(src) => todo!(),
-            
+
             // 16-bit arithmetic
             ADD_hl_r16(arg_r16) => todo!(),
             DEC_r16(arg_r16) => todo!(),
             INC_r16(arg_r16) => todo!(),
-            
+
             // Bitwise logic
             AND_a_r8(arg_r8) => todo!(),
             CPL => todo!(),
             OR_a_r8(arg_r8) => todo!(),
             XOR_a_r8(arg_r8) => todo!(),
-            
+
             // Bit flags
             BIT_u3_r8(arg_u3, arg_r8) => todo!(),
             RES_u3_r8(arg_u3, arg_r8) => todo!(),
             SET_u3_r8(arg_u3, arg_r8) => todo!(),
-            
+
             // Bit shift
             RL_r8(arg_r8) => todo!(),
             RLA => todo!(),
@@ -157,7 +157,7 @@ impl CPU {
             SRA_r8(arg_r8) => todo!(),
             SRL_r8(arg_r8) => todo!(),
             SWAP_r8(arg_r8) => todo!(),
-            
+
             // Jumps and subroutines
             CALL_n16(_) => todo!(),
             CALL_cc_n16(arg_cond, _) => todo!(),
@@ -170,11 +170,11 @@ impl CPU {
             RET => todo!(),
             RETI => todo!(),
             RST_vec(arg_vec) => todo!(),
-            
+
             // Carry flag
             CCF => todo!(),
             SCF => todo!(),
-            
+
             // Stack manipulation
             ADD_hl_sp => todo!(),
             ADD_sp_e8(_) => todo!(),
@@ -188,12 +188,12 @@ impl CPU {
             POP_r16(arg_r16_stk) => todo!(),
             PUSH_af => todo!(),
             PUSH_r16(arg_r16_stk) => todo!(),
-            
+
             // Interrupt-related
             DI => todo!(),
             EI => todo!(),
             HALT => todo!(),
-            
+
             // Miscellaneous
             DAA => todo!(),
             NOP => (),
@@ -206,7 +206,7 @@ impl CPU {
 
 impl Display for CPU {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        let Registers {a, f, b, c, d, e, h, l} = &self.regs;
+        let Registers { a, f, b, c, d, e, h, l } = &self.regs;
         write!(formatter, "+--------------------------+\n")?;
         write!(formatter, "| PC: 0x{:0>4X}    SP: 0x{:0>4X} |\n", self.pc, self.sp)?;
         write!(formatter, "| A:  0x{a:0>2X}      F:  0x{f:0>2X}   |\n")?;
