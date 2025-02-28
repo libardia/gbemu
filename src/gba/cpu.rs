@@ -167,10 +167,6 @@ impl CPU {
 
 // Instruction functions
 impl CPU {
-    fn op_nop(&mut self) {
-        self.add_m_time(1);
-    }
-
     fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
@@ -311,7 +307,7 @@ impl CPU {
         self.add_m_time(2);
     }
 
-    fn bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
+    fn op_bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a & value;
 
@@ -322,7 +318,7 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 2, 1);
     }
 
-    fn bitwise_complement(&mut self) {
+    fn op_bitwise_complement(&mut self) {
         self.regs.a = !self.regs.a;
 
         self.regs.setf_subtract(true);
@@ -331,7 +327,7 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    fn bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
+    fn op_bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a | value;
 
@@ -342,7 +338,7 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 2, 1);
     }
 
-    fn bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
+    fn op_bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a ^ value;
 
@@ -353,7 +349,7 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 2, 1);
     }
 
-    fn bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8, bit_index: ArgU3) {
+    fn op_bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8, bit_index: ArgU3) {
         if matches!(operand, ArgR8::CONST(_)) {
             Self::panic_no_const();
         }
@@ -367,7 +363,7 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 3, 2);
     }
 
-    fn set_bit_r8(&mut self, mmu: &mut MMU, operand: ArgR8, bit_index: ArgU3, new_bit_value: bool) {
+    fn op_set_bit_r8(&mut self, mmu: &mut MMU, operand: ArgR8, bit_index: ArgU3, new_bit_value: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
 
         let new_value = if new_bit_value {
@@ -379,6 +375,10 @@ impl CPU {
         self.set_value_at_r8(mmu, &operand, new_value);
 
         self.add_variable_mtime_r8(operand, 4, 2);
+    }
+
+    fn op_nop(&mut self) {
+        self.add_m_time(1);
     }
 }
 
@@ -411,15 +411,15 @@ impl CPU {
             INC_r16(target) => self.op_inc16(target),
 
             // Bitwise logic
-            AND_a_r8(operand) => self.bitwise_and_r8(mmu, operand),
-            CPL => self.bitwise_complement(),
-            OR_a_r8(operand) => self.bitwise_or_r8(mmu, operand),
-            XOR_a_r8(operand) => self.bitwise_xor_r8(mmu, operand),
+            AND_a_r8(operand) => self.op_bitwise_and_r8(mmu, operand),
+            CPL => self.op_bitwise_complement(),
+            OR_a_r8(operand) => self.op_bitwise_or_r8(mmu, operand),
+            XOR_a_r8(operand) => self.op_bitwise_xor_r8(mmu, operand),
 
             // Bit flags
-            BIT_u3_r8(bit_index, operand) => self.bit_test_r8(mmu, operand, bit_index),
-            RES_u3_r8(bit_index, operand) => self.set_bit_r8(mmu, operand, bit_index, false),
-            SET_u3_r8(bit_index, operand) => self.set_bit_r8(mmu, operand, bit_index, true),
+            BIT_u3_r8(bit_index, operand) => self.op_bit_test_r8(mmu, operand, bit_index),
+            RES_u3_r8(bit_index, operand) => self.op_set_bit_r8(mmu, operand, bit_index, false),
+            SET_u3_r8(bit_index, operand) => self.op_set_bit_r8(mmu, operand, bit_index, true),
 
             // Bit shift
             RL_r8(target) => todo!(),
