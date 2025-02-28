@@ -168,9 +168,9 @@ impl CPU {
         self.regs.a = result;
 
         self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
-            1
-        } else {
             2
+        } else {
+            1
         });
     }
 
@@ -178,9 +178,9 @@ impl CPU {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
 
         self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
-            1
-        } else {
             2
+        } else {
+            1
         });
     }
 
@@ -188,9 +188,9 @@ impl CPU {
         self.do_sub8(mmu, operand, false);
 
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            1
-        } else {
             2
+        } else {
+            1
         });
     }
 
@@ -232,9 +232,9 @@ impl CPU {
         self.set_value_at_r8(mmu, &dest, value);
 
         self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {
-            1
-        } else {
             2
+        } else {
+            1
         });
     }
 
@@ -257,9 +257,9 @@ impl CPU {
         }
 
         self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {
-            2
-        } else {
             4
+        } else {
+            2
         });
     }
 
@@ -319,6 +319,60 @@ impl CPU {
 
         self.add_m_time(2);
     }
+
+    fn bitwise_and_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &operand);
+        let result = self.regs.a & value;
+
+        self.regs.set_all_flags(result == 0, false, true, false);
+
+        self.regs.a = result;
+
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
+            2
+        } else {
+            1
+        });
+    }
+
+    fn bitwise_complement(&mut self) {
+        self.regs.a = !self.regs.a;
+
+        self.regs.setf_subtract(true);
+        self.regs.setf_half_carry(true);
+
+        self.add_m_time(1);
+    }
+
+    fn bitwise_or_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &operand);
+        let result = self.regs.a | value;
+
+        self.regs.set_all_flags(result == 0, false, false, false);
+
+        self.regs.a = result;
+
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
+            2
+        } else {
+            1
+        });
+    }
+
+    fn bitwise_xor_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &operand);
+        let result = self.regs.a ^ value;
+
+        self.regs.set_all_flags(result == 0, false, false, false);
+
+        self.regs.a = result;
+
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
+            2
+        } else {
+            1
+        });
+    }
 }
 
 // Execute
@@ -350,10 +404,10 @@ impl CPU {
             INC_r16(target) => self.op_inc16(target),
 
             // Bitwise logic
-            AND_a_r8(operand) => todo!(),
-            CPL => todo!(),
-            OR_a_r8(operand) => todo!(),
-            XOR_a_r8(operand) => todo!(),
+            AND_a_r8(operand) => self.bitwise_and_r8(mmu, operand),
+            CPL => self.bitwise_complement(),
+            OR_a_r8(operand) => self.bitwise_or_r8(mmu, operand),
+            XOR_a_r8(operand) => self.bitwise_xor_r8(mmu, operand),
 
             // Bit flags
             BIT_u3_r8(bit, operand) => todo!(),
