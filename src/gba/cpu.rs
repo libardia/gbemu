@@ -86,7 +86,7 @@ impl CPU {
         }
     }
 
-    fn get_value_at_mr16(&mut self, mmu: &mut MMU, target: &ArgR16MEM) -> u8 {
+    fn get_value_at_mr16(&mut self, mmu: &MMU, target: &ArgR16MEM) -> u8 {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
@@ -311,7 +311,7 @@ impl CPU {
         self.add_m_time(2);
     }
 
-    fn bitwise_and_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+    fn bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a & value;
 
@@ -331,7 +331,7 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    fn bitwise_or_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+    fn bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a | value;
 
@@ -342,7 +342,7 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 2, 1);
     }
 
-    fn bitwise_xor_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
+    fn bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, &operand);
         let result = self.regs.a ^ value;
 
@@ -351,6 +351,10 @@ impl CPU {
         self.regs.a = result;
 
         self.add_variable_mtime_r8(operand, 2, 1);
+    }
+
+    fn bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8) {
+
     }
 }
 
