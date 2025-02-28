@@ -50,6 +50,24 @@ test_r16_getset!(test_get_de, get_de, test_set_de, set_de, d, e);
 test_r16_getset!(test_get_hl, get_hl, test_set_hl, set_hl, h, l);
 
 test_flag_getset!(test_getf_zero, getf_zero, test_setf_zero, setf_zero, F_ZERO);
-test_flag_getset!(test_getf_subtract, getf_subtract, test_setf_subtract, setf_subtract, F_SUB);
-test_flag_getset!(test_getf_half_carry, getf_half_carry, test_setf_half_carry, setf_half_carry, F_HCARRY);
-test_flag_getset!(test_getf_carry, getf_carry, test_setf_carry, setf_carry, F_CARRY);
+test_flag_getset!(
+    test_getf_subtract,
+    getf_subtract,
+    test_setf_subtract,
+    setf_subtract,
+    F_SUB
+);
+test_flag_getset!(
+    test_getf_half_carry,
+    getf_half_carry,
+    test_setf_half_carry,
+    setf_half_carry,
+    F_HCARRY
+);
+test_flag_getset!(
+    test_getf_carry,
+    getf_carry,
+    test_setf_carry,
+    setf_carry,
+    F_CARRY
+);

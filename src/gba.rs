@@ -3,7 +3,7 @@ mod mmu;
 
 use std::{fmt, fmt::Display, fmt::Formatter};
 
-use cpu::{CPU, instructions::*};
+use cpu::{instructions::*, CPU};
 use mmu::MMU;
 
 #[derive(Debug)]
@@ -14,7 +14,10 @@ pub struct GBA {
 
 impl GBA {
     pub fn new() -> Self {
-        GBA { cpu: CPU::new(), mmu: MMU::new() }
+        GBA {
+            cpu: CPU::new(),
+            mmu: MMU::new(),
+        }
     }
 
     pub fn mainloop(&mut self) {
@@ -34,7 +37,6 @@ impl GBA {
         }
     }
 }
-
 
 impl Display for GBA {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

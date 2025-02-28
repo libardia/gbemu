@@ -1,5 +1,5 @@
-use super::*;
 use super::registers::flag_masks::*;
+use super::*;
 
 macro_rules! test_add {
     ($test_name:ident, $target_enum:ident, $target:ident) => {
@@ -18,7 +18,7 @@ macro_rules! test_add {
             assert_eq!(cpu.regs.a, if target_is_a { 10 } else { 8 });
             // Flags should be 0: result was not zero, was not subtraction, no carrying
             assert_eq!(cpu.regs.f, 0);
-            
+
             cpu.reset();
             cpu.regs.a = 0b0000_1111; // = 0x0F = 15
             if !target_is_a {

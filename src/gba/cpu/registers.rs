@@ -1,3 +1,4 @@
+#[rustfmt::skip]
 pub mod flag_masks {
     pub const F_ZERO:   u8 = 0b1000_0000;
     pub const F_SUB:    u8 = 0b0100_0000;
@@ -52,6 +53,7 @@ macro_rules! make_flag_getset {
 }
 
 impl Registers {
+    #[rustfmt::skip]
     pub fn new() -> Self {
         Registers {
             a: 0, f: 0,
@@ -71,12 +73,22 @@ impl Registers {
     make_r16_getset!(get_hl, set_hl, h, l);
 
     // Getters and setters for the flags stored in the F register
+    #[rustfmt::skip]
     make_flag_getset!(getf_zero,       setf_zero,       F_ZERO);
+    #[rustfmt::skip]
     make_flag_getset!(getf_subtract,   setf_subtract,   F_SUB);
+    #[rustfmt::skip]
     make_flag_getset!(getf_half_carry, setf_half_carry, F_HCARRY);
+    #[rustfmt::skip]
     make_flag_getset!(getf_carry,      setf_carry,      F_CARRY);
 
-    pub fn calculate_flags(&mut self, added_value: u8, new_value: u8, did_overflow: bool, was_subtraction: bool) {
+    pub fn calculate_flags(
+        &mut self,
+        added_value: u8,
+        new_value: u8,
+        did_overflow: bool,
+        was_subtraction: bool,
+    ) {
         self.set_all_flags(
             // Set if the result of the operation was zero
             new_value == 0,
@@ -87,10 +99,11 @@ impl Registers {
             // carry from the lower nibble to the upper nibble.
             (self.a & 0xF) + (added_value & 0xF) > 0xF,
             // Set if the operation fully overflowed a u8
-            did_overflow
+            did_overflow,
         );
     }
 
+    #[rustfmt::skip]
     pub fn set_all_flags(&mut self, zero: bool, subtract: bool, half_carry: bool, carry: bool) {
         self.f = if zero       { F_ZERO   } else { 0 }
                | if subtract   { F_SUB    } else { 0 }
