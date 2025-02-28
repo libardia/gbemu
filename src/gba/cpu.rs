@@ -79,6 +79,7 @@ impl CPU {
             ArgR16MEM::HLD => self.regs.get_hl(),
             ArgR16MEM::CONST(c) => *c,
         };
+
         if matches!(target, ArgR16MEM::HLI) {
             let (v, _) = self.regs.get_hl().overflowing_add(1);
             self.regs.set_hl(v);
@@ -140,8 +141,10 @@ impl CPU {
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
         let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
+
         self.regs
             .set_all_flags(result == 0, true, nibble_diff < 0, overflow1 || overflow2);
+
         result
     }
 }
@@ -164,28 +167,31 @@ impl CPU {
 
         self.regs.a = result;
 
-        self.add_m_time(1);
-        if matches!(operand, ArgR8::CONST(_)) {
-            self.add_m_time(1);
-        }
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
+            1
+        } else {
+            2
+        });
     }
 
     fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
 
-        self.add_m_time(1);
-        if matches!(operand, ArgR8::CONST(_)) {
-            self.add_m_time(1);
-        }
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
+            1
+        } else {
+            2
+        });
     }
 
     fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
 
-        self.add_m_time(1);
-        if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            self.add_m_time(1);
-        }
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
+            1
+        } else {
+            2
+        });
     }
 
     fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
@@ -225,10 +231,11 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &dest, value);
 
-        self.add_m_time(1);
-        if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {
-            self.add_m_time(1);
-        }
+        self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {
+            1
+        } else {
+            2
+        });
     }
 
     fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
@@ -249,10 +256,11 @@ impl CPU {
             self.set_value_at_mr16(mmu, &address, self.regs.a);
         }
 
-        self.add_m_time(2);
-        if matches!(address, ArgR16MEM::CONST(_)) {
-            self.add_m_time(2);
-        }
+        self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {
+            2
+        } else {
+            4
+        });
     }
 
     fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
