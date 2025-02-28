@@ -20,6 +20,7 @@ pub struct CPU {
 }
 
 impl CPU {
+    #[rustfmt::skip]
     pub fn new() -> Self {
         CPU { pc: 0, sp: 0, regs: Registers::new(), m_time: 0, t_time: 0 }
     }
@@ -35,6 +36,10 @@ impl CPU {
         self.t_time = self.m_time * 4;
     }
 
+    fn panic_no_const() -> ! {
+        panic!("Constant not allowed here")
+    }
+
     fn get_value_at_r8(&self, mmu: &MMU, target: &ArgR8) -> u8 {
         match target {
             ArgR8::B => self.regs.b,
@@ -45,7 +50,7 @@ impl CPU {
             ArgR8::L => self.regs.l,
             ArgR8::MHL => mmu.read_byte(self.regs.get_hl()),
             ArgR8::A => self.regs.a,
-            ArgR8::CONST(value) => *value,
+            ArgR8::CONST(c) => *c,
         }
     }
 
@@ -54,7 +59,7 @@ impl CPU {
             ArgR16::BC => self.regs.get_bc(),
             ArgR16::DE => self.regs.get_de(),
             ArgR16::HL => self.regs.get_hl(),
-            ArgR16::CONST(value) => *value,
+            ArgR16::CONST(c) => *c,
         }
     }
 
@@ -64,7 +69,7 @@ impl CPU {
             ArgR16MEM::DE => self.regs.get_de(),
             ArgR16MEM::HLI => self.regs.get_hl(),
             ArgR16MEM::HLD => self.regs.get_hl(),
-            ArgR16MEM::CONST(value) => *value,
+            ArgR16MEM::CONST(c) => *c,
         };
         if matches!(target, ArgR16MEM::HLI) {
             let (v, _) = self.regs.get_hl().overflowing_add(1);
@@ -73,7 +78,28 @@ impl CPU {
             let (v, _) = self.regs.get_hl().overflowing_sub(1);
             self.regs.set_hl(v);
         }
+
         mmu.read_byte(address)
+    }
+
+    fn set_value_at_mr16(&mut self, mmu: &mut MMU, target: &ArgR16MEM, value: u8) {
+        let address = match target {
+            ArgR16MEM::BC => self.regs.get_bc(),
+            ArgR16MEM::DE => self.regs.get_de(),
+            ArgR16MEM::HLI => {
+                let address = self.regs.get_hl();
+                self.regs.set_hl(address.overflowing_add(1).0);
+                address
+            },
+            ArgR16MEM::HLD => {
+                let address = self.regs.get_hl();
+                self.regs.set_hl(address.overflowing_sub(1).0);
+                address
+            },
+            ArgR16MEM::CONST(c) => *c,
+        };
+
+        mmu.write_byte(address, value);
     }
 
     fn set_value_at_r8(&mut self, mmu: &mut MMU, target: &ArgR8, value: u8) {
@@ -86,7 +112,7 @@ impl CPU {
             ArgR8::L => self.regs.l = value,
             ArgR8::MHL => mmu.write_byte(self.regs.get_hl(), value),
             ArgR8::A => self.regs.a = value,
-            ArgR8::CONST(_) => panic!("Constant not allowed here"),
+            ArgR8::CONST(_) => Self::panic_no_const(),
         }
     }
 
@@ -95,10 +121,30 @@ impl CPU {
             ArgR16::BC => self.regs.set_bc(value),
             ArgR16::DE => self.regs.set_de(value),
             ArgR16::HL => self.regs.set_hl(value),
-            ArgR16::CONST(_) => panic!("Constant not allowed here"),
+            ArgR16::CONST(_) => Self::panic_no_const(),
         }
     }
 
+    #[rustfmt::skip]
+    fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
+        let value = self.get_value_at_r8(mmu, &operand);
+        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
+        let (result, overflow1) = self.regs.a.overflowing_sub(value);
+        let (result, overflow2) = result.overflowing_sub(cv);
+        let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
+        self.regs.set_all_flags(
+            result == 0,
+            true,
+            nibble_diff < 0,
+            overflow1 || overflow2
+        );
+        result
+    }
+}
+
+// Instruction functions
+impl CPU {
+    #[rustfmt::skip]
     fn add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
@@ -115,26 +161,13 @@ impl CPU {
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
-        let value = self.get_value_at_r8(mmu, &operand);
-        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
-        let (result, overflow1) = self.regs.a.overflowing_sub(value);
-        let (result, overflow2) = result.overflowing_sub(cv);
-        let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
-        self.regs.set_all_flags(
-            result == 0,
-            true,
-            nibble_diff < 0,
-            overflow1 || overflow2
-        );
-        result
-    }
-
+    #[rustfmt::skip]
     fn sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
+    #[rustfmt::skip]
     fn compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
@@ -163,24 +196,31 @@ impl CPU {
     fn load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
         let value = self.get_value_at_r8(mmu, &src);
         self.set_value_at_r8(mmu, &dest, value);
+        
     }
 
-    fn load8_m16(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR16MEM) {
-        let value = self.get_value_at_mr16(mmu, &src);
-        self.set_value_at_r8(mmu, &dest, value);
+    fn load_mr16_to_a(&mut self, mmu: &mut MMU, src_address: ArgR16MEM) {
+        let value = self.get_value_at_mr16(mmu, &src_address);
+        self.set_value_at_r8(mmu, &ArgR8::A, value);
+    }
+
+    fn load_a_to_mr16(&mut self, mmu: &mut MMU, dest_address: ArgR16MEM) {
+        self.set_value_at_mr16(mmu, &dest_address, self.regs.a);
     }
 }
 
+
+// Execute
 impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
         match instruction {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.load8(mmu, dest, src),
-            LD_r16_n16(dest, value) => self.set_value_at_r16(&dest, value),
-            LD_mr16_a(dest_address) => self.load8_m16(mmu, ArgR8::A, dest_address),
+            LD_r16_n16(dest, value) => todo!(),
+            LD_mr16_a(dest_address) => self.load_a_to_mr16(mmu, dest_address),
             LDH_mn16_a(dest_address) => todo!(),
             LDH_mc_a => todo!(),
-            LD_a_mr16(src_address) => todo!(),
+            LD_a_mr16(src_address) => self.load_mr16_to_a(mmu, src_address),
             LDH_a_mn16(src_address) => todo!(),
             LDH_a_mc => todo!(),
 
@@ -268,6 +308,7 @@ impl CPU {
 // Display ========================================================================================
 
 impl Display for CPU {
+    #[rustfmt::skip]
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let Registers { a, f, b, c, d, e, h, l } = &self.regs;
         write!(formatter, "+--------------------------+\n")?;
