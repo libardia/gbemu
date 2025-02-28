@@ -86,7 +86,7 @@ impl CPU {
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+    fn do_sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
@@ -98,7 +98,16 @@ impl CPU {
             nibble_diff < 0,
             overflow1 || overflow2
         );
-        self.regs.a = result;
+        result
+    }
+
+    fn sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+        self.regs.a = self.do_sub_8bit(mmu, operand, with_carry);
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
+    }
+
+    fn compare_8bit(&mut self, mmu: &MMU, operand: ArgR8) {
+        self.do_sub_8bit(mmu, operand, false);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
@@ -139,7 +148,7 @@ impl CPU {
             // 8-bit arithmetic
             ADC_a_r8(operand) => self.add_8bit(mmu, operand, true),
             ADD_a_r8(operand) => self.add_8bit(mmu, operand, false),
-            CP_a_r8(operand) => todo!(),
+            CP_a_r8(operand) => self.compare_8bit(mmu, operand),
             DEC_r8(target) => self.dec_8bit(mmu, target),
             INC_r8(target) => self.inc_8bit(mmu, target),
             SBC_a_r8(operand) => self.sub_8bit(mmu, operand, true),
