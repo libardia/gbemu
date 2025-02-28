@@ -287,7 +287,7 @@ impl CPU {
         self.add_m_time(2);
     }
 
-    fn op_addr16_to_hl(&mut self, operand: ArgR16) {
+    fn op_add_r16_to_hl(&mut self, operand: ArgR16) {
         if matches!(operand, ArgR16::CONST(_)) {
             Self::panic_no_const();
         }
@@ -345,7 +345,7 @@ impl CPU {
             SUB_a_r8(operand) => self.op_sub8(mmu, operand, false),
 
             // 16-bit arithmetic
-            ADD_hl_r16(operand) => self.op_addr16_to_hl(operand),
+            ADD_hl_r16(operand) => self.op_add_r16_to_hl(operand),
             DEC_r16(target) => self.op_dec16(target),
             INC_r16(target) => self.op_inc16(target),
 
