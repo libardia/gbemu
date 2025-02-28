@@ -90,12 +90,12 @@ impl CPU {
                 let address = self.regs.get_hl();
                 self.regs.set_hl(address.overflowing_add(1).0);
                 address
-            },
+            }
             ArgR16MEM::HLD => {
                 let address = self.regs.get_hl();
                 self.regs.set_hl(address.overflowing_sub(1).0);
                 address
-            },
+            }
             ArgR16MEM::CONST(c) => *c,
         };
 
@@ -196,7 +196,6 @@ impl CPU {
     fn load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
         let value = self.get_value_at_r8(mmu, &src);
         self.set_value_at_r8(mmu, &dest, value);
-        
     }
 
     fn load_mr16_to_a(&mut self, mmu: &mut MMU, src_address: ArgR16MEM) {
@@ -208,7 +207,6 @@ impl CPU {
         self.set_value_at_mr16(mmu, &dest_address, self.regs.a);
     }
 }
-
 
 // Execute
 impl CPU {
