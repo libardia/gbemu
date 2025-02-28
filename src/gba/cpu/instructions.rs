@@ -138,14 +138,14 @@ pub enum ArgR16MEM {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgU3 {
-    Bit0,
-    Bit1,
-    Bit2,
-    Bit3,
-    Bit4,
-    Bit5,
-    Bit6,
-    Bit7,
+    Bit0 = 0b0000_0001,
+    Bit1 = 0b0000_0010,
+    Bit2 = 0b0000_0100,
+    Bit3 = 0b0000_1000,
+    Bit4 = 0b0001_0000,
+    Bit5 = 0b0010_0000,
+    Bit6 = 0b0100_0000,
+    Bit7 = 0b1000_0000,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

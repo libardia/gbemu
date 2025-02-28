@@ -353,8 +353,32 @@ impl CPU {
         self.add_variable_mtime_r8(operand, 2, 1);
     }
 
-    fn bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8) {
+    fn bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8, bit_index: ArgU3) {
+        if matches!(operand, ArgR8::CONST(_)) {
+            Self::panic_no_const();
+        }
 
+        let value = self.get_value_at_r8(mmu, &operand);
+
+        self.regs.setf_zero(value & (bit_index as u8) == 0);
+        self.regs.setf_subtract(false);
+        self.regs.setf_half_carry(true);
+
+        self.add_variable_mtime_r8(operand, 3, 2);
+    }
+
+    fn set_bit_r8(&mut self, mmu: &mut MMU, operand: ArgR8, bit_index: ArgU3, new_bit_value: bool) {
+        let value = self.get_value_at_r8(mmu, &operand);
+
+        let new_value = if new_bit_value {
+            value | (bit_index as u8)
+        } else {
+            value & !(bit_index as u8)
+        };
+
+        self.set_value_at_r8(mmu, &operand, new_value);
+
+        self.add_variable_mtime_r8(operand, 4, 2);
     }
 }
 
@@ -393,9 +417,9 @@ impl CPU {
             XOR_a_r8(operand) => self.bitwise_xor_r8(mmu, operand),
 
             // Bit flags
-            BIT_u3_r8(bit, operand) => todo!(),
-            RES_u3_r8(bit, operand) => todo!(),
-            SET_u3_r8(bit, operand) => todo!(),
+            BIT_u3_r8(bit_index, operand) => self.bit_test_r8(mmu, operand, bit_index),
+            RES_u3_r8(bit_index, operand) => self.set_bit_r8(mmu, operand, bit_index, false),
+            SET_u3_r8(bit_index, operand) => self.set_bit_r8(mmu, operand, bit_index, true),
 
             // Bit shift
             RL_r8(target) => todo!(),
