@@ -43,6 +43,22 @@ impl CPU {
         self.t_time = self.m_time * 4;
     }
 
+    fn add_variable_mtime_r8(&mut self, arg: ArgR8, slow: u64, fast: u64) {
+        if matches!(arg, ArgR8::CONST(_) | ArgR8::MHL) {
+            self.add_m_time(slow);
+        } else {
+            self.add_m_time(fast);
+        }
+    }
+
+    fn add_variable_mtime_r16mem(&mut self, arg: ArgR16MEM, slow: u64, fast: u64) {
+        if matches!(arg, ArgR16MEM::CONST(_)) {
+            self.add_m_time(slow);
+        } else {
+            self.add_m_time(fast);
+        }
+    }
+
     fn panic_no_const() -> ! {
         panic!("Constant not allowed here")
     }
@@ -167,31 +183,19 @@ impl CPU {
 
         self.regs.a = result;
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 
     fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_)) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 
     fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 
     fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
@@ -231,20 +235,11 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &dest, value);
 
-        self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(src, 2, 1);
     }
 
     fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
-        match dest {
-            ArgR16::BC => self.regs.set_bc(value),
-            ArgR16::DE => self.regs.set_de(value),
-            ArgR16::HL => self.regs.set_hl(value),
-            ArgR16::CONST(_) => Self::panic_no_const(),
-        }
+        self.set_value_at_r16(&dest, value);
 
         self.add_m_time(3);
     }
@@ -256,11 +251,7 @@ impl CPU {
             self.set_value_at_mr16(mmu, &address, self.regs.a);
         }
 
-        self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {
-            4
-        } else {
-            2
-        });
+        self.add_variable_mtime_r16mem(address, 4, 2);
     }
 
     fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
@@ -328,11 +319,7 @@ impl CPU {
 
         self.regs.a = result;
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 
     fn bitwise_complement(&mut self) {
@@ -352,11 +339,7 @@ impl CPU {
 
         self.regs.a = result;
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 
     fn bitwise_xor_r8(&mut self, mmu: &mut MMU, operand: ArgR8) {
@@ -367,11 +350,7 @@ impl CPU {
 
         self.regs.a = result;
 
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
-            2
-        } else {
-            1
-        });
+        self.add_variable_mtime_r8(operand, 2, 1);
     }
 }
 
