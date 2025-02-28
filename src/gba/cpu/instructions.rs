@@ -3,7 +3,7 @@
 // https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     // Load (LD_dest_source)
     LD_r8_r8(ArgR8, ArgR8),
@@ -94,7 +94,7 @@ pub enum Instruction {
     STOP,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR8 {
     B,
     C,
@@ -108,7 +108,7 @@ pub enum ArgR8 {
     CONST(u8),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16 {
     BC,
     DE,
@@ -117,7 +117,7 @@ pub enum ArgR16 {
     CONST(u16),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16STK {
     BC,
     DE,
@@ -125,17 +125,18 @@ pub enum ArgR16STK {
     AF,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16MEM {
     BC,
     DE,
+    HL,
     HLI,
     HLD,
 
     CONST(u16),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgU3 {
     Bit0,
     Bit1,
@@ -147,7 +148,7 @@ pub enum ArgU3 {
     Bit7,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgVEC {
     vec0x00,
     vec0x08,
@@ -159,7 +160,7 @@ pub enum ArgVEC {
     vec0x38,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgCOND {
     NZ,
     Z,

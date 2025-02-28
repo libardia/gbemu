@@ -14,7 +14,7 @@ pub struct CPU {
     pub sp: u16,
     // The 8 main registers
     pub regs: Registers,
-    // Timers
+    // Timers (emulation purposes only, not in real hardware)
     pub m_time: u64,
     pub t_time: u64,
 }
@@ -29,6 +29,8 @@ impl CPU {
         self.pc = 0;
         self.sp = 0;
         self.regs = Registers::new();
+        self.m_time = 0;
+        self.t_time = 0;
     }
 
     fn add_m_time(&mut self, m: u64) {
@@ -67,6 +69,7 @@ impl CPU {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
+            ArgR16MEM::HL => self.regs.get_hl(),
             ArgR16MEM::HLI => self.regs.get_hl(),
             ArgR16MEM::HLD => self.regs.get_hl(),
             ArgR16MEM::CONST(c) => *c,
@@ -86,6 +89,7 @@ impl CPU {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
+            ArgR16MEM::HL => self.regs.get_hl(),
             ArgR16MEM::HLI => {
                 let address = self.regs.get_hl();
                 self.regs.set_hl(address.overflowing_add(1).0);
@@ -144,6 +148,10 @@ impl CPU {
 
 // Instruction functions
 impl CPU {
+    fn nop(&mut self) {
+        self.add_m_time(1);
+    }
+
     #[rustfmt::skip]
     fn add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
@@ -193,18 +201,57 @@ impl CPU {
         self.add_m_time(1);
     }
 
+    #[rustfmt::skip]
     fn load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
+        if dest == src {
+            // No op if src == dest
+            self.nop();
+            return;
+        }
+
         let value = self.get_value_at_r8(mmu, &src);
         self.set_value_at_r8(mmu, &dest, value);
+        self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1});
     }
 
-    fn load_mr16_to_a(&mut self, mmu: &mut MMU, src_address: ArgR16MEM) {
-        let value = self.get_value_at_mr16(mmu, &src_address);
-        self.set_value_at_r8(mmu, &ArgR8::A, value);
+    fn load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
+        match dest {
+            ArgR16::BC => self.regs.set_bc(value),
+            ArgR16::DE => self.regs.set_de(value),
+            ArgR16::HL => self.regs.set_hl(value),
+            ArgR16::CONST(_) => Self::panic_no_const(),
+        }
+        self.add_m_time(3);
     }
 
-    fn load_a_to_mr16(&mut self, mmu: &mut MMU, dest_address: ArgR16MEM) {
-        self.set_value_at_mr16(mmu, &dest_address, self.regs.a);
+    #[rustfmt::skip]
+    fn load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
+        if a_is_dest {
+            self.regs.a = self.get_value_at_mr16(mmu, &address);
+        } else {
+            self.set_value_at_mr16(mmu, &address, self.regs.a);
+        }
+        self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {4} else {2});
+    }
+
+    fn loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
+        let address = 0xFF + (half_address as u16);
+        if a_is_dest {
+            self.regs.a = mmu.read_byte(address);
+        } else {
+            mmu.write_byte(address, self.regs.a);
+        }
+        self.add_m_time(3);
+    }
+
+    fn loadhigh_between_a_mc(&mut self, mmu: &mut MMU, a_is_dest: bool) {
+        let address = 0xFF00 + (self.regs.c as u16);
+        if a_is_dest {
+            self.regs.a = mmu.read_byte(address);
+        } else {
+            mmu.write_byte(address, self.regs.a);
+        }
+        self.add_m_time(2);
     }
 }
 
@@ -214,13 +261,13 @@ impl CPU {
         match instruction {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.load8(mmu, dest, src),
-            LD_r16_n16(dest, value) => todo!(),
-            LD_mr16_a(dest_address) => self.load_a_to_mr16(mmu, dest_address),
-            LDH_mn16_a(dest_address) => todo!(),
-            LDH_mc_a => todo!(),
-            LD_a_mr16(src_address) => self.load_mr16_to_a(mmu, src_address),
-            LDH_a_mn16(src_address) => todo!(),
-            LDH_a_mc => todo!(),
+            LD_r16_n16(dest, value) => self.load_const_to_r16(dest, value),
+            LD_mr16_a(address) => self.load_between_a_mr16(mmu, address, false),
+            LDH_mn16_a(half_address) => self.loadhigh_between_a_mn16(mmu, half_address, false),
+            LDH_mc_a => self.loadhigh_between_a_mc(mmu, false),
+            LD_a_mr16(address) => self.load_between_a_mr16(mmu, address, true),
+            LDH_a_mn16(half_address) => self.loadhigh_between_a_mn16(mmu, half_address, true),
+            LDH_a_mc => self.loadhigh_between_a_mc(mmu, true),
 
             // 8-bit arithmetic
             ADC_a_r8(operand) => self.add8(mmu, operand, true),
@@ -297,7 +344,7 @@ impl CPU {
 
             // Miscellaneous
             DAA => todo!(),
-            NOP => (),
+            NOP => self.nop(),
             STOP => todo!(),
         }
     }
