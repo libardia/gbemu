@@ -70,7 +70,7 @@ impl CPU {
         }
     }
 
-    fn add_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+    fn add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_add(value);
@@ -86,7 +86,7 @@ impl CPU {
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn do_sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
+    fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
@@ -101,17 +101,17 @@ impl CPU {
         result
     }
 
-    fn sub_8bit(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        self.regs.a = self.do_sub_8bit(mmu, operand, with_carry);
+    fn sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+        self.regs.a = self.do_sub8(mmu, operand, with_carry);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn compare_8bit(&mut self, mmu: &MMU, operand: ArgR8) {
-        self.do_sub_8bit(mmu, operand, false);
+    fn compare8(&mut self, mmu: &MMU, operand: ArgR8) {
+        self.do_sub8(mmu, operand, false);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn inc_8bit(&mut self, mmu: &mut MMU, target: ArgR8) {
+    fn inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
         let (new_value, _) = value.overflowing_add(1);
         self.regs.setf_zero(new_value == 0);
@@ -121,7 +121,7 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    fn dec_8bit(&mut self, mmu: &mut MMU, target: ArgR8) {
+    fn dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
         let (new_value, _) = value.overflowing_sub(1);
         self.regs.setf_zero(new_value == 0);
@@ -129,6 +129,10 @@ impl CPU {
         self.regs.setf_half_carry(value & 0xF == 0);
         self.set_value_at_r8(mmu, &target, new_value);
         self.add_m_time(1);
+    }
+
+    fn load8(&mut self, mmu: &mut MMU) {
+        
     }
 }
 
@@ -146,13 +150,13 @@ impl CPU {
             LDH_a_mc => todo!(),
 
             // 8-bit arithmetic
-            ADC_a_r8(operand) => self.add_8bit(mmu, operand, true),
-            ADD_a_r8(operand) => self.add_8bit(mmu, operand, false),
-            CP_a_r8(operand) => self.compare_8bit(mmu, operand),
-            DEC_r8(target) => self.dec_8bit(mmu, target),
-            INC_r8(target) => self.inc_8bit(mmu, target),
-            SBC_a_r8(operand) => self.sub_8bit(mmu, operand, true),
-            SUB_a_r8(operand) => self.sub_8bit(mmu, operand, false),
+            ADC_a_r8(operand) => self.add8(mmu, operand, true),
+            ADD_a_r8(operand) => self.add8(mmu, operand, false),
+            CP_a_r8(operand) => self.compare8(mmu, operand),
+            DEC_r8(target) => self.dec8(mmu, target),
+            INC_r8(target) => self.inc8(mmu, target),
+            SBC_a_r8(operand) => self.sub8(mmu, operand, true),
+            SUB_a_r8(operand) => self.sub8(mmu, operand, false),
 
             // 16-bit arithmetic
             ADD_hl_r16(operand) => todo!(),
