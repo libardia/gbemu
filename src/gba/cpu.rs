@@ -20,9 +20,14 @@ pub struct CPU {
 }
 
 impl CPU {
-    #[rustfmt::skip]
     pub fn new() -> Self {
-        CPU { pc: 0, sp: 0, regs: Registers::new(), m_time: 0, t_time: 0 }
+        CPU {
+            pc: 0,
+            sp: 0,
+            regs: Registers::new(),
+            m_time: 0,
+            t_time: 0,
+        }
     }
 
     pub fn reset(&mut self) {
@@ -129,19 +134,18 @@ impl CPU {
         }
     }
 
-    #[rustfmt::skip]
     fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
         let value = self.get_value_at_r8(mmu, &operand);
-        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
+        let cv = if with_carry && self.regs.getf_carry() {
+            1
+        } else {
+            0
+        };
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
         let nibble_diff = ((self.regs.a & 0xF) as i8) - ((value & 0xF) as i8) - (cv as i8);
-        self.regs.set_all_flags(
-            result == 0,
-            true,
-            nibble_diff < 0,
-            overflow1 || overflow2
-        );
+        self.regs
+            .set_all_flags(result == 0, true, nibble_diff < 0, overflow1 || overflow2);
         result
     }
 }
@@ -152,56 +156,73 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    #[rustfmt::skip]
     fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
-        let cv = if with_carry && self.regs.getf_carry() {1} else {0};
+        let cv = if with_carry && self.regs.getf_carry() {
+            1
+        } else {
+            0
+        };
         let (result, overflow1) = self.regs.a.overflowing_add(value);
         let (result, overflow2) = result.overflowing_add(cv);
         let nibble_sum = (self.regs.a & 0xF) + (value & 0xF) + cv;
-        self.regs.set_all_flags(
-            result == 0,
-            false,
-            nibble_sum > 0xF,
-            overflow1 || overflow2
-        );
+
+        self.regs
+            .set_all_flags(result == 0, false, nibble_sum > 0xF, overflow1 || overflow2);
+
         self.regs.a = result;
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
+
+        self.add_m_time(1);
+        if matches!(operand, ArgR8::CONST(_)) {
+            self.add_m_time(1);
+        }
     }
 
-    #[rustfmt::skip]
     fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
+
+        self.add_m_time(1);
+        if matches!(operand, ArgR8::CONST(_)) {
+            self.add_m_time(1);
+        }
     }
 
-    #[rustfmt::skip]
     fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
-        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
+
+        self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {
+            2
+        } else {
+            1
+        })
     }
 
     fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
         let new_value = value.overflowing_add(1).0;
+
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(value & 0xF == 0xF);
+
         self.set_value_at_r8(mmu, &target, new_value);
+
         self.add_m_time(1);
     }
 
     fn op_dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
         let new_value = value.overflowing_sub(1).0;
+
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(true);
         self.regs.setf_half_carry(value & 0xF == 0);
+
         self.set_value_at_r8(mmu, &target, new_value);
+
         self.add_m_time(1);
     }
 
-    #[rustfmt::skip]
     fn op_load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
         if dest == src {
             // No op if src == dest
@@ -210,8 +231,14 @@ impl CPU {
         }
 
         let value = self.get_value_at_r8(mmu, &src);
+
         self.set_value_at_r8(mmu, &dest, value);
-        self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1});
+
+        self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {
+            2
+        } else {
+            1
+        });
     }
 
     fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
@@ -221,36 +248,45 @@ impl CPU {
             ArgR16::HL => self.regs.set_hl(value),
             ArgR16::CONST(_) => Self::panic_no_const(),
         }
+
         self.add_m_time(3);
     }
 
-    #[rustfmt::skip]
     fn op_load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
         if a_is_dest {
             self.regs.a = self.get_value_at_mr16(mmu, &address);
         } else {
             self.set_value_at_mr16(mmu, &address, self.regs.a);
         }
-        self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {4} else {2});
+
+        self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {
+            4
+        } else {
+            2
+        });
     }
 
     fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
         let address = 0xFF + (half_address as u16);
+
         if a_is_dest {
             self.regs.a = mmu.read_byte(address);
         } else {
             mmu.write_byte(address, self.regs.a);
         }
+
         self.add_m_time(3);
     }
 
     fn op_loadhigh_between_a_mc(&mut self, mmu: &mut MMU, a_is_dest: bool) {
         let address = 0xFF00 + (self.regs.c as u16);
+
         if a_is_dest {
             self.regs.a = mmu.read_byte(address);
         } else {
             mmu.write_byte(address, self.regs.a);
         }
+
         self.add_m_time(2);
     }
 }
