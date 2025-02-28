@@ -286,6 +286,39 @@ impl CPU {
 
         self.add_m_time(2);
     }
+
+    fn op_addr16_to_hl(&mut self, operand: ArgR16) {
+        if matches!(operand, ArgR16::CONST(_)) {
+            Self::panic_no_const();
+        }
+
+        let lhs = self.regs.get_hl();
+        let rhs = self.get_value_at_r16(&operand);
+        let (result, overflow) = lhs.overflowing_add(rhs);
+        let half_carry = (lhs & 0x0FFF) + (rhs & 0x0FFF) > 0x0FFF;
+
+        self.regs.setf_subtract(false);
+        self.regs.setf_half_carry(half_carry);
+        self.regs.setf_carry(overflow);
+
+        self.regs.set_hl(result);
+
+        self.add_m_time(2);
+    }
+
+    fn op_inc16(&mut self, target: ArgR16) {
+        let value = self.get_value_at_r16(&target);
+        self.set_value_at_r16(&target, value.overflowing_add(1).0);
+
+        self.add_m_time(2);
+    }
+
+    fn op_dec16(&mut self, target: ArgR16) {
+        let value = self.get_value_at_r16(&target);
+        self.set_value_at_r16(&target, value.overflowing_sub(1).0);
+
+        self.add_m_time(2);
+    }
 }
 
 // Execute
@@ -312,9 +345,9 @@ impl CPU {
             SUB_a_r8(operand) => self.op_sub8(mmu, operand, false),
 
             // 16-bit arithmetic
-            ADD_hl_r16(operand) => todo!(),
-            DEC_r16(target) => todo!(),
-            INC_r16(target) => todo!(),
+            ADD_hl_r16(operand) => self.op_addr16_to_hl(operand),
+            DEC_r16(target) => self.op_dec16(target),
+            INC_r16(target) => self.op_inc16(target),
 
             // Bitwise logic
             AND_a_r8(operand) => todo!(),
