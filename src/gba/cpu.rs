@@ -148,12 +148,12 @@ impl CPU {
 
 // Instruction functions
 impl CPU {
-    fn nop(&mut self) {
+    fn op_nop(&mut self) {
         self.add_m_time(1);
     }
 
     #[rustfmt::skip]
-    fn add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+    fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, &operand);
         let cv = if with_carry && self.regs.getf_carry() {1} else {0};
         let (result, overflow1) = self.regs.a.overflowing_add(value);
@@ -170,20 +170,20 @@ impl CPU {
     }
 
     #[rustfmt::skip]
-    fn sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
+    fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
     #[rustfmt::skip]
-    fn compare8(&mut self, mmu: &MMU, operand: ArgR8) {
+    fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
         self.add_m_time(if matches!(operand, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1})
     }
 
-    fn inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
+    fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
-        let (new_value, _) = value.overflowing_add(1);
+        let new_value = value.overflowing_add(1).0;
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(value & 0xF == 0xF);
@@ -191,9 +191,9 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    fn dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
+    fn op_dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, &target);
-        let (new_value, _) = value.overflowing_sub(1);
+        let new_value = value.overflowing_sub(1).0;
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(true);
         self.regs.setf_half_carry(value & 0xF == 0);
@@ -202,10 +202,10 @@ impl CPU {
     }
 
     #[rustfmt::skip]
-    fn load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
+    fn op_load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
         if dest == src {
             // No op if src == dest
-            self.nop();
+            self.op_nop();
             return;
         }
 
@@ -214,7 +214,7 @@ impl CPU {
         self.add_m_time(if matches!(src, ArgR8::CONST(_) | ArgR8::MHL) {2} else {1});
     }
 
-    fn load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
+    fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
         match dest {
             ArgR16::BC => self.regs.set_bc(value),
             ArgR16::DE => self.regs.set_de(value),
@@ -225,7 +225,7 @@ impl CPU {
     }
 
     #[rustfmt::skip]
-    fn load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
+    fn op_load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
         if a_is_dest {
             self.regs.a = self.get_value_at_mr16(mmu, &address);
         } else {
@@ -234,7 +234,7 @@ impl CPU {
         self.add_m_time(if matches!(address, ArgR16MEM::CONST(_)) {4} else {2});
     }
 
-    fn loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
         let address = 0xFF + (half_address as u16);
         if a_is_dest {
             self.regs.a = mmu.read_byte(address);
@@ -244,7 +244,7 @@ impl CPU {
         self.add_m_time(3);
     }
 
-    fn loadhigh_between_a_mc(&mut self, mmu: &mut MMU, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mc(&mut self, mmu: &mut MMU, a_is_dest: bool) {
         let address = 0xFF00 + (self.regs.c as u16);
         if a_is_dest {
             self.regs.a = mmu.read_byte(address);
@@ -260,23 +260,23 @@ impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
         match instruction {
             // Load (LD_dest_source)
-            LD_r8_r8(dest, src) => self.load8(mmu, dest, src),
-            LD_r16_n16(dest, value) => self.load_const_to_r16(dest, value),
-            LD_mr16_a(address) => self.load_between_a_mr16(mmu, address, false),
-            LDH_mn16_a(half_address) => self.loadhigh_between_a_mn16(mmu, half_address, false),
-            LDH_mc_a => self.loadhigh_between_a_mc(mmu, false),
-            LD_a_mr16(address) => self.load_between_a_mr16(mmu, address, true),
-            LDH_a_mn16(half_address) => self.loadhigh_between_a_mn16(mmu, half_address, true),
-            LDH_a_mc => self.loadhigh_between_a_mc(mmu, true),
+            LD_r8_r8(dest, src) => self.op_load8(mmu, dest, src),
+            LD_r16_n16(dest, value) => self.op_load_const_to_r16(dest, value),
+            LD_mr16_a(address) => self.op_load_between_a_mr16(mmu, address, false),
+            LDH_mn16_a(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address, false),
+            LDH_mc_a => self.op_loadhigh_between_a_mc(mmu, false),
+            LD_a_mr16(address) => self.op_load_between_a_mr16(mmu, address, true),
+            LDH_a_mn16(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address, true),
+            LDH_a_mc => self.op_loadhigh_between_a_mc(mmu, true),
 
             // 8-bit arithmetic
-            ADC_a_r8(operand) => self.add8(mmu, operand, true),
-            ADD_a_r8(operand) => self.add8(mmu, operand, false),
-            CP_a_r8(operand) => self.compare8(mmu, operand),
-            DEC_r8(target) => self.dec8(mmu, target),
-            INC_r8(target) => self.inc8(mmu, target),
-            SBC_a_r8(operand) => self.sub8(mmu, operand, true),
-            SUB_a_r8(operand) => self.sub8(mmu, operand, false),
+            ADC_a_r8(operand) => self.op_add8(mmu, operand, true),
+            ADD_a_r8(operand) => self.op_add8(mmu, operand, false),
+            CP_a_r8(operand) => self.op_compare8(mmu, operand),
+            DEC_r8(target) => self.op_dec8(mmu, target),
+            INC_r8(target) => self.op_inc8(mmu, target),
+            SBC_a_r8(operand) => self.op_sub8(mmu, operand, true),
+            SUB_a_r8(operand) => self.op_sub8(mmu, operand, false),
 
             // 16-bit arithmetic
             ADD_hl_r16(operand) => todo!(),
@@ -344,7 +344,7 @@ impl CPU {
 
             // Miscellaneous
             DAA => todo!(),
-            NOP => self.nop(),
+            NOP => self.op_nop(),
             STOP => todo!(),
         }
     }
