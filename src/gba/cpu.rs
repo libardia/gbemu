@@ -213,7 +213,7 @@ impl CPU {
 
 // Instruction functions
 impl CPU {
-    /* #region Load instructions */
+    /* #region Load instructions =============================================================== */
 
     // LD r8,r8 (m: 1)
     // LD r8,n8 (m: 2)
@@ -300,7 +300,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region 8-bit arithmetic */
+    /* #region 8-bit arithmetic ================================================================ */
 
     // ADC A,r8 (m: 1)
     // ADC A,[HL] (m: 2)
@@ -376,7 +376,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region 16-bit arithmetic */
+    /* #region 16-bit arithmetic =============================================================== */
 
     // ADD HL,r16 (m: 2)
     fn op_add_r16_to_hl(&mut self, operand: ArgR16) {
@@ -416,7 +416,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Bitwise logic */
+    /* #region Bitwise logic =================================================================== */
 
     // AND A,r8 (m: 1)
     // AND A,[HL] (m: 2)
@@ -472,7 +472,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Bit flags */
+    /* #region Bit flags ======================================================================= */
 
     // BIT u3,r8 (m: 2)
     // BIT u3,[HL] (m: 3)
@@ -514,7 +514,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Bit shift */
+    /* #region Bit shift ======================================================================= */
 
     // RL r8 (m: 2)
     // RL [HL] (m: 4)
@@ -640,7 +640,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Jumps and subroutines */
+    /* #region Jumps and subroutines =========================================================== */
 
     // TODO: CALL n16 (m: 6)
     // TODO: CALL cc,n16 (m: 6/3)
@@ -656,14 +656,14 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Carry flag */
+    /* #region Carry flag ====================================================================== */
 
     // TODO: CCF (m: 1)
     // TODO: SCF (m: 1)
 
     /* #endregion */
 
-    /* #region Stack manipulation */
+    /* #region Stack manipulation ============================================================== */
 
     // TODO: ADD HL,SP (m: 2)
     // TODO: ADD SP,e8 (m: 4)
@@ -680,7 +680,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Interrupt-related */
+    /* #region Interrupt-related =============================================================== */
 
     // TODO: DI (m: 1)
     // TODO: EI (m: 1)
@@ -688,7 +688,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Miscellaneous */
+    /* #region Miscellaneous =================================================================== */
 
     // TODO: DAA (m: 1)
 
