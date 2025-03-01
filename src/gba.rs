@@ -22,9 +22,7 @@ impl GBA {
 
     pub fn mainloop(&mut self) {
         use Instruction::*;
-        let ops = [
-            LD_r8_r8(ArgR8::A, ArgR8::CONST(0b10001000)),
-        ];
+        let ops = [NOP, NOP, EI, NOP, NOP, DI, NOP, NOP];
 
         for i in ops {
             self.cpu.execute(&mut self.mmu, i);
