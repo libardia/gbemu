@@ -17,6 +17,9 @@ pub struct CPU {
     // Timers (emulation purposes only, not in real hardware)
     pub m_time: u64,
     pub t_time: u64,
+    // Needed to handle the delay of the IME flag
+    will_set_ime: bool,
+    setting_ime: bool,
 }
 
 impl CPU {
@@ -28,6 +31,8 @@ impl CPU {
             regs: Registers::new(),
             m_time: 0,
             t_time: 0,
+            will_set_ime: false,
+            setting_ime: false,
         }
     }
 
@@ -37,9 +42,12 @@ impl CPU {
         self.regs = Registers::new();
         self.m_time = 0;
         self.t_time = 0;
+        self.will_set_ime = false;
+        self.setting_ime = false;
     }
     /* #endregion */
 
+    /* #region Helpers */
     fn panic_no_const() -> ! {
         panic!("Constant not allowed here")
     }
@@ -209,6 +217,7 @@ impl CPU {
         // Put the final value together, and new carry is the last bit of rotated
         (new_value_last_7 | new_value_top, rotated & 1 != 0)
     }
+    /* #endregion */
 }
 
 // Instruction functions
@@ -658,8 +667,18 @@ impl CPU {
 
     /* #region Carry flag ====================================================================== */
 
-    // TODO: CCF (m: 1)
-    // TODO: SCF (m: 1)
+    // CCF (m: 1)
+    // SCF (m: 1)
+    fn op_carry_flag(&mut self, is_set: bool) {
+        self.regs.setf_carry(if is_set {
+            true
+        } else {
+            !self.regs.getf_carry()
+        });
+        self.regs.setf_half_carry(false);
+        self.regs.setf_subtract(false);
+        self.add_m_time(1);
+    }
 
     /* #endregion */
 
@@ -682,8 +701,18 @@ impl CPU {
 
     /* #region Interrupt-related =============================================================== */
 
-    // TODO: DI (m: 1)
-    // TODO: EI (m: 1)
+    // DI (m: 1)
+    fn op_disable_interrupts(&mut self) {
+        self.regs.ime = false;
+        self.add_m_time(1);
+    }
+
+    // EI (m: 1)
+    fn op_enable_interrupts_delayed(&mut self) {
+        self.will_set_ime = true;
+        self.add_m_time(1);
+    }
+
     // TODO: HALT (m: --)
 
     /* #endregion */
@@ -750,10 +779,10 @@ impl CPU {
             RRA => self.op_rotate_a_right(false),
             RRC_r8(target) => self.op_rotate_r8_right(mmu, target, false),
             RRCA => self.op_rotate_a_right(true),
-            SLA_r8(target) => todo!(),
-            SRA_r8(target) => todo!(),
-            SRL_r8(target) => todo!(),
-            SWAP_r8(target) => todo!(),
+            SLA_r8(target) => self.op_shift_left_arithmetic(mmu, target),
+            SRA_r8(target) => self.op_shift_right(mmu, target, true),
+            SRL_r8(target) => self.op_shift_right(mmu, target, false),
+            SWAP_r8(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
             CALL_n16(address) => todo!(),
@@ -769,8 +798,8 @@ impl CPU {
             RST_vec(vec_address) => todo!(),
 
             // Carry flag
-            CCF => todo!(),
-            SCF => todo!(),
+            CCF => self.op_carry_flag(false),
+            SCF => self.op_carry_flag(true),
 
             // Stack manipulation
             ADD_hl_sp => todo!(),
@@ -785,14 +814,25 @@ impl CPU {
             PUSH_r16(target) => todo!(),
 
             // Interrupt-related
-            DI => todo!(),
-            EI => todo!(),
+            DI => self.op_disable_interrupts(),
+            EI => self.op_enable_interrupts_delayed(),
             HALT => todo!(),
 
             // Miscellaneous
             DAA => todo!(),
             NOP => self.op_nop(),
             STOP => todo!(),
+        }
+
+        // Special handling for delaying changing IME
+        if self.will_set_ime {
+            if self.setting_ime {
+                self.regs.ime = true;
+                self.will_set_ime = false;
+                self.setting_ime = false;
+            } else {
+                self.setting_ime = true;
+            }
         }
     }
 }
@@ -803,11 +843,22 @@ impl CPU {
 impl Display for CPU {
     #[rustfmt::skip]
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        let Registers { a, f, b, c, d, e, h, l } = &self.regs;
+        let Registers {
+            a,
+            f,
+            b,
+            c,
+            d,
+            e,
+            h,
+            l,
+            ime,
+        } = &self.regs;
+
         write!(formatter, "+--------------------------+\n")?;
         write!(formatter, "| PC: 0x{:0>4X}    SP: 0x{:0>4X} | M-time: {}\n", self.pc, self.sp, self.m_time)?;
         write!(formatter, "| A:  0x{:0>2X}      F:  {:0>4b}   | T-time: {}\n", a, f >> 4, self.t_time)?;
-        write!(formatter, "| B:  0x{b:0>2X}      C:  0x{c:0>2X}   |\n")?;
+        write!(formatter, "| B:  0x{b:0>2X}      C:  0x{c:0>2X}   | IME: {}\n", ime)?;
         write!(formatter, "| D:  0x{d:0>2X}      E:  0x{e:0>2X}   |\n")?;
         write!(formatter, "| H:  0x{h:0>2X}      L:  0x{l:0>2X}   |\n")?;
         write!(formatter, "+--------------------------+\n")

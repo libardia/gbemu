@@ -20,6 +20,8 @@ pub struct Registers {
 
     pub h: u8,
     pub l: u8,
+
+    pub ime: bool,
 }
 
 macro_rules! make_r16_getset {
@@ -62,6 +64,7 @@ impl Registers {
             e: 0,
             h: 0,
             l: 0,
+            ime: false,
         }
     }
 

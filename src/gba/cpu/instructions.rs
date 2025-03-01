@@ -150,14 +150,14 @@ pub enum ArgU3 {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgVEC {
-    vec0x00,
-    vec0x08,
-    vec0x10,
-    vec0x18,
-    vec0x20,
-    vec0x28,
-    vec0x30,
-    vec0x38,
+    Vec0x00,
+    Vec0x08,
+    Vec0x10,
+    Vec0x18,
+    Vec0x20,
+    Vec0x28,
+    Vec0x30,
+    Vec0x38,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
