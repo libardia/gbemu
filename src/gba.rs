@@ -23,12 +23,7 @@ impl GBA {
     pub fn mainloop(&mut self) {
         use Instruction::*;
         let ops = [
-            ADD_a_r8(ArgR8::CONST(8)),
-            ADD_a_r8(ArgR8::CONST(35)),
-            ADD_a_r8(ArgR8::CONST(250)),
-            ADC_a_r8(ArgR8::A),
-            SUB_a_r8(ArgR8::CONST(0xFF)),
-            SUB_a_r8(ArgR8::A),
+            LD_r8_r8(ArgR8::A, ArgR8::CONST(0b10001000)),
         ];
 
         for i in ops {
