@@ -60,6 +60,13 @@ impl CPU {
         }
     }
 
+    fn add_more_mtime_if_mhl(&mut self, arg: ArgR8, slow: u64, fast: u64) {
+        match arg {
+            ArgR8::MHL => self.add_m_time(slow),
+            _ => self.add_m_time(fast),
+        }
+    }
+
     fn get_value_at_r8(&self, mmu: &MMU, target: &ArgR8) -> u8 {
         match target {
             ArgR8::B => self.regs.b,
@@ -337,10 +344,7 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &target, new_value);
 
-        self.add_m_time(match target {
-            ArgR8::MHL => 3,
-            _ => 1,
-        });
+        self.add_more_mtime_if_mhl(target, 3, 1);
     }
 
     // INC r8 (m: 1)
@@ -355,10 +359,7 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &target, new_value);
 
-        self.add_m_time(match target {
-            ArgR8::MHL => 3,
-            _ => 1,
-        });
+        self.add_more_mtime_if_mhl(target, 3, 1);
     }
 
     // SBC A,r8 (m: 1)
@@ -486,10 +487,7 @@ impl CPU {
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(true);
 
-        self.add_m_time(match operand {
-            ArgR8::MHL => 3,
-            _ => 2,
-        });
+        self.add_more_mtime_if_mhl(operand, 3, 2);
     }
 
     // RES u3,r8 (m: 2)
@@ -511,10 +509,7 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &operand, new_value);
 
-        self.add_m_time(match operand {
-            ArgR8::MHL => 4,
-            _ => 2,
-        });
+        self.add_more_mtime_if_mhl(operand, 4, 2);
     }
 
     /* #endregion */
@@ -537,10 +532,7 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &target, new_value);
 
-        self.add_m_time(match target {
-            ArgR8::MHL => 4,
-            _ => 2,
-        });
+        self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
     // RLA (m: 1)
@@ -575,10 +567,7 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &target, new_value);
 
-        self.add_m_time(match target {
-            ArgR8::MHL => 4,
-            _ => 2,
-        });
+        self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
     // RRA (m: 1)
@@ -597,12 +586,44 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    // TODO: SLA r8 (m: 2)
-    // TODO: SLA [HL] (m: 4)
-    // TODO: SRA r8 (m: 2)
-    // TODO: SRA [HL] (m: 4)
-    // TODO: SRL r8 (m: 2)
-    // TODO: SRL [HL] (m: 4)
+    // SLA r8 (m: 2)
+    // SLA [HL] (m: 4)
+    fn op_shift_left_arithmetic(&mut self, mmu: &mut MMU, target: ArgR8) {
+        let value = self.get_value_at_r8(mmu, &target);
+        let original_top_bit = value & 0x80;
+        let new_value = value << 1;
+
+        self.regs
+            .set_all_flags(new_value == 0, false, false, original_top_bit != 0);
+
+        self.set_value_at_r8(mmu, &target, new_value);
+
+        self.add_more_mtime_if_mhl(target, 4, 2);
+    }
+
+    // SRA r8 (m: 2)
+    // SRA [HL] (m: 4)
+    // SRL r8 (m: 2)
+    // SRL [HL] (m: 4)
+    fn op_shift_right(&mut self, mmu: &mut MMU, target: ArgR8, is_arithmetic: bool) {
+        let value = self.get_value_at_r8(mmu, &target);
+        let original_bottom_bit = value & 1;
+        let shifted_value = value >> 1;
+
+        let new_value = if is_arithmetic {
+            (value & 0x80) | shifted_value
+        } else {
+            shifted_value
+        };
+
+        self.regs
+            .set_all_flags(new_value == 0, false, false, original_bottom_bit != 0);
+
+        self.set_value_at_r8(mmu, &target, new_value);
+
+        self.add_more_mtime_if_mhl(target, 4, 2);
+    }
+
     // TODO: SWAP r8 (m: 2)
     // TODO: SWAP [HL] (m: 4)
 
