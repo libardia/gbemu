@@ -1,27 +1,73 @@
-const MEM_SIZE: usize = 0xFFFF;
+#[derive(Debug, Clone, Copy)]
+struct MemoryRegion {
+    begin: u16,
+    end: u16,
+    size: u16,
+}
+
+impl MemoryRegion {
+    pub const fn new(begin: u16, end: u16) -> Self {
+        MemoryRegion {
+            begin,
+            end,
+            size: end - begin + 1,
+        }
+    }
+}
+
+const TOTAL_MEM_SIZE: usize = 0xFFFF + 1;
+
+const MAIN_ROM: MemoryRegion = MemoryRegion::new(0x0000, 0x3FFF);
+const SWITCH_ROM: MemoryRegion = MemoryRegion::new(0x4000, 0x7FFF);
+const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0x9FFF);
+const EXT_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xBFFF);
+const WORK_RAM_1: MemoryRegion = MemoryRegion::new(0xC000, 0xCFFF);
+const WORK_RAM_2: MemoryRegion = MemoryRegion::new(0xD000, 0xDFFF);
+const ECHO_RAM: MemoryRegion = MemoryRegion::new(0xE000, 0xFDFF);
+const OAM: MemoryRegion = MemoryRegion::new(0xFE00, 0xFE9F);
+const UNUSABLE: MemoryRegion = MemoryRegion::new(0xFEA0, 0xFEFF);
+const IO: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF7F);
+const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF80, 0xFFFE);
+const IE: MemoryRegion = MemoryRegion::new(0xFFFF, 0xFFFF);
+
+const ECHO_RAM_OFFSET: u16 = 0x1000;
+
+const EFFECTIVE_MEM_SIZE: usize = TOTAL_MEM_SIZE - ECHO_RAM.size as usize;
 
 #[derive(Debug)]
 pub struct MMU {
-    pub mem: [u8; MEM_SIZE],
+    pub mem: [u8; EFFECTIVE_MEM_SIZE],
 }
 
 impl MMU {
     pub fn new() -> Self {
-        MMU { mem: [0; MEM_SIZE] }
+        MMU {
+            mem: [0; EFFECTIVE_MEM_SIZE],
+        }
     }
 
     pub fn reset(&mut self) {
-        self.mem = [0; MEM_SIZE];
+        self.mem = [0; EFFECTIVE_MEM_SIZE];
+    }
+
+    fn calculate_effective_address(&self, address: u16) -> usize {
+        (if address < ECHO_RAM.begin {
+            address
+        } else if address >= ECHO_RAM.begin && address <= ECHO_RAM.end {
+            address - ECHO_RAM_OFFSET
+        } else {
+            address - ECHO_RAM.size
+        }) as usize
     }
 
     // 8-bit ======================================================================================
 
     pub fn read_byte(&self, address: u16) -> u8 {
-        self.mem[address as usize]
+        self.mem[self.calculate_effective_address(address)]
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
-        self.mem[address as usize] = value;
+        self.mem[self.calculate_effective_address(address)] = value;
     }
 
     // 16-bit =====================================================================================
@@ -37,6 +83,6 @@ impl MMU {
 
     pub fn write_word(&mut self, address: u16, value: u16) {
         self.write_byte(address, (value & 0xFF) as u8);
-        self.write_byte(address, ((value & 0xFF00) >> 8) as u8);
+        self.write_byte(address + 1, ((value & 0xFF00) >> 8) as u8);
     }
 }

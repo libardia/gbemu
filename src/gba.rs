@@ -10,6 +10,7 @@ use mmu::MMU;
 pub struct GBA {
     pub cpu: CPU,
     pub mmu: MMU,
+
     // Emulating the HALT bug
     skip_next_pc: bool,
 }
