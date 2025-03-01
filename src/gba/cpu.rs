@@ -434,7 +434,10 @@ impl CPU {
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(true);
 
-        self.add_more_mtime_if_const_or_mhl(operand, 3, 2);
+        self.add_m_time(match operand {
+            ArgR8::MHL => 3,
+            _ => 2,
+        });
     }
 
     // RES u3,r8 (m: 2)
@@ -456,23 +459,116 @@ impl CPU {
 
         self.set_value_at_r8(mmu, &operand, new_value);
 
-        self.add_more_mtime_if_const_or_mhl(operand, 4, 2);
+        self.add_m_time(match operand {
+            ArgR8::MHL => 4,
+            _ => 2,
+        });
     }
 
     // Bit shift ==================================================================================
 
-    // TODO: RL r8 (m: 2)
-    // TODO: RL [HL] (m: 4)
-    // TODO: RLA (m: 1)
-    // TODO: RLC r8 (m: 2)
-    // TODO: RLC [HL] (m: 4)
-    // TODO: RLCA (m: 1)
-    // TODO: RR r8 (m: 2)
-    // TODO: RR [HL] (m: 4)
-    // TODO: RRA (m: 1)
-    // TODO: RRC r8 (m: 2)
-    // TODO: RRC [HL] (m: 4)
-    // TODO: RRCA (m: 1)
+    // RL r8 (m: 2)
+    // RL [HL] (m: 4)
+    // RLC r8 (m: 2)
+    // RLC [HL] (m: 4)
+    fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
+        const LEFTMOST_BIT_MASK: u8 = 0b1000_0000;
+        let value = self.get_value_at_r8(mmu, &target);
+
+        let leftmost_bit = value & LEFTMOST_BIT_MASK;
+        let rest = value & !LEFTMOST_BIT_MASK;
+        let rotated_bit = if through_carry {
+            self.regs.getf_carry() as u8
+        } else {
+            leftmost_bit >> 7
+        };
+        let new_value = (rest << 1) | rotated_bit;
+
+        self.regs
+            .set_all_flags(new_value == 0, false, false, leftmost_bit != 0);
+
+        self.set_value_at_r8(mmu, &target, new_value);
+
+        self.add_m_time(match target {
+            ArgR8::MHL => 4,
+            _ => 2,
+        });
+    }
+
+    // RLA (m: 1)
+    // RLCA (m: 1)
+    fn op_rotate_a_left(&mut self, through_carry: bool) {
+        const LEFTMOST_BIT_MASK: u8 = 0b1000_0000;
+        let value = self.regs.a;
+
+        let leftmost_bit = value & LEFTMOST_BIT_MASK;
+        let rest = value & !LEFTMOST_BIT_MASK;
+        let rotated_bit = if through_carry {
+            self.regs.getf_carry() as u8
+        } else {
+            leftmost_bit >> 7
+        };
+        let new_value = (rest << 1) | rotated_bit;
+
+        self.regs
+            .set_all_flags(false, false, false, leftmost_bit != 0);
+
+        self.regs.a = new_value;
+
+        self.add_m_time(1);
+    }
+
+    // RR r8 (m: 2)
+    // RR [HL] (m: 4)
+    // RRC r8 (m: 2)
+    // RRC [HL] (m: 4)
+    fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
+        const RIGHTMOST_BIT_MASK: u8 = 1;
+        let value = self.get_value_at_r8(mmu, &target);
+
+        let rightmost_bit = value & RIGHTMOST_BIT_MASK;
+        let rest = value & !RIGHTMOST_BIT_MASK;
+        let rotated_bit = if through_carry {
+            (self.regs.getf_carry() as u8) << 7
+        } else {
+            rightmost_bit << 7
+        };
+        let new_value = rotated_bit | (rest >> 1);
+
+        self.regs
+            .set_all_flags(new_value == 0, false, false, rightmost_bit != 0);
+
+        self.set_value_at_r8(mmu, &target, new_value);
+
+        self.add_m_time(match target {
+            ArgR8::MHL => 4,
+            _ => 2,
+        });
+    }
+
+    // RRA (m: 1)
+    // RRCA (m: 1)
+    fn op_rotate_a_right(&mut self, through_carry: bool) {
+        const RIGHTMOST_BIT_MASK: u8 = 1;
+        let value = self.regs.a;
+
+        let rightmost_bit = value & RIGHTMOST_BIT_MASK;
+        let rest = value & !RIGHTMOST_BIT_MASK;
+        let rotated_bit = if through_carry {
+            (self.regs.getf_carry() as u8) << 7
+        } else {
+            rightmost_bit << 7
+        };
+        let new_value = rotated_bit | (rest >> 1);
+
+        self.regs
+            .set_all_flags(new_value == 0, false, false, rightmost_bit != 0);
+
+        self.regs.a = new_value;
+
+        self.add_m_time(1);
+    }
+
     // TODO: SLA r8 (m: 2)
     // TODO: SLA [HL] (m: 4)
     // TODO: SRA r8 (m: 2)
@@ -574,14 +670,14 @@ impl CPU {
             SET_u3_r8(bit_index, operand) => self.op_set_bit_r8(mmu, operand, bit_index, true),
 
             // Bit shift
-            RL_r8(target) => todo!(),
-            RLA => todo!(),
-            RLC_r8(target) => todo!(),
-            RLCA => todo!(),
-            RR_r8(target) => todo!(),
-            RRA => todo!(),
-            RRC_r8(target) => todo!(),
-            RRCA => todo!(),
+            RL_r8(target) => self.op_rotate_r8_left(mmu, target, false),
+            RLA => self.op_rotate_a_left(false),
+            RLC_r8(target) => self.op_rotate_r8_left(mmu, target, true),
+            RLCA => self.op_rotate_a_left(true),
+            RR_r8(target) => self.op_rotate_r8_right(mmu, target, false),
+            RRA => self.op_rotate_a_right(false),
+            RRC_r8(target) => self.op_rotate_r8_right(mmu, target, false),
+            RRCA => self.op_rotate_a_right(true),
             SLA_r8(target) => todo!(),
             SRA_r8(target) => todo!(),
             SRL_r8(target) => todo!(),
