@@ -160,6 +160,50 @@ impl CPU {
 
         result
     }
+
+    fn do_rotate_left(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+        // Get value and rotate
+        let rotated = self.get_value_at_r8(mmu, operand).rotate_left(1);
+        // New carry is whatever was rotated
+        (rotated, rotated & 1 != 0)
+    }
+
+    fn do_rotate_left_carry(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+        // Get value as u16
+        let value = self.get_value_at_r8(mmu, operand) as u16;
+        // Put carry flag at the start, then the value
+        let processed = ((self.regs.getf_carry() as u16) << 15) | (value << 7);
+        // Rotate
+        let rotated = processed.rotate_left(1);
+        // The top 7 bits of the final value are these bits of rotated
+        let new_value_top_7 = ((rotated & 0b0111_1111_0000_0000) >> 7) as u8;
+        // The last bit of the final value is the last bit of rotated
+        let new_value_last = (rotated & 1) as u8;
+        // Put the final value together, and new carry is the first bit of rotated
+        (new_value_top_7 | new_value_last, rotated & (1 << 15) != 0)
+    }
+
+    fn do_rotate_right(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+        // Get value
+        let value = self.get_value_at_r8(mmu, operand);
+        // New value is rotated, new carry is what was going to be rotated
+        (value.rotate_right(1), value & 1 != 0)
+    }
+
+    fn do_rotate_right_carry(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+        // Get value as u16
+        let value = self.get_value_at_r8(mmu, operand) as u16;
+        // Put carry flag at the end, then the value
+        let processed = (self.regs.getf_carry() as u16) | (value << 1);
+        // Rotate
+        let rotated = processed.rotate_right(1);
+        // The last 7 bits of the final value are these bits of rotated
+        let new_value_last_7 = (rotated & 0b0000_0000_1111_1110) as u8;
+        // The top bit of the final value is the top bit of rotated
+        let new_value_top = ((rotated & (1 << 15)) >> 8) as u8;
+        // Put the final value together, and new carry is the last bit of rotated
+        (new_value_last_7 | new_value_top, rotated & 1 != 0)
+    }
 }
 
 // Instruction functions
@@ -484,20 +528,14 @@ impl CPU {
     // RLC r8 (m: 2)
     // RLC [HL] (m: 4)
     fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
-        const LEFTMOST_BIT_MASK: u8 = 0b1000_0000;
-        let value = self.get_value_at_r8(mmu, &target);
-
-        let leftmost_bit = value & LEFTMOST_BIT_MASK;
-        let rest = value & !LEFTMOST_BIT_MASK;
-        let rotated_bit = if through_carry {
-            self.regs.getf_carry() as u8
+        let (new_value, new_carry) = if through_carry {
+            self.do_rotate_left(mmu, &target)
         } else {
-            leftmost_bit >> 7
+            self.do_rotate_left_carry(mmu, &target)
         };
-        let new_value = (rest << 1) | rotated_bit;
 
         self.regs
-            .set_all_flags(new_value == 0, false, false, leftmost_bit != 0);
+            .set_all_flags(new_value == 0, false, false, new_carry);
 
         self.set_value_at_r8(mmu, &target, new_value);
 
@@ -509,21 +547,14 @@ impl CPU {
 
     // RLA (m: 1)
     // RLCA (m: 1)
-    fn op_rotate_a_left(&mut self, through_carry: bool) {
-        const LEFTMOST_BIT_MASK: u8 = 0b1000_0000;
-        let value = self.regs.a;
-
-        let leftmost_bit = value & LEFTMOST_BIT_MASK;
-        let rest = value & !LEFTMOST_BIT_MASK;
-        let rotated_bit = if through_carry {
-            self.regs.getf_carry() as u8
+    fn op_rotate_a_left(&mut self, mmu: &mut MMU, through_carry: bool) {
+        let (new_value, new_carry) = if through_carry {
+            self.do_rotate_left(mmu, &ArgR8::A)
         } else {
-            leftmost_bit >> 7
+            self.do_rotate_left_carry(mmu, &ArgR8::A)
         };
-        let new_value = (rest << 1) | rotated_bit;
 
-        self.regs
-            .set_all_flags(false, false, false, leftmost_bit != 0);
+        self.regs.set_all_flags(false, false, false, new_carry);
 
         self.regs.a = new_value;
 
@@ -535,20 +566,14 @@ impl CPU {
     // RRC r8 (m: 2)
     // RRC [HL] (m: 4)
     fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
-        const RIGHTMOST_BIT_MASK: u8 = 1;
-        let value = self.get_value_at_r8(mmu, &target);
-
-        let rightmost_bit = value & RIGHTMOST_BIT_MASK;
-        let rest = value & !RIGHTMOST_BIT_MASK;
-        let rotated_bit = if through_carry {
-            (self.regs.getf_carry() as u8) << 7
+        let (new_value, new_carry) = if through_carry {
+            self.do_rotate_right(mmu, &target)
         } else {
-            rightmost_bit << 7
+            self.do_rotate_right_carry(mmu, &target)
         };
-        let new_value = rotated_bit | (rest >> 1);
 
         self.regs
-            .set_all_flags(new_value == 0, false, false, rightmost_bit != 0);
+            .set_all_flags(new_value == 0, false, false, new_carry);
 
         self.set_value_at_r8(mmu, &target, new_value);
 
@@ -560,21 +585,14 @@ impl CPU {
 
     // RRA (m: 1)
     // RRCA (m: 1)
-    fn op_rotate_a_right(&mut self, through_carry: bool) {
-        const RIGHTMOST_BIT_MASK: u8 = 1;
-        let value = self.regs.a;
-
-        let rightmost_bit = value & RIGHTMOST_BIT_MASK;
-        let rest = value & !RIGHTMOST_BIT_MASK;
-        let rotated_bit = if through_carry {
-            (self.regs.getf_carry() as u8) << 7
+    fn op_rotate_a_right(&mut self, mmu: &mut MMU, through_carry: bool) {
+        let (new_value, new_carry) = if through_carry {
+            self.do_rotate_right(mmu, &ArgR8::A)
         } else {
-            rightmost_bit << 7
+            self.do_rotate_right_carry(mmu, &ArgR8::A)
         };
-        let new_value = rotated_bit | (rest >> 1);
 
-        self.regs
-            .set_all_flags(new_value == 0, false, false, rightmost_bit != 0);
+        self.regs.set_all_flags(false, false, false, new_carry);
 
         self.regs.a = new_value;
 
@@ -695,13 +713,13 @@ impl CPU {
 
             // Bit shift
             RL_r8(target) => self.op_rotate_r8_left(mmu, target, false),
-            RLA => self.op_rotate_a_left(false),
+            RLA => self.op_rotate_a_left(mmu, false),
             RLC_r8(target) => self.op_rotate_r8_left(mmu, target, true),
-            RLCA => self.op_rotate_a_left(true),
+            RLCA => self.op_rotate_a_left(mmu, true),
             RR_r8(target) => self.op_rotate_r8_right(mmu, target, false),
-            RRA => self.op_rotate_a_right(false),
+            RRA => self.op_rotate_a_right(mmu, false),
             RRC_r8(target) => self.op_rotate_r8_right(mmu, target, false),
-            RRCA => self.op_rotate_a_right(true),
+            RRCA => self.op_rotate_a_right(mmu, true),
             SLA_r8(target) => todo!(),
             SRA_r8(target) => todo!(),
             SRL_r8(target) => todo!(),
