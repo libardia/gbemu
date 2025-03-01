@@ -224,8 +224,8 @@ impl CPU {
 impl CPU {
     /* #region Load instructions =============================================================== */
 
-    // LD r8,r8 (m: 1)
-    // LD r8,n8 (m: 2)
+    // LD r8,r8   (m: 1)
+    // LD r8,n8   (m: 2)
     // LD [HL],r8 (m: 2)
     // LD [HL],n8 (m: 3)
     // LD r8,[HL] (m: 2)
@@ -311,12 +311,12 @@ impl CPU {
 
     /* #region 8-bit arithmetic ================================================================ */
 
-    // ADC A,r8 (m: 1)
+    // ADC A,r8   (m: 1)
     // ADC A,[HL] (m: 2)
-    // ADC A,n8 (m: 2)
-    // ADD A,r8 (m: 1)
+    // ADC A,n8   (m: 2)
+    // ADD A,r8   (m: 1)
     // ADD A,[HL] (m: 2)
-    // ADD A,n8 (m: 2)
+    // ADD A,n8   (m: 2)
     fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         let value = self.get_value_at_r8(mmu, operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
@@ -332,16 +332,16 @@ impl CPU {
         self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
     }
 
-    // CP A,r8 (m: 1)
+    // CP A,r8   (m: 1)
     // CP A,[HL] (m: 2)
-    // CP A,n8 (m: 2)
+    // CP A,n8   (m: 2)
     fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
         self.do_sub8(mmu, operand, false);
 
         self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
     }
 
-    // DEC r8 (m: 1)
+    // DEC r8   (m: 1)
     // DEC [HL] (m: 3)
     fn op_dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, target);
@@ -356,7 +356,7 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
 
-    // INC r8 (m: 1)
+    // INC r8   (m: 1)
     // INC [HL] (m: 3)
     fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, target);
@@ -371,12 +371,12 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
 
-    // SBC A,r8 (m: 1)
+    // SBC A,r8   (m: 1)
     // SBC A,[HL] (m: 2)
-    // SBC A,n8 (m: 2)
-    // SUB A,r8 (m: 1)
+    // SBC A,n8   (m: 2)
+    // SUB A,r8   (m: 1)
     // SUB A,[HL] (m: 2)
-    // SUB A,n8 (m: 2)
+    // SUB A,n8   (m: 2)
     fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
         self.regs.a = self.do_sub8(mmu, operand, with_carry);
 
@@ -427,9 +427,9 @@ impl CPU {
 
     /* #region Bitwise logic =================================================================== */
 
-    // AND A,r8 (m: 1)
+    // AND A,r8   (m: 1)
     // AND A,[HL] (m: 2)
-    // AND A,n8 (m: 2)
+    // AND A,n8   (m: 2)
     fn op_bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a & value;
@@ -451,9 +451,9 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    // OR A,r8 (m: 1)
+    // OR A,r8   (m: 1)
     // OR A,[HL] (m: 2)
-    // OR A,n8 (m: 2)
+    // OR A,n8   (m: 2)
     fn op_bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a | value;
@@ -465,9 +465,9 @@ impl CPU {
         self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
     }
 
-    // XOR A,r8 (m: 1)
+    // XOR A,r8   (m: 1)
     // XOR A,[HL] (m: 2)
-    // XOR A,n8 (m: 2)
+    // XOR A,n8   (m: 2)
     fn op_bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
         let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a ^ value;
@@ -483,7 +483,7 @@ impl CPU {
 
     /* #region Bit flags ======================================================================= */
 
-    // BIT u3,r8 (m: 2)
+    // BIT u3,r8   (m: 2)
     // BIT u3,[HL] (m: 3)
     fn op_bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8, bit_index: ArgU3) {
         if matches!(operand, ArgR8::CONST(_)) {
@@ -499,9 +499,9 @@ impl CPU {
         self.add_more_mtime_if_mhl(operand, 3, 2);
     }
 
-    // RES u3,r8 (m: 2)
+    // RES u3,r8   (m: 2)
     // RES u3,[HL] (m: 4)
-    // SET u3,r8 (m: 2)
+    // SET u3,r8   (m: 2)
     // SET u3,[HL] (m: 4)
     fn op_set_bit_r8(&mut self, mmu: &mut MMU, operand: ArgR8, bit_index: ArgU3, set: bool) {
         if matches!(operand, ArgR8::CONST(_)) {
@@ -525,9 +525,9 @@ impl CPU {
 
     /* #region Bit shift ======================================================================= */
 
-    // RL r8 (m: 2)
-    // RL [HL] (m: 4)
-    // RLC r8 (m: 2)
+    // RL r8    (m: 2)
+    // RL [HL]  (m: 4)
+    // RLC r8   (m: 2)
     // RLC [HL] (m: 4)
     fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
@@ -544,7 +544,7 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
-    // RLA (m: 1)
+    // RLA  (m: 1)
     // RLCA (m: 1)
     fn op_rotate_a_left(&mut self, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
@@ -560,9 +560,9 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    // RR r8 (m: 2)
-    // RR [HL] (m: 4)
-    // RRC r8 (m: 2)
+    // RR r8    (m: 2)
+    // RR [HL]  (m: 4)
+    // RRC r8   (m: 2)
     // RRC [HL] (m: 4)
     fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
@@ -579,7 +579,7 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
-    // RRA (m: 1)
+    // RRA  (m: 1)
     // RRCA (m: 1)
     fn op_rotate_a_right(&mut self, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
@@ -595,7 +595,7 @@ impl CPU {
         self.add_m_time(1);
     }
 
-    // SLA r8 (m: 2)
+    // SLA r8   (m: 2)
     // SLA [HL] (m: 4)
     fn op_shift_left_arithmetic(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, target);
@@ -610,9 +610,9 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
-    // SRA r8 (m: 2)
+    // SRA r8   (m: 2)
     // SRA [HL] (m: 4)
-    // SRL r8 (m: 2)
+    // SRL r8   (m: 2)
     // SRL [HL] (m: 4)
     fn op_shift_right(&mut self, mmu: &mut MMU, target: ArgR8, is_arithmetic: bool) {
         let value = self.get_value_at_r8(mmu, target);
@@ -633,7 +633,7 @@ impl CPU {
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
-    // SWAP r8 (m: 2)
+    // SWAP r8   (m: 2)
     // SWAP [HL] (m: 4)
     fn op_swap(&mut self, mmu: &mut MMU, target: ArgR8) {
         let value = self.get_value_at_r8(mmu, target);
@@ -651,17 +651,17 @@ impl CPU {
 
     /* #region Jumps and subroutines =========================================================== */
 
-    // TODO: CALL n16 (m: 6)
+    // TODO: CALL n16    (m:   6)
     // TODO: CALL cc,n16 (m: 6/3)
-    // TODO: JP HL (m: 1)
-    // TODO: JP n16 (m: 4)
-    // TODO: JP cc,n16 (m: 4/3)
-    // TODO: JR n16 (m: 3)
-    // TODO: JR cc,n16 (m: 3/2)
-    // TODO: RET cc (m: 5/2)
-    // TODO: RET (m: 4)
-    // TODO: RETI (m: 4)
-    // TODO: RST vec (m: 4)
+    // TODO: JP HL       (m:   1)
+    // TODO: JP n16      (m:   4)
+    // TODO: JP cc,n16   (m: 4/3)
+    // TODO: JR n16      (m:   3)
+    // TODO: JR cc,n16   (m: 3/2)
+    // TODO: RET cc      (m: 5/2)
+    // TODO: RET         (m:   4)
+    // TODO: RETI        (m:   4)
+    // TODO: RST vec     (m:   4)
 
     /* #endregion */
 
@@ -684,18 +684,18 @@ impl CPU {
 
     /* #region Stack manipulation ============================================================== */
 
-    // TODO: ADD HL,SP (m: 2)
-    // TODO: ADD SP,e8 (m: 4)
-    // TODO: DEC SP (m: 2)
-    // TODO: INC SP (m: 2)
-    // TODO: LD SP,n16 (m: 3)
+    // TODO: ADD HL,SP   (m: 2)
+    // TODO: ADD SP,e8   (m: 4)
+    // TODO: DEC SP      (m: 2)
+    // TODO: INC SP      (m: 2)
+    // TODO: LD SP,n16   (m: 3)
     // TODO: LD [n16],SP (m: 5)
     // TODO: LD HL,SP+e8 (m: 3)
-    // TODO: LD SP,HL (m: 2)
-    // TODO: POP AF (m: 3)
-    // TODO: POP r16 (m: 3)
-    // TODO: PUSH AF (m: 4)
-    // TODO: PUSH r16 (m: 4)
+    // TODO: LD SP,HL    (m: 2)
+    // TODO: POP AF      (m: 3)
+    // TODO: POP r16     (m: 3)
+    // TODO: PUSH AF     (m: 4)
+    // TODO: PUSH r16    (m: 4)
 
     /* #endregion */
 
