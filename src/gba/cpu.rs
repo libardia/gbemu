@@ -861,7 +861,7 @@ impl Display for CPU {
         write!(formatter, "| B:  0x{b:0>2X}      C:  0x{c:0>2X}   | IME: {}\n", ime)?;
         write!(formatter, "| D:  0x{d:0>2X}      E:  0x{e:0>2X}   |\n")?;
         write!(formatter, "| H:  0x{h:0>2X}      L:  0x{l:0>2X}   |\n")?;
-        write!(formatter, "+--------------------------+\n")
+        write!(formatter, "+--------------------------+")
     }
 }
 

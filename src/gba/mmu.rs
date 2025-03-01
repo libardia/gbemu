@@ -1,3 +1,5 @@
+use std::{fmt::write, path::Display};
+
 #[derive(Debug, Clone, Copy)]
 struct MemoryRegion {
     begin: u16,
@@ -30,7 +32,7 @@ const IO: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF7F);
 const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF80, 0xFFFE);
 const IE: MemoryRegion = MemoryRegion::new(0xFFFF, 0xFFFF);
 
-const ECHO_RAM_OFFSET: u16 = 0x1000;
+const ECHO_RAM_OFFSET: u16 = 0x2000;
 
 const EFFECTIVE_MEM_SIZE: usize = TOTAL_MEM_SIZE - ECHO_RAM.size as usize;
 
@@ -63,11 +65,13 @@ impl MMU {
     // 8-bit ======================================================================================
 
     pub fn read_byte(&self, address: u16) -> u8 {
-        self.mem[self.calculate_effective_address(address)]
+        let eff_address = self.calculate_effective_address(address);
+        self.mem[eff_address]
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
-        self.mem[self.calculate_effective_address(address)] = value;
+        let eff_address = self.calculate_effective_address(address);
+        self.mem[eff_address] = value;
     }
 
     // 16-bit =====================================================================================
@@ -84,5 +88,23 @@ impl MMU {
     pub fn write_word(&mut self, address: u16, value: u16) {
         self.write_byte(address, (value & 0xFF) as u8);
         self.write_byte(address + 1, ((value & 0xFF00) >> 8) as u8);
+    }
+}
+
+impl std::fmt::Display for MMU {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MMU: [")?;
+        let mut one = false;
+        for a in 0..TOTAL_MEM_SIZE {
+            let b = self.read_byte(a as u16);
+            if b != 0 {
+                one = true;
+                write!(f, "\n\t0x{:0>4X} = {}", a, b)?;
+            }
+        }
+        if one {
+            write!(f, "\n")?;
+        }
+        write!(f, "]")
     }
 }
