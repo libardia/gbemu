@@ -161,18 +161,18 @@ impl CPU {
         result
     }
 
-    fn do_rotate_left(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+    fn do_rotate_left(&self, value: u8) -> (u8, bool) {
         // Get value and rotate
-        let rotated = self.get_value_at_r8(mmu, operand).rotate_left(1);
+        let rotated = value.rotate_left(1);
         // New carry is whatever was rotated
         (rotated, rotated & 1 != 0)
     }
 
-    fn do_rotate_left_carry(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+    fn do_rotate_left_carry(&self, value: u8) -> (u8, bool) {
         // Get value as u16
-        let value = self.get_value_at_r8(mmu, operand) as u16;
+        let value_l = value as u16;
         // Put carry flag at the start, then the value
-        let processed = ((self.regs.getf_carry() as u16) << 15) | (value << 7);
+        let processed = ((self.regs.getf_carry() as u16) << 15) | (value_l << 7);
         // Rotate
         let rotated = processed.rotate_left(1);
         // The top 7 bits of the final value are these bits of rotated
@@ -183,18 +183,16 @@ impl CPU {
         (new_value_top_7 | new_value_last, rotated & (1 << 15) != 0)
     }
 
-    fn do_rotate_right(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
-        // Get value
-        let value = self.get_value_at_r8(mmu, operand);
+    fn do_rotate_right(&self, value: u8) -> (u8, bool) {
         // New value is rotated, new carry is what was going to be rotated
         (value.rotate_right(1), value & 1 != 0)
     }
 
-    fn do_rotate_right_carry(&mut self, mmu: &mut MMU, operand: &ArgR8) -> (u8, bool) {
+    fn do_rotate_right_carry(&self, value: u8) -> (u8, bool) {
         // Get value as u16
-        let value = self.get_value_at_r8(mmu, operand) as u16;
+        let value_l = value as u16;
         // Put carry flag at the end, then the value
-        let processed = (self.regs.getf_carry() as u16) | (value << 1);
+        let processed = (self.regs.getf_carry() as u16) | (value_l << 1);
         // Rotate
         let rotated = processed.rotate_right(1);
         // The last 7 bits of the final value are these bits of rotated
@@ -529,9 +527,9 @@ impl CPU {
     // RLC [HL] (m: 4)
     fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_left(mmu, &target)
+            self.do_rotate_left(self.get_value_at_r8(mmu, &target))
         } else {
-            self.do_rotate_left_carry(mmu, &target)
+            self.do_rotate_left_carry(self.get_value_at_r8(mmu, &target))
         };
 
         self.regs
@@ -547,11 +545,11 @@ impl CPU {
 
     // RLA (m: 1)
     // RLCA (m: 1)
-    fn op_rotate_a_left(&mut self, mmu: &mut MMU, through_carry: bool) {
+    fn op_rotate_a_left(&mut self, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_left(mmu, &ArgR8::A)
+            self.do_rotate_left(self.regs.a)
         } else {
-            self.do_rotate_left_carry(mmu, &ArgR8::A)
+            self.do_rotate_left_carry(self.regs.a)
         };
 
         self.regs.set_all_flags(false, false, false, new_carry);
@@ -567,9 +565,9 @@ impl CPU {
     // RRC [HL] (m: 4)
     fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_right(mmu, &target)
+            self.do_rotate_right(self.get_value_at_r8(mmu, &target))
         } else {
-            self.do_rotate_right_carry(mmu, &target)
+            self.do_rotate_right_carry(self.get_value_at_r8(mmu, &target))
         };
 
         self.regs
@@ -585,11 +583,11 @@ impl CPU {
 
     // RRA (m: 1)
     // RRCA (m: 1)
-    fn op_rotate_a_right(&mut self, mmu: &mut MMU, through_carry: bool) {
+    fn op_rotate_a_right(&mut self, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_right(mmu, &ArgR8::A)
+            self.do_rotate_right(self.regs.a)
         } else {
-            self.do_rotate_right_carry(mmu, &ArgR8::A)
+            self.do_rotate_right_carry(self.regs.a)
         };
 
         self.regs.set_all_flags(false, false, false, new_carry);
@@ -713,13 +711,13 @@ impl CPU {
 
             // Bit shift
             RL_r8(target) => self.op_rotate_r8_left(mmu, target, false),
-            RLA => self.op_rotate_a_left(mmu, false),
+            RLA => self.op_rotate_a_left(false),
             RLC_r8(target) => self.op_rotate_r8_left(mmu, target, true),
-            RLCA => self.op_rotate_a_left(mmu, true),
+            RLCA => self.op_rotate_a_left(true),
             RR_r8(target) => self.op_rotate_r8_right(mmu, target, false),
-            RRA => self.op_rotate_a_right(mmu, false),
+            RRA => self.op_rotate_a_right(false),
             RRC_r8(target) => self.op_rotate_r8_right(mmu, target, false),
-            RRCA => self.op_rotate_a_right(mmu, true),
+            RRCA => self.op_rotate_a_right(true),
             SLA_r8(target) => todo!(),
             SRA_r8(target) => todo!(),
             SRL_r8(target) => todo!(),
