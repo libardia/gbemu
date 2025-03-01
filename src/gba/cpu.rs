@@ -67,7 +67,7 @@ impl CPU {
         }
     }
 
-    fn get_value_at_r8(&self, mmu: &MMU, target: &ArgR8) -> u8 {
+    fn get_value_at_r8(&self, mmu: &MMU, target: ArgR8) -> u8 {
         match target {
             ArgR8::B => self.regs.b,
             ArgR8::C => self.regs.c,
@@ -77,27 +77,27 @@ impl CPU {
             ArgR8::L => self.regs.l,
             ArgR8::MHL => mmu.read_byte(self.regs.get_hl()),
             ArgR8::A => self.regs.a,
-            ArgR8::CONST(c) => *c,
+            ArgR8::CONST(c) => c,
         }
     }
 
-    fn get_value_at_r16(&self, target: &ArgR16) -> u16 {
+    fn get_value_at_r16(&self, target: ArgR16) -> u16 {
         match target {
             ArgR16::BC => self.regs.get_bc(),
             ArgR16::DE => self.regs.get_de(),
             ArgR16::HL => self.regs.get_hl(),
-            ArgR16::CONST(c) => *c,
+            ArgR16::CONST(c) => c,
         }
     }
 
-    fn get_value_at_mr16(&mut self, mmu: &MMU, target: &ArgR16MEM) -> u8 {
+    fn get_value_at_mr16(&mut self, mmu: &MMU, target: ArgR16MEM) -> u8 {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
             ArgR16MEM::HL => self.regs.get_hl(),
             ArgR16MEM::HLI => self.regs.get_hl(),
             ArgR16MEM::HLD => self.regs.get_hl(),
-            ArgR16MEM::CONST(c) => *c,
+            ArgR16MEM::CONST(c) => c,
         };
 
         if matches!(target, ArgR16MEM::HLI) {
@@ -111,7 +111,7 @@ impl CPU {
         mmu.read_byte(address)
     }
 
-    fn set_value_at_mr16(&mut self, mmu: &mut MMU, target: &ArgR16MEM, value: u8) {
+    fn set_value_at_mr16(&mut self, mmu: &mut MMU, target: ArgR16MEM, value: u8) {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
@@ -126,13 +126,13 @@ impl CPU {
                 self.regs.set_hl(address.overflowing_sub(1).0);
                 address
             }
-            ArgR16MEM::CONST(c) => *c,
+            ArgR16MEM::CONST(c) => c,
         };
 
         mmu.write_byte(address, value);
     }
 
-    fn set_value_at_r8(&mut self, mmu: &mut MMU, target: &ArgR8, value: u8) {
+    fn set_value_at_r8(&mut self, mmu: &mut MMU, target: ArgR8, value: u8) {
         match target {
             ArgR8::B => self.regs.b = value,
             ArgR8::C => self.regs.c = value,
@@ -146,7 +146,7 @@ impl CPU {
         }
     }
 
-    fn set_value_at_r16(&mut self, target: &ArgR16, value: u16) {
+    fn set_value_at_r16(&mut self, target: ArgR16, value: u16) {
         match target {
             ArgR16::BC => self.regs.set_bc(value),
             ArgR16::DE => self.regs.set_de(value),
@@ -156,7 +156,7 @@ impl CPU {
     }
 
     fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
@@ -231,9 +231,9 @@ impl CPU {
             return;
         }
 
-        let value = self.get_value_at_r8(mmu, &src);
+        let value = self.get_value_at_r8(mmu, src);
 
-        self.set_value_at_r8(mmu, &dest, value);
+        self.set_value_at_r8(mmu, dest, value);
 
         self.add_m_time(match (dest, src) {
             (ArgR8::MHL, ArgR8::CONST(_)) => 3,
@@ -244,7 +244,7 @@ impl CPU {
 
     // LD r16,n16 (m: 3)
     fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
-        self.set_value_at_r16(&dest, value);
+        self.set_value_at_r16(dest, value);
 
         self.add_m_time(3);
     }
@@ -259,9 +259,9 @@ impl CPU {
     // LD A,[HLD] (m: 2)
     fn op_load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
         if a_is_dest {
-            self.regs.a = self.get_value_at_mr16(mmu, &address);
+            self.regs.a = self.get_value_at_mr16(mmu, address);
         } else {
-            self.set_value_at_mr16(mmu, &address, self.regs.a);
+            self.set_value_at_mr16(mmu, address, self.regs.a);
         }
 
         self.add_m_time(match address {
@@ -309,7 +309,7 @@ impl CPU {
     // ADD A,[HL] (m: 2)
     // ADD A,n8 (m: 2)
     fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
         let (result, overflow1) = self.regs.a.overflowing_add(value);
         let (result, overflow2) = result.overflowing_add(cv);
@@ -335,14 +335,14 @@ impl CPU {
     // DEC r8 (m: 1)
     // DEC [HL] (m: 3)
     fn op_dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &target);
+        let value = self.get_value_at_r8(mmu, target);
         let new_value = value.overflowing_sub(1).0;
 
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(true);
         self.regs.setf_half_carry(value & 0xF == 0);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
@@ -350,14 +350,14 @@ impl CPU {
     // INC r8 (m: 1)
     // INC [HL] (m: 3)
     fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &target);
+        let value = self.get_value_at_r8(mmu, target);
         let new_value = value.overflowing_add(1).0;
 
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(value & 0xF == 0xF);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
@@ -385,7 +385,7 @@ impl CPU {
         }
 
         let lhs = self.regs.get_hl();
-        let rhs = self.get_value_at_r16(&operand);
+        let rhs = self.get_value_at_r16(operand);
         let (result, overflow) = lhs.overflowing_add(rhs);
         let half_carry = (lhs & 0x0FFF) + (rhs & 0x0FFF) > 0x0FFF;
 
@@ -400,16 +400,16 @@ impl CPU {
 
     // DEC r16 (m: 2)
     fn op_dec16(&mut self, target: ArgR16) {
-        let value = self.get_value_at_r16(&target);
-        self.set_value_at_r16(&target, value.overflowing_sub(1).0);
+        let value = self.get_value_at_r16(target);
+        self.set_value_at_r16(target, value.overflowing_sub(1).0);
 
         self.add_m_time(2);
     }
 
     // INC r16 (m: 2)
     fn op_inc16(&mut self, target: ArgR16) {
-        let value = self.get_value_at_r16(&target);
-        self.set_value_at_r16(&target, value.overflowing_add(1).0);
+        let value = self.get_value_at_r16(target);
+        self.set_value_at_r16(target, value.overflowing_add(1).0);
 
         self.add_m_time(2);
     }
@@ -422,7 +422,7 @@ impl CPU {
     // AND A,[HL] (m: 2)
     // AND A,n8 (m: 2)
     fn op_bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a & value;
 
         self.regs.set_all_flags(result == 0, false, true, false);
@@ -446,7 +446,7 @@ impl CPU {
     // OR A,[HL] (m: 2)
     // OR A,n8 (m: 2)
     fn op_bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a | value;
 
         self.regs.set_all_flags(result == 0, false, false, false);
@@ -460,7 +460,7 @@ impl CPU {
     // XOR A,[HL] (m: 2)
     // XOR A,n8 (m: 2)
     fn op_bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
         let result = self.regs.a ^ value;
 
         self.regs.set_all_flags(result == 0, false, false, false);
@@ -481,7 +481,7 @@ impl CPU {
             Self::panic_no_const();
         }
 
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
 
         self.regs.setf_zero(value & (bit_index as u8) == 0);
         self.regs.setf_subtract(false);
@@ -499,7 +499,7 @@ impl CPU {
             Self::panic_no_const();
         }
 
-        let value = self.get_value_at_r8(mmu, &operand);
+        let value = self.get_value_at_r8(mmu, operand);
 
         let new_value = if set {
             value | (bit_index as u8)
@@ -507,7 +507,7 @@ impl CPU {
             value & !(bit_index as u8)
         };
 
-        self.set_value_at_r8(mmu, &operand, new_value);
+        self.set_value_at_r8(mmu, operand, new_value);
 
         self.add_more_mtime_if_mhl(operand, 4, 2);
     }
@@ -522,15 +522,15 @@ impl CPU {
     // RLC [HL] (m: 4)
     fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_left(self.get_value_at_r8(mmu, &target))
+            self.do_rotate_left(self.get_value_at_r8(mmu, target))
         } else {
-            self.do_rotate_left_carry(self.get_value_at_r8(mmu, &target))
+            self.do_rotate_left_carry(self.get_value_at_r8(mmu, target))
         };
 
         self.regs
             .set_all_flags(new_value == 0, false, false, new_carry);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -557,15 +557,15 @@ impl CPU {
     // RRC [HL] (m: 4)
     fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_right(self.get_value_at_r8(mmu, &target))
+            self.do_rotate_right(self.get_value_at_r8(mmu, target))
         } else {
-            self.do_rotate_right_carry(self.get_value_at_r8(mmu, &target))
+            self.do_rotate_right_carry(self.get_value_at_r8(mmu, target))
         };
 
         self.regs
             .set_all_flags(new_value == 0, false, false, new_carry);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -589,14 +589,14 @@ impl CPU {
     // SLA r8 (m: 2)
     // SLA [HL] (m: 4)
     fn op_shift_left_arithmetic(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, &target);
+        let value = self.get_value_at_r8(mmu, target);
         let original_top_bit = value & 0x80;
         let new_value = value << 1;
 
         self.regs
             .set_all_flags(new_value == 0, false, false, original_top_bit != 0);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -606,7 +606,7 @@ impl CPU {
     // SRL r8 (m: 2)
     // SRL [HL] (m: 4)
     fn op_shift_right(&mut self, mmu: &mut MMU, target: ArgR8, is_arithmetic: bool) {
-        let value = self.get_value_at_r8(mmu, &target);
+        let value = self.get_value_at_r8(mmu, target);
         let original_bottom_bit = value & 1;
         let shifted_value = value >> 1;
 
@@ -619,13 +619,24 @@ impl CPU {
         self.regs
             .set_all_flags(new_value == 0, false, false, original_bottom_bit != 0);
 
-        self.set_value_at_r8(mmu, &target, new_value);
+        self.set_value_at_r8(mmu, target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
-    // TODO: SWAP r8 (m: 2)
-    // TODO: SWAP [HL] (m: 4)
+    // SWAP r8 (m: 2)
+    // SWAP [HL] (m: 4)
+    fn op_swap(&mut self, mmu: &mut MMU, target: ArgR8) {
+        let value = self.get_value_at_r8(mmu, target);
+
+        let new_value = ((value & 0x0F) << 4) | ((value & 0xF0) >> 4);
+
+        self.regs.set_all_flags(new_value == 0, false, false, false);
+
+        self.set_value_at_r8(mmu, target, new_value);
+
+        self.add_more_mtime_if_mhl(target, 4, 2);
+    }
 
     /* #endregion */
 
