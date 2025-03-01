@@ -10,6 +10,8 @@ use mmu::MMU;
 pub struct GBA {
     pub cpu: CPU,
     pub mmu: MMU,
+    // Emulating the HALT bug
+    skip_next_pc: bool,
 }
 
 impl GBA {
@@ -17,16 +19,29 @@ impl GBA {
         GBA {
             cpu: CPU::new(),
             mmu: MMU::new(),
+            skip_next_pc: false,
         }
     }
 
-    pub fn mainloop(&mut self) {
-        use Instruction::*;
-        let ops = [NOP, NOP, EI, NOP, NOP, DI, NOP, NOP];
+    pub fn run(&mut self /*, ROM */) {
+        // TODO: boot sequence
+        // TODO: load ROM
+        loop {
+            // TODO: get instruction
+            // TODO: decode instruction
+            // TODO: advance PC (emulate HALT bug)
+            // TODO: execute
+        }
+    }
 
-        for i in ops {
-            self.cpu.execute(&mut self.mmu, i);
-            println!("{:?}\n{}\n", i, self);
+    pub fn test(&mut self) {
+        use Instruction::*;
+        let prog = [NOP, NOP, EI, NOP, NOP, DI, NOP, NOP];
+
+        for inst in prog {
+            self.cpu.pc += instruction_length(inst);
+            self.cpu.execute(&mut self.mmu, inst);
+            println!("{:?}\n{}\n", inst, self);
         }
     }
 }
