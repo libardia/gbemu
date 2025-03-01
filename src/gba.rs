@@ -36,7 +36,24 @@ impl GBA {
 
     pub fn test(&mut self) {
         use Instruction::*;
-        let prog = [NOP, NOP, EI, NOP, NOP, DI, NOP, NOP];
+        let prog = [
+            NOP,
+            NOP,
+            EI,
+            NOP,
+            NOP,
+            DI,
+            NOP,
+            NOP,
+            LD_r8_r8(ArgR8::B, ArgR8::CONST(0x12)),
+            LD_r8_r8(ArgR8::C, ArgR8::CONST(0x13)),
+            LD_r8_r8(ArgR8::D, ArgR8::CONST(0x14)),
+            LD_r8_r8(ArgR8::E, ArgR8::CONST(0x15)),
+            ADD_a_r8(ArgR8::B),
+            ADD_a_r8(ArgR8::C),
+            LD_r8_r8(ArgR8::B, ArgR8::A),
+            SUB_a_r8(ArgR8::A),
+        ];
 
         for inst in prog {
             self.cpu.pc += instruction_length(inst);
