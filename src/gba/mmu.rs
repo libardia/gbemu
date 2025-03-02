@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 #[derive(Debug, Clone, Copy)]
 struct MemoryRegion {
     begin: u16,
@@ -123,8 +125,8 @@ impl MMU {
     }
 }
 
-impl std::fmt::Display for MMU {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for MMU {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "MMU: [")?;
         let mut one = false;
         for a in 0..TOTAL_MEM_SIZE {
