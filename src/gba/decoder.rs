@@ -82,79 +82,79 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 4x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LD_r8_r8(ArgR8::B, ArgR8::B),   // x0
+        LD_r8_r8(ArgR8::B, ArgR8::C),   // x1
+        LD_r8_r8(ArgR8::B, ArgR8::D),   // x2
+        LD_r8_r8(ArgR8::B, ArgR8::E),   // x3
+        LD_r8_r8(ArgR8::B, ArgR8::H),   // x4
+        LD_r8_r8(ArgR8::B, ArgR8::L),   // x5
+        LD_r8_r8(ArgR8::B, ArgR8::MHL), // x6
+        LD_r8_r8(ArgR8::B, ArgR8::A),   // x7
+        LD_r8_r8(ArgR8::C, ArgR8::B),   // x8
+        LD_r8_r8(ArgR8::C, ArgR8::C),   // x9
+        LD_r8_r8(ArgR8::C, ArgR8::D),   // xA
+        LD_r8_r8(ArgR8::C, ArgR8::E),   // xB
+        LD_r8_r8(ArgR8::C, ArgR8::H),   // xC
+        LD_r8_r8(ArgR8::C, ArgR8::L),   // xD
+        LD_r8_r8(ArgR8::C, ArgR8::MHL), // xE
+        LD_r8_r8(ArgR8::C, ArgR8::A),   // xF
     ],
     [
         // 5x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LD_r8_r8(ArgR8::D, ArgR8::B),   // x0
+        LD_r8_r8(ArgR8::D, ArgR8::C),   // x1
+        LD_r8_r8(ArgR8::D, ArgR8::D),   // x2
+        LD_r8_r8(ArgR8::D, ArgR8::E),   // x3
+        LD_r8_r8(ArgR8::D, ArgR8::H),   // x4
+        LD_r8_r8(ArgR8::D, ArgR8::L),   // x5
+        LD_r8_r8(ArgR8::D, ArgR8::MHL), // x6
+        LD_r8_r8(ArgR8::D, ArgR8::A),   // x7
+        LD_r8_r8(ArgR8::E, ArgR8::B),   // x8
+        LD_r8_r8(ArgR8::E, ArgR8::C),   // x9
+        LD_r8_r8(ArgR8::E, ArgR8::D),   // xA
+        LD_r8_r8(ArgR8::E, ArgR8::E),   // xB
+        LD_r8_r8(ArgR8::E, ArgR8::H),   // xC
+        LD_r8_r8(ArgR8::E, ArgR8::L),   // xD
+        LD_r8_r8(ArgR8::E, ArgR8::MHL), // xE
+        LD_r8_r8(ArgR8::E, ArgR8::A),   // xF
     ],
     [
         // 6x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LD_r8_r8(ArgR8::H, ArgR8::B),   // x0
+        LD_r8_r8(ArgR8::H, ArgR8::C),   // x1
+        LD_r8_r8(ArgR8::H, ArgR8::D),   // x2
+        LD_r8_r8(ArgR8::H, ArgR8::E),   // x3
+        LD_r8_r8(ArgR8::H, ArgR8::H),   // x4
+        LD_r8_r8(ArgR8::H, ArgR8::L),   // x5
+        LD_r8_r8(ArgR8::H, ArgR8::MHL), // x6
+        LD_r8_r8(ArgR8::H, ArgR8::A),   // x7
+        LD_r8_r8(ArgR8::L, ArgR8::B),   // x8
+        LD_r8_r8(ArgR8::L, ArgR8::C),   // x9
+        LD_r8_r8(ArgR8::L, ArgR8::D),   // xA
+        LD_r8_r8(ArgR8::L, ArgR8::E),   // xB
+        LD_r8_r8(ArgR8::L, ArgR8::H),   // xC
+        LD_r8_r8(ArgR8::L, ArgR8::L),   // xD
+        LD_r8_r8(ArgR8::L, ArgR8::MHL), // xE
+        LD_r8_r8(ArgR8::L, ArgR8::A),   // xF
     ],
     [
         // 7x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LD_r8_r8(ArgR8::MHL, ArgR8::B), // x0
+        LD_r8_r8(ArgR8::MHL, ArgR8::C), // x1
+        LD_r8_r8(ArgR8::MHL, ArgR8::D), // x2
+        LD_r8_r8(ArgR8::MHL, ArgR8::E), // x3
+        LD_r8_r8(ArgR8::MHL, ArgR8::H), // x4
+        LD_r8_r8(ArgR8::MHL, ArgR8::L), // x5
+        HALT,                           // x6
+        LD_r8_r8(ArgR8::MHL, ArgR8::A), // x7
+        LD_r8_r8(ArgR8::A, ArgR8::B),   // x8
+        LD_r8_r8(ArgR8::A, ArgR8::C),   // x9
+        LD_r8_r8(ArgR8::A, ArgR8::D),   // xA
+        LD_r8_r8(ArgR8::A, ArgR8::E),   // xB
+        LD_r8_r8(ArgR8::A, ArgR8::H),   // xC
+        LD_r8_r8(ArgR8::A, ArgR8::L),   // xD
+        LD_r8_r8(ArgR8::A, ArgR8::MHL), // xE
+        LD_r8_r8(ArgR8::A, ArgR8::A),   // xF
     ],
     [
         // 8x
