@@ -158,79 +158,79 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 8x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        ADD_a_r8(ArgR8::B),   // x0
+        ADD_a_r8(ArgR8::C),   // x1
+        ADD_a_r8(ArgR8::D),   // x2
+        ADD_a_r8(ArgR8::E),   // x3
+        ADD_a_r8(ArgR8::H),   // x4
+        ADD_a_r8(ArgR8::L),   // x5
+        ADD_a_r8(ArgR8::MHL), // x6
+        ADD_a_r8(ArgR8::A),   // x7
+        ADC_a_r8(ArgR8::B),   // x8
+        ADC_a_r8(ArgR8::C),   // x9
+        ADC_a_r8(ArgR8::D),   // xA
+        ADC_a_r8(ArgR8::E),   // xB
+        ADC_a_r8(ArgR8::H),   // xC
+        ADC_a_r8(ArgR8::L),   // xD
+        ADC_a_r8(ArgR8::MHL), // xE
+        ADC_a_r8(ArgR8::A),   // xF
     ],
     [
         // 9x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SUB_a_r8(ArgR8::B),   // x0
+        SUB_a_r8(ArgR8::C),   // x1
+        SUB_a_r8(ArgR8::D),   // x2
+        SUB_a_r8(ArgR8::E),   // x3
+        SUB_a_r8(ArgR8::H),   // x4
+        SUB_a_r8(ArgR8::L),   // x5
+        SUB_a_r8(ArgR8::MHL), // x6
+        SUB_a_r8(ArgR8::A),   // x7
+        SBC_a_r8(ArgR8::B),   // x8
+        SBC_a_r8(ArgR8::C),   // x9
+        SBC_a_r8(ArgR8::D),   // xA
+        SBC_a_r8(ArgR8::E),   // xB
+        SBC_a_r8(ArgR8::H),   // xC
+        SBC_a_r8(ArgR8::L),   // xD
+        SBC_a_r8(ArgR8::MHL), // xE
+        SBC_a_r8(ArgR8::A),   // xF
     ],
     [
         // Ax
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        AND_a_r8(ArgR8::B),   // x0
+        AND_a_r8(ArgR8::C),   // x1
+        AND_a_r8(ArgR8::D),   // x2
+        AND_a_r8(ArgR8::E),   // x3
+        AND_a_r8(ArgR8::H),   // x4
+        AND_a_r8(ArgR8::L),   // x5
+        AND_a_r8(ArgR8::MHL), // x6
+        AND_a_r8(ArgR8::A),   // x7
+        XOR_a_r8(ArgR8::B),   // x8
+        XOR_a_r8(ArgR8::C),   // x9
+        XOR_a_r8(ArgR8::D),   // xA
+        XOR_a_r8(ArgR8::E),   // xB
+        XOR_a_r8(ArgR8::H),   // xC
+        XOR_a_r8(ArgR8::L),   // xD
+        XOR_a_r8(ArgR8::MHL), // xE
+        XOR_a_r8(ArgR8::A),   // xF
     ],
     [
         // Bx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        OR_a_r8(ArgR8::B),   // x0
+        OR_a_r8(ArgR8::C),   // x1
+        OR_a_r8(ArgR8::D),   // x2
+        OR_a_r8(ArgR8::E),   // x3
+        OR_a_r8(ArgR8::H),   // x4
+        OR_a_r8(ArgR8::L),   // x5
+        OR_a_r8(ArgR8::MHL), // x6
+        OR_a_r8(ArgR8::A),   // x7
+        CP_a_r8(ArgR8::B),   // x8
+        CP_a_r8(ArgR8::C),   // x9
+        CP_a_r8(ArgR8::D),   // xA
+        CP_a_r8(ArgR8::E),   // xB
+        CP_a_r8(ArgR8::H),   // xC
+        CP_a_r8(ArgR8::L),   // xD
+        CP_a_r8(ArgR8::MHL), // xE
+        CP_a_r8(ArgR8::A),   // xF
     ],
     [
         // Cx
