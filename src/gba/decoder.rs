@@ -623,6 +623,21 @@ fn get_instruction(table: &[[Instruction; 16]; 16], code: u8) -> Instruction {
     table[upper][lower]
 }
 
+fn get_next_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> u8 {
+    *inst_length += 1;
+    mmu.read_byte(pc + 1)
+}
+
+fn get_next_signed_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> i8 {
+    *inst_length += 1;
+    mmu.read_signed_byte(pc + 1)
+}
+
+fn get_next_word(mmu: &MMU, inst_length: &mut u16, pc: u16) -> u16 {
+    *inst_length += 2;
+    mmu.read_word(pc + 1)
+}
+
 pub fn decode(mmu: &MMU, pc: u16) -> (Instruction, u16) {
     let code = mmu.read_byte(pc);
     let mut inst_length: u16 = 1;
@@ -633,7 +648,75 @@ pub fn decode(mmu: &MMU, pc: u16) -> (Instruction, u16) {
         inst_length += 1;
         inst = get_instruction(&PREFIX_TABLE, second);
     } else {
+        // Fill in constants from following bytes, if applicable
+        inst = match inst {
+            // 0x
+            LD_r16_n16(x, _) => LD_r16_n16(x, get_next_word(mmu, &mut inst_length, pc)),
+            LD_r8_r8(x, ArgR8::CONST(_)) => {
+                LD_r8_r8(x, ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+            LD_mn16_sp(_) => LD_mn16_sp(get_next_word(mmu, &mut inst_length, pc)),
 
+            // 1x
+            JR_e8(_) => JR_e8(get_next_signed_byte(mmu, &mut inst_length, pc)),
+
+            // 2x
+            JR_cc_e8(x, _) => JR_cc_e8(x, get_next_signed_byte(mmu, &mut inst_length, pc)),
+
+            // 3x
+            LD_sp_n16(_) => LD_sp_n16(get_next_word(mmu, &mut inst_length, pc)),
+
+            // Cx
+            JP_cc_n16(x, _) => JP_cc_n16(x, get_next_word(mmu, &mut inst_length, pc)),
+            JP_n16(_) => JP_n16(get_next_word(mmu, &mut inst_length, pc)),
+            CALL_cc_n16(x, _) => CALL_cc_n16(x, get_next_word(mmu, &mut inst_length, pc)),
+            ADD_a_r8(ArgR8::CONST(_)) => {
+                ADD_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+            CALL_n16(_) => CALL_n16(get_next_word(mmu, &mut inst_length, pc)),
+            ADC_a_r8(ArgR8::CONST(_)) => {
+                ADC_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+
+            // Dx
+            SUB_a_r8(ArgR8::CONST(_)) => {
+                SUB_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+            SBC_a_r8(ArgR8::CONST(_)) => {
+                SBC_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+
+            // Ex
+            LDH_mn16_a(_) => LDH_mn16_a(get_next_byte(mmu, &mut inst_length, pc)),
+            AND_a_r8(ArgR8::CONST(_)) => {
+                AND_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+            ADD_sp_e8(_) => ADD_sp_e8(get_next_signed_byte(mmu, &mut inst_length, pc)),
+            LD_mr16_a(ArgR16MEM::CONST(_)) => {
+                LD_mr16_a(ArgR16MEM::CONST(get_next_word(mmu, &mut inst_length, pc)))
+            }
+            XOR_a_r8(ArgR8::CONST(_)) => {
+                XOR_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+
+            // Fx
+            LDH_a_mn16(_) => LDH_a_mn16(get_next_byte(mmu, &mut inst_length, pc)),
+            OR_a_r8(ArgR8::CONST(_)) => {
+                OR_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+            LD_hl_sp_plus_e8(_) => {
+                LD_hl_sp_plus_e8(get_next_signed_byte(mmu, &mut inst_length, pc))
+            }
+            LD_a_mr16(ArgR16MEM::CONST(_)) => {
+                LD_a_mr16(ArgR16MEM::CONST(get_next_word(mmu, &mut inst_length, pc)))
+            }
+            CP_a_r8(ArgR8::CONST(_)) => {
+                CP_a_r8(ArgR8::CONST(get_next_byte(mmu, &mut inst_length, pc)))
+            }
+
+            // Everything else
+            _ => inst,
+        };
     }
 
     (inst, inst_length)

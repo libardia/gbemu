@@ -117,8 +117,6 @@ pub enum ArgR16 {
     BC,
     DE,
     HL,
-
-    CONST(u16),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -133,7 +131,6 @@ pub enum ArgR16STK {
 pub enum ArgR16MEM {
     BC,
     DE,
-    HL,
     HLI,
     HLD,
 

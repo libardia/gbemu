@@ -94,7 +94,6 @@ impl CPU {
             ArgR16::BC => self.regs.get_bc(),
             ArgR16::DE => self.regs.get_de(),
             ArgR16::HL => self.regs.get_hl(),
-            ArgR16::CONST(c) => c,
         }
     }
 
@@ -102,7 +101,6 @@ impl CPU {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
-            ArgR16MEM::HL => self.regs.get_hl(),
             ArgR16MEM::HLI => self.regs.get_hl(),
             ArgR16MEM::HLD => self.regs.get_hl(),
             ArgR16MEM::CONST(c) => c,
@@ -123,7 +121,6 @@ impl CPU {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
-            ArgR16MEM::HL => self.regs.get_hl(),
             ArgR16MEM::HLI => {
                 let address = self.regs.get_hl();
                 self.regs.set_hl(address.overflowing_add(1).0);
@@ -159,7 +156,6 @@ impl CPU {
             ArgR16::BC => self.regs.set_bc(value),
             ArgR16::DE => self.regs.set_de(value),
             ArgR16::HL => self.regs.set_hl(value),
-            ArgR16::CONST(_) => Self::panic_no_const(),
         }
     }
 
@@ -389,10 +385,6 @@ impl CPU {
 
     // ADD HL,r16 (m: 2)
     fn op_add_r16_to_hl(&mut self, operand: ArgR16) {
-        if matches!(operand, ArgR16::CONST(_)) {
-            Self::panic_no_const();
-        }
-
         let lhs = self.regs.get_hl();
         let rhs = self.get_value_at_r16(operand);
         let (result, overflow) = lhs.overflowing_add(rhs);

@@ -93,6 +93,10 @@ impl MMU {
         self.get(address)
     }
 
+    pub fn read_signed_byte(&self, address: u16) -> i8 {
+        self.read_byte(address) as i8
+    }
+
     pub fn write_byte(&mut self, address: u16, value: u8) {
         if address > SWITCH_ROM.end {
             if self.is_in_region(address, UNUSABLE) {
