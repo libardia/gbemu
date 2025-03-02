@@ -52,33 +52,14 @@ impl MMU {
         self.mem = [0; EFFECTIVE_MEM_SIZE];
     }
 
-    fn get(&self, address: u16) -> u8 {
+    pub fn get(&self, address: u16) -> u8 {
         let eff = self.calc_eff_address(address);
-
-        // TODO: when is OAM block?
-        let oam_block = false;
-        if self.is_in_region(address, UNUSABLE) {
-            if oam_block {
-                // TODO: OAM corruption happens here. Also, what actually gets returned..?
-                return 0xFF;
-            } else {
-                return 0;
-            }
-        }
-
         self.mem[eff]
     }
 
-    fn set(&mut self, address: u16, value: u8) {
+    pub fn set(&mut self, address: u16, value: u8) {
         let eff = self.calc_eff_address(address);
-        if address > SWITCH_ROM.end {
-            if self.is_in_region(address, UNUSABLE) {
-                // TODO: OAM corruption happens here, I think? And idk what gets written.
-                self.mem[eff] = value;
-            } else {
-                self.mem[eff] = value;
-            }
-        }
+        self.mem[eff] = value;
     }
 
     fn is_in_region(&self, address: u16, region: MemoryRegion) -> bool {
@@ -98,11 +79,29 @@ impl MMU {
     // 8-bit ======================================================================================
 
     pub fn read_byte(&self, address: u16) -> u8 {
+        // TODO: when is OAM block?
+        let oam_block = false;
+        if self.is_in_region(address, UNUSABLE) {
+            if oam_block {
+                // TODO: OAM corruption happens here. Also, what actually gets returned..?
+                return 0xFF;
+            } else {
+                return 0;
+            }
+        }
+
         self.get(address)
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
-        self.set(address, value);
+        if address > SWITCH_ROM.end {
+            if self.is_in_region(address, UNUSABLE) {
+                // TODO: OAM corruption happens here, I think? And idk what gets written.
+                self.set(address, value);
+            } else {
+                self.set(address, value);
+            }
+        }
     }
 
     // 16-bit =====================================================================================
@@ -111,14 +110,14 @@ impl MMU {
     // address + 1. This is very important because virtual 16-bit registers are BIG-ENDIAN.
 
     pub fn read_word(&self, address: u16) -> u16 {
-        let ls = self.get(address);
-        let ms = self.get(address + 1);
+        let ls = self.read_byte(address);
+        let ms = self.read_byte(address + 1);
         ((ms as u16) << 8) + (ls as u16)
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
-        self.set(address, (value & 0xFF) as u8);
-        self.set(address + 1, ((value & 0xFF00) >> 8) as u8);
+        self.write_byte(address, (value & 0xFF) as u8);
+        self.write_byte(address + 1, ((value & 0xFF00) >> 8) as u8);
     }
 }
 
@@ -130,7 +129,7 @@ impl std::fmt::Display for MMU {
             let b = self.read_byte(a as u16);
             if b != 0 {
                 one = true;
-                write!(f, "\n\t0x{:0>4X} = {}", a, b)?;
+                write!(f, "\n\t0x{:0>4X} = {:0>2X}", a, b)?;
             }
         }
         if one {

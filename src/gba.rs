@@ -1,6 +1,6 @@
 mod cpu;
-mod mmu;
 mod decoder;
+mod mmu;
 
 use std::{fmt, fmt::Display, fmt::Formatter};
 
@@ -37,32 +37,48 @@ impl GBA {
     }
 
     pub fn test(&mut self) {
-        use Instruction::*;
+        // use Instruction::*;
+        // let prog = [
+        //     NOP,
+        //     NOP,
+        //     EI,
+        //     NOP,
+        //     NOP,
+        //     DI,
+        //     NOP,
+        //     NOP,
+        //     LD_r8_r8(ArgR8::B, ArgR8::CONST(0x12)),
+        //     LD_r8_r8(ArgR8::C, ArgR8::CONST(0x13)),
+        //     LD_r8_r8(ArgR8::D, ArgR8::CONST(0x14)),
+        //     LD_r8_r8(ArgR8::E, ArgR8::CONST(0x15)),
+        //     LD_r8_r8(ArgR8::H, ArgR8::CONST(0xD5)),
+        //     LD_r8_r8(ArgR8::L, ArgR8::CONST(0x10)),
+        //     LD_r8_r8(ArgR8::MHL, ArgR8::CONST(0x18)),
+        //     LD_r16_n16(ArgR16::HL, 0xDEAD),
+        //     LD_r8_r8(ArgR8::MHL, ArgR8::CONST(255)),
+        //     ADD_a_r8(ArgR8::B),
+        //     ADD_a_r8(ArgR8::C),
+        //     LD_r8_r8(ArgR8::B, ArgR8::A),
+        //     SUB_a_r8(ArgR8::A),
+        // ];
+
+        // for inst in prog {
+        //     self.cpu.execute(&mut self.mmu, inst);
+        //     println!("{:?}\n{}\n\n", inst, self);
+        // }
+
         let prog = [
-            NOP,
-            NOP,
-            EI,
-            NOP,
-            NOP,
-            DI,
-            NOP,
-            NOP,
-            LD_r8_r8(ArgR8::B, ArgR8::CONST(0x12)),
-            LD_r8_r8(ArgR8::C, ArgR8::CONST(0x13)),
-            LD_r8_r8(ArgR8::D, ArgR8::CONST(0x14)),
-            LD_r8_r8(ArgR8::E, ArgR8::CONST(0x15)),
-            LD_r8_r8(ArgR8::H, ArgR8::CONST(0xD5)),
-            LD_r8_r8(ArgR8::L, ArgR8::CONST(0x10)),
-            LD_r8_r8(ArgR8::MHL, ArgR8::CONST(0x18)),
-            LD_r16_n16(ArgR16::HL, 0xDEAD),
-            LD_r8_r8(ArgR8::MHL, ArgR8::CONST(255)),
-            ADD_a_r8(ArgR8::B),
-            ADD_a_r8(ArgR8::C),
-            LD_r8_r8(ArgR8::B, ArgR8::A),
-            SUB_a_r8(ArgR8::A),
+            0x04u8, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x60, 0x68, 0x29, 0x29,
+            0x29, 0x70,
         ];
 
-        for inst in prog {
+        for (i, b) in prog.iter().enumerate() {
+            self.mmu.set(i as u16, *b);
+        }
+
+        while self.mmu.get(self.cpu.pc) != 0 {
+            let (inst, inst_length) = decoder::decode(&self.mmu, self.cpu.pc);
+            self.cpu.pc += inst_length;
             self.cpu.execute(&mut self.mmu, inst);
             println!("{:?}\n{}\n\n", inst, self);
         }
