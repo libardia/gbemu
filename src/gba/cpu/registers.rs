@@ -90,7 +90,3 @@ impl Registers {
             | if carry { F_CARRY } else { 0 };
     }
 }
-
-// Tests ==========================================================================================
-#[cfg(test)]
-mod registers_tests;

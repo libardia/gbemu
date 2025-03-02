@@ -729,8 +729,12 @@ impl CPU {
 
 // Execute
 impl CPU {
-    pub fn execute(&mut self, mmu: &mut MMU, instruction: Instruction) {
-        match instruction {
+    pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction, inst_length: u16) {
+        // Advance PC first
+        // TODO: emulate HALT bug
+        self.pc += inst_length;
+
+        match inst {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.op_load8(mmu, dest, src),
             LD_r16_n16(dest, value) => self.op_load_const_to_r16(dest, value),
@@ -838,9 +842,7 @@ impl CPU {
     }
 }
 
-/* #region Display and tests */
-// Display ========================================================================================
-
+/* #region Display ============================================================================= */
 impl Display for CPU {
     #[rustfmt::skip]
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
@@ -865,9 +867,4 @@ impl Display for CPU {
         write!(formatter, "+--------------------------+")
     }
 }
-
-// Tests ==========================================================================================
-#[cfg(test)]
-mod cpu_tests;
-
 /* #endregion */

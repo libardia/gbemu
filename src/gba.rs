@@ -2,7 +2,7 @@ mod cpu;
 mod decoder;
 mod mmu;
 
-use std::{fmt, fmt::Display, fmt::Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use cpu::CPU;
 use decoder::decode;
@@ -26,42 +26,32 @@ impl GBA {
         }
     }
 
-    pub fn run(&mut self /*, ROM */) {
+    pub fn run(&mut self, debug_print: bool /*, ROM */) {
         // TODO: boot sequence
         // TODO: load ROM
-        loop {
+        while !self.cpu.terminate {
             let (inst, inst_length) = decode(&self.mmu, self.cpu.pc);
-            // TODO: advance PC (emulate HALT bug)
-            if self.skip_next_pc {
-                self.cpu.pc += inst_length;
-                self.skip_next_pc = false;
-            }
-
-            self.cpu.execute(&mut self.mmu, inst);
-
-            // Terminate emulator
-            if self.cpu.terminate {
-                break;
+            self.cpu.execute(&mut self.mmu, inst, inst_length);
+            if debug_print {
+                println!("{inst:?}, {inst_length} bytes\n{self}\n\n");
             }
         }
     }
 
     pub fn test(&mut self) {
         let prog = [
-            0x04u8, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x60, 0x68, 0x29, 0x29,
-            0x29, 0x70,
+            0x01, 0xAD, 0xDE, // Write 0xDEAD into BC
+            0x80, // A += B (0xDE)
+            0x81, // A += C (0x8B)
+            0xEA, 0xAD, 0xDE, // Write A to [0xDEAD]
+            0xEC, // Terminate
         ];
 
         for (i, b) in prog.iter().enumerate() {
             self.mmu.set(i as u16, *b);
         }
 
-        while self.mmu.get(self.cpu.pc) != 0 {
-            let (inst, inst_length) = decoder::decode(&self.mmu, self.cpu.pc);
-            self.cpu.pc += inst_length;
-            self.cpu.execute(&mut self.mmu, inst);
-            println!("{:?}\n{}\n\n", inst, self);
-        }
+        self.run(true);
     }
 }
 

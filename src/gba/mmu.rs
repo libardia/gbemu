@@ -133,7 +133,7 @@ impl Display for MMU {
             let b = self.read_byte(a as u16);
             if b != 0 {
                 one = true;
-                write!(f, "\n\t0x{:0>4X} = {:0>2X}", a, b)?;
+                write!(f, "\n\t0x{:0>4X} = 0x{:0>2X}", a, b)?;
             }
         }
         if one {
