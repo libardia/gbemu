@@ -63,22 +63,22 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 3x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        JR_cc_e8(ArgCOND::NC, 0),              // x0
+        LD_sp_n16(0),                          // x1
+        LD_mr16_a(ArgR16MEM::HLD),             // x2
+        INC_sp,                                // x3
+        INC_r8(ArgR8::MHL),                    // x4
+        DEC_r8(ArgR8::MHL),                    // x5
+        LD_r8_r8(ArgR8::MHL, ArgR8::CONST(0)), // x6
+        SCF,                                   // x7
+        JR_cc_e8(ArgCOND::C, 0),               // x8
+        ADD_hl_sp,                             // x9
+        LD_a_mr16(ArgR16MEM::HLD),             // xA
+        DEC_sp,                                // xB
+        INC_r8(ArgR8::A),                      // xC
+        DEC_r8(ArgR8::A),                      // xD
+        LD_r8_r8(ArgR8::A, ArgR8::CONST(0)),   // xE
+        CCF,                                   // xF
     ],
     [
         // 4x
