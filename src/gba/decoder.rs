@@ -234,79 +234,79 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // Cx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RET_cc(ArgCOND::NZ),         // x0
+        POP_r16(ArgR16STK::BC),      // x1
+        JP_cc_n16(ArgCOND::NZ, 0),   // x2
+        JP_n16(0),                   // x3
+        CALL_cc_n16(ArgCOND::NZ, 0), // x4
+        PUSH_r16(ArgR16STK::BC),     // x5
+        ADD_a_r8(ArgR8::CONST(0)),   // x6
+        RST_vec(ArgVEC::Vec0x00),    // x7
+        RET_cc(ArgCOND::Z),          // x8
+        RET,                         // x9
+        JP_cc_n16(ArgCOND::Z, 0),    // xA
+        PREFIX,                      // xB
+        CALL_cc_n16(ArgCOND::Z, 0),  // xC
+        CALL_n16(0),                 // xD
+        ADC_a_r8(ArgR8::CONST(0)),   // xE
+        RST_vec(ArgVEC::Vec0x08),    // xF
     ],
     [
         // Dx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RET_cc(ArgCOND::NC),         // x0
+        POP_r16(ArgR16STK::DE),      // x1
+        JP_cc_n16(ArgCOND::NC, 0),   // x2
+        INVALID,                     // x3
+        CALL_cc_n16(ArgCOND::NC, 0), // x4
+        PUSH_r16(ArgR16STK::DE),     // x5
+        SUB_a_r8(ArgR8::CONST(0)),   // x6
+        RST_vec(ArgVEC::Vec0x10),    // x7
+        RET_cc(ArgCOND::C),          // x8
+        RETI,                        // x9
+        JP_cc_n16(ArgCOND::C, 0),    // xA
+        INVALID,                     // xB
+        CALL_cc_n16(ArgCOND::C, 0),  // xC
+        INVALID,                     // xD
+        SBC_a_r8(ArgR8::CONST(0)),   // xE
+        RST_vec(ArgVEC::Vec0x18),    // xF
     ],
     [
         // Ex
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LDH_mn16_a(0),                  // x0
+        POP_r16(ArgR16STK::HL),         // x1
+        LDH_mc_a,                       // x2
+        INVALID,                        // x3
+        INVALID,                        // x4
+        PUSH_r16(ArgR16STK::HL),        // x5
+        AND_a_r8(ArgR8::CONST(0)),      // x6
+        RST_vec(ArgVEC::Vec0x20),       // x7
+        ADD_sp_e8(0),                   // x8
+        JP_hl,                          // x9
+        LD_mr16_a(ArgR16MEM::CONST(0)), // xA
+        INVALID,                        // xB
+        INVALID,                        // xC
+        INVALID,                        // xD
+        XOR_a_r8(ArgR8::CONST(0)),      // xE
+        RST_vec(ArgVEC::Vec0x28),       // xF
     ],
     [
         // Fx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        LDH_a_mn16(0),                  // x0
+        POP_r16(ArgR16STK::AF),         // x1
+        LDH_a_mc,                       // x2
+        DI,                             // x3
+        INVALID,                        // x4
+        PUSH_r16(ArgR16STK::AF),        // x5
+        OR_a_r8(ArgR8::CONST(0)),       // x6
+        RST_vec(ArgVEC::Vec0x30),       // x7
+        LD_hl_sp_plus_e8(0),            // x8
+        LD_sp_hl,                       // x9
+        LD_a_mr16(ArgR16MEM::CONST(0)), // xA
+        EI,                             // xB
+        INVALID,                        // xC
+        INVALID,                        // xD
+        CP_a_r8(ArgR8::CONST(0)),       // xE
+        RST_vec(ArgVEC::Vec0x38),       // xF
     ],
 ];
 
