@@ -92,6 +92,10 @@ pub enum Instruction {
     DAA,
     NOP,
     STOP,
+
+    // Meta
+    PREFIX,
+    INVALID,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,108 +170,4 @@ pub enum ArgCOND {
     Z,
     NC,
     C,
-}
-
-pub fn instruction_length(inst: Instruction) -> u16 {
-    use Instruction::*;
-    match inst {
-        // Load (LD_dest_source)
-        LD_r8_r8(_, ArgR8::CONST(_)) => 2,
-        LD_r8_r8(_, _) => 1,
-        LD_r16_n16(_, _) => 3,
-        LD_mr16_a(ArgR16MEM::CONST(_)) => 3,
-        LD_mr16_a(_) => 1,
-        LDH_mn16_a(_) => 2,
-        LDH_mc_a => 1,
-        LD_a_mr16(ArgR16MEM::CONST(_)) => 3,
-        LD_a_mr16(_) => 1,
-        LDH_a_mn16(_) => 2,
-        LDH_a_mc => 1,
-
-        // 8-bit arithmetic
-        ADC_a_r8(ArgR8::CONST(_)) => 2,
-        ADC_a_r8(_) => 1,
-        ADD_a_r8(ArgR8::CONST(_)) => 2,
-        ADD_a_r8(_) => 1,
-        CP_a_r8(ArgR8::CONST(_)) => 2,
-        CP_a_r8(_) => 1,
-        DEC_r8(_) => 1,
-        INC_r8(_) => 1,
-        SBC_a_r8(ArgR8::CONST(_)) => 2,
-        SBC_a_r8(_) => 1,
-        SUB_a_r8(ArgR8::CONST(_)) => 2,
-        SUB_a_r8(_) => 1,
-
-        // 16-bit arithmetic
-        ADD_hl_r16(_) => 1,
-        DEC_r16(_) => 1,
-        INC_r16(_) => 1,
-
-        // Bitwise logic
-        AND_a_r8(ArgR8::CONST(_)) => 2,
-        AND_a_r8(_) => 1,
-        CPL => 1,
-        OR_a_r8(ArgR8::CONST(_)) => 2,
-        OR_a_r8(_) => 1,
-        XOR_a_r8(ArgR8::CONST(_)) => 2,
-        XOR_a_r8(_) => 1,
-
-        // Bit flags
-        BIT_u3_r8(_, _) => 2,
-        RES_u3_r8(_, _) => 2,
-        SET_u3_r8(_, _) => 2,
-
-        // Bit shift
-        RL_r8(_) => 2,
-        RLA => 1,
-        RLC_r8(_) => 2,
-        RLCA => 1,
-        RR_r8(_) => 2,
-        RRA => 1,
-        RRC_r8(_) => 2,
-        RRCA => 1,
-        SLA_r8(_) => 2,
-        SRA_r8(_) => 2,
-        SRL_r8(_) => 2,
-        SWAP_r8(_) => 2,
-
-        // Jumps and subroutines
-        CALL_n16(_) => 3,
-        CALL_cc_n16(_, _) => 3,
-        JP_hl => 1,
-        JP_n16(_) => 3,
-        JP_cc_n16(_, _) => 3,
-        JR_e8(_) => 2,
-        JR_cc_e8(_, _) => 2,
-        RET_cc(_) => 1,
-        RET => 1,
-        RETI => 1,
-        RST_vec(_) => 1,
-
-        // Carry flag
-        CCF => 1,
-        SCF => 1,
-
-        // Stack manipulation
-        ADD_hl_sp => 1,
-        ADD_sp_e8(_) => 2,
-        DEC_sp => 1,
-        INC_sp => 1,
-        LD_sp_n16(_) => 3,
-        LD_mn16_sp(_) => 3,
-        LD_hl_sp_plus_e8(_) => 2,
-        LD_sp_hl => 1,
-        POP_r16(_) => 1,
-        PUSH_r16(_) => 1,
-
-        // Interrupt-related
-        DI => 1,
-        EI => 1,
-        HALT => 1,
-
-        // Miscellaneous
-        DAA => 1,
-        NOP => 1,
-        STOP => 2,
-    }
 }

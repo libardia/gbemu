@@ -1,5 +1,6 @@
 mod cpu;
 mod mmu;
+mod decoder;
 
 use std::{fmt, fmt::Display, fmt::Formatter};
 
@@ -62,7 +63,6 @@ impl GBA {
         ];
 
         for inst in prog {
-            self.cpu.pc += instruction_length(inst);
             self.cpu.execute(&mut self.mmu, inst);
             println!("{:?}\n{}\n\n", inst, self);
         }

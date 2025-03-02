@@ -822,6 +822,10 @@ impl CPU {
             DAA => todo!(),
             NOP => self.op_nop(),
             STOP => todo!(),
+
+            // Meta
+            PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
+            INVALID => panic!("Attempted to execute an invalid instruction!"),
         }
 
         // Special handling for delaying changing IME
