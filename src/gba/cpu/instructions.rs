@@ -96,6 +96,7 @@ pub enum Instruction {
     // Meta
     PREFIX,
     INVALID,
+    TERMINATE,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -151,14 +152,14 @@ pub enum ArgU3 {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgVEC {
-    Vec0x00,
-    Vec0x08,
-    Vec0x10,
-    Vec0x18,
-    Vec0x20,
-    Vec0x28,
-    Vec0x30,
-    Vec0x38,
+    Vec0x00 = 0x00,
+    Vec0x08 = 0x08,
+    Vec0x10 = 0x10,
+    Vec0x18 = 0x18,
+    Vec0x20 = 0x20,
+    Vec0x28 = 0x28,
+    Vec0x30 = 0x30,
+    Vec0x38 = 0x38,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -20,6 +20,8 @@ pub struct CPU {
     // Needed to handle the delay of the IME flag
     will_set_ime: bool,
     setting_ime: bool,
+    // Nonstandard, terminate the emulator
+    pub terminate: bool,
 }
 
 impl CPU {
@@ -33,6 +35,7 @@ impl CPU {
             t_time: 0,
             will_set_ime: false,
             setting_ime: false,
+            terminate: false,
         }
     }
 
@@ -44,6 +47,7 @@ impl CPU {
         self.t_time = 0;
         self.will_set_ime = false;
         self.setting_ime = false;
+        self.terminate = false;
     }
     /* #endregion */
 
@@ -818,6 +822,7 @@ impl CPU {
             // Meta
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
             INVALID => panic!("Attempted to execute an invalid instruction!"),
+            TERMINATE => self.terminate = true,
         }
 
         // Special handling for delaying changing IME

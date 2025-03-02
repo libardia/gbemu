@@ -1,5 +1,3 @@
-use std::{fmt::write, path::Display};
-
 #[derive(Debug, Clone, Copy)]
 struct MemoryRegion {
     begin: u16,

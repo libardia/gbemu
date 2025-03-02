@@ -284,7 +284,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         JP_hl,                          // x9
         LD_mr16_a(ArgR16MEM::CONST(0)), // xA**
         INVALID,                        // xB
-        INVALID,                        // xC
+        TERMINATE,                      // xC         WARNING: NON-STAMDARD
         INVALID,                        // xD
         XOR_a_r8(ArgR8::CONST(0)),      // xE*
         RST_vec(ArgVEC::Vec0x28),       // xF

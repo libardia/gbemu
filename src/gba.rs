@@ -5,6 +5,7 @@ mod mmu;
 use std::{fmt, fmt::Display, fmt::Formatter};
 
 use cpu::{instructions::*, CPU};
+use decoder::decode;
 use mmu::MMU;
 
 #[derive(Debug)]
@@ -29,10 +30,19 @@ impl GBA {
         // TODO: boot sequence
         // TODO: load ROM
         loop {
-            // TODO: get instruction
-            // TODO: decode instruction
+            let (inst, inst_length) = decode(&self.mmu, self.cpu.pc);
             // TODO: advance PC (emulate HALT bug)
-            // TODO: execute
+            if self.skip_next_pc {
+                self.cpu.pc += inst_length;
+                self.skip_next_pc = false;
+            }
+
+            self.cpu.execute(&mut self.mmu, inst);
+
+            // Terminate emulator
+            if self.cpu.terminate {
+                break;
+            }
         }
     }
 
