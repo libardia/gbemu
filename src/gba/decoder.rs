@@ -313,318 +313,326 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
 const PREFIX_TABLE: [[Instruction; 16]; 16] = [
     [
         // 0x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RLC_r8(ArgR8::B),   // x0
+        RLC_r8(ArgR8::C),   // x1
+        RLC_r8(ArgR8::D),   // x2
+        RLC_r8(ArgR8::E),   // x3
+        RLC_r8(ArgR8::H),   // x4
+        RLC_r8(ArgR8::L),   // x5
+        RLC_r8(ArgR8::MHL), // x6
+        RLC_r8(ArgR8::A),   // x7
+        RRC_r8(ArgR8::B),   // x8
+        RRC_r8(ArgR8::C),   // x9
+        RRC_r8(ArgR8::D),   // xA
+        RRC_r8(ArgR8::E),   // xB
+        RRC_r8(ArgR8::H),   // xC
+        RRC_r8(ArgR8::L),   // xD
+        RRC_r8(ArgR8::MHL), // xE
+        RRC_r8(ArgR8::A),   // xF
     ],
     [
         // 1x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RL_r8(ArgR8::B),   // x0
+        RL_r8(ArgR8::C),   // x1
+        RL_r8(ArgR8::D),   // x2
+        RL_r8(ArgR8::E),   // x3
+        RL_r8(ArgR8::H),   // x4
+        RL_r8(ArgR8::L),   // x5
+        RL_r8(ArgR8::MHL), // x6
+        RL_r8(ArgR8::A),   // x7
+        RR_r8(ArgR8::B),   // x8
+        RR_r8(ArgR8::C),   // x9
+        RR_r8(ArgR8::D),   // xA
+        RR_r8(ArgR8::E),   // xB
+        RR_r8(ArgR8::H),   // xC
+        RR_r8(ArgR8::L),   // xD
+        RR_r8(ArgR8::MHL), // xE
+        RR_r8(ArgR8::A),   // xF
     ],
     [
         // 2x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SLA_r8(ArgR8::B),   // x0
+        SLA_r8(ArgR8::C),   // x1
+        SLA_r8(ArgR8::D),   // x2
+        SLA_r8(ArgR8::E),   // x3
+        SLA_r8(ArgR8::H),   // x4
+        SLA_r8(ArgR8::L),   // x5
+        SLA_r8(ArgR8::MHL), // x6
+        SLA_r8(ArgR8::A),   // x7
+        SRA_r8(ArgR8::B),   // x8
+        SRA_r8(ArgR8::C),   // x9
+        SRA_r8(ArgR8::D),   // xA
+        SRA_r8(ArgR8::E),   // xB
+        SRA_r8(ArgR8::H),   // xC
+        SRA_r8(ArgR8::L),   // xD
+        SRA_r8(ArgR8::MHL), // xE
+        SRA_r8(ArgR8::A),   // xF
     ],
     [
         // 3x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SWAP_r8(ArgR8::B),   // x0
+        SWAP_r8(ArgR8::C),   // x1
+        SWAP_r8(ArgR8::D),   // x2
+        SWAP_r8(ArgR8::E),   // x3
+        SWAP_r8(ArgR8::H),   // x4
+        SWAP_r8(ArgR8::L),   // x5
+        SWAP_r8(ArgR8::MHL), // x6
+        SWAP_r8(ArgR8::A),   // x7
+        SRL_r8(ArgR8::B),    // x8
+        SRL_r8(ArgR8::C),    // x9
+        SRL_r8(ArgR8::D),    // xA
+        SRL_r8(ArgR8::E),    // xB
+        SRL_r8(ArgR8::H),    // xC
+        SRL_r8(ArgR8::L),    // xD
+        SRL_r8(ArgR8::MHL),  // xE
+        SRL_r8(ArgR8::A),    // xF
     ],
     [
         // 4x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::B),   // x0
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::C),   // x1
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::D),   // x2
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::E),   // x3
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::H),   // x4
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::L),   // x5
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::MHL), // x6
+        BIT_u3_r8(ArgU3::Bit0, ArgR8::A),   // x7
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::B),   // x8
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::C),   // x9
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::D),   // xA
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::E),   // xB
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::H),   // xC
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::L),   // xD
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::MHL), // xE
+        BIT_u3_r8(ArgU3::Bit1, ArgR8::A),   // xF
     ],
     [
         // 5x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::B),   // x0
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::C),   // x1
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::D),   // x2
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::E),   // x3
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::H),   // x4
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::L),   // x5
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::MHL), // x6
+        BIT_u3_r8(ArgU3::Bit2, ArgR8::A),   // x7
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::B),   // x8
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::C),   // x9
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::D),   // xA
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::E),   // xB
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::H),   // xC
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::L),   // xD
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::MHL), // xE
+        BIT_u3_r8(ArgU3::Bit3, ArgR8::A),   // xF
     ],
     [
         // 6x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::B),   // x0
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::C),   // x1
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::D),   // x2
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::E),   // x3
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::H),   // x4
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::L),   // x5
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::MHL), // x6
+        BIT_u3_r8(ArgU3::Bit4, ArgR8::A),   // x7
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::B),   // x8
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::C),   // x9
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::D),   // xA
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::E),   // xB
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::H),   // xC
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::L),   // xD
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::MHL), // xE
+        BIT_u3_r8(ArgU3::Bit5, ArgR8::A),   // xF
     ],
     [
         // 7x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::B),   // x0
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::C),   // x1
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::D),   // x2
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::E),   // x3
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::H),   // x4
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::L),   // x5
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::MHL), // x6
+        BIT_u3_r8(ArgU3::Bit6, ArgR8::A),   // x7
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::B),   // x8
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::C),   // x9
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::D),   // xA
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::E),   // xB
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::H),   // xC
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::L),   // xD
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::MHL), // xE
+        BIT_u3_r8(ArgU3::Bit7, ArgR8::A),   // xF
     ],
     [
         // 8x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RES_u3_r8(ArgU3::Bit0, ArgR8::B),   // x0
+        RES_u3_r8(ArgU3::Bit0, ArgR8::C),   // x1
+        RES_u3_r8(ArgU3::Bit0, ArgR8::D),   // x2
+        RES_u3_r8(ArgU3::Bit0, ArgR8::E),   // x3
+        RES_u3_r8(ArgU3::Bit0, ArgR8::H),   // x4
+        RES_u3_r8(ArgU3::Bit0, ArgR8::L),   // x5
+        RES_u3_r8(ArgU3::Bit0, ArgR8::MHL), // x6
+        RES_u3_r8(ArgU3::Bit0, ArgR8::A),   // x7
+        RES_u3_r8(ArgU3::Bit1, ArgR8::B),   // x8
+        RES_u3_r8(ArgU3::Bit1, ArgR8::C),   // x9
+        RES_u3_r8(ArgU3::Bit1, ArgR8::D),   // xA
+        RES_u3_r8(ArgU3::Bit1, ArgR8::E),   // xB
+        RES_u3_r8(ArgU3::Bit1, ArgR8::H),   // xC
+        RES_u3_r8(ArgU3::Bit1, ArgR8::L),   // xD
+        RES_u3_r8(ArgU3::Bit1, ArgR8::MHL), // xE
+        RES_u3_r8(ArgU3::Bit1, ArgR8::A),   // xF
     ],
     [
         // 9x
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RES_u3_r8(ArgU3::Bit2, ArgR8::B),   // x0
+        RES_u3_r8(ArgU3::Bit2, ArgR8::C),   // x1
+        RES_u3_r8(ArgU3::Bit2, ArgR8::D),   // x2
+        RES_u3_r8(ArgU3::Bit2, ArgR8::E),   // x3
+        RES_u3_r8(ArgU3::Bit2, ArgR8::H),   // x4
+        RES_u3_r8(ArgU3::Bit2, ArgR8::L),   // x5
+        RES_u3_r8(ArgU3::Bit2, ArgR8::MHL), // x6
+        RES_u3_r8(ArgU3::Bit2, ArgR8::A),   // x7
+        RES_u3_r8(ArgU3::Bit3, ArgR8::B),   // x8
+        RES_u3_r8(ArgU3::Bit3, ArgR8::C),   // x9
+        RES_u3_r8(ArgU3::Bit3, ArgR8::D),   // xA
+        RES_u3_r8(ArgU3::Bit3, ArgR8::E),   // xB
+        RES_u3_r8(ArgU3::Bit3, ArgR8::H),   // xC
+        RES_u3_r8(ArgU3::Bit3, ArgR8::L),   // xD
+        RES_u3_r8(ArgU3::Bit3, ArgR8::MHL), // xE
+        RES_u3_r8(ArgU3::Bit3, ArgR8::A),   // xF
     ],
     [
         // Ax
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RES_u3_r8(ArgU3::Bit4, ArgR8::B),   // x0
+        RES_u3_r8(ArgU3::Bit4, ArgR8::C),   // x1
+        RES_u3_r8(ArgU3::Bit4, ArgR8::D),   // x2
+        RES_u3_r8(ArgU3::Bit4, ArgR8::E),   // x3
+        RES_u3_r8(ArgU3::Bit4, ArgR8::H),   // x4
+        RES_u3_r8(ArgU3::Bit4, ArgR8::L),   // x5
+        RES_u3_r8(ArgU3::Bit4, ArgR8::MHL), // x6
+        RES_u3_r8(ArgU3::Bit4, ArgR8::A),   // x7
+        RES_u3_r8(ArgU3::Bit5, ArgR8::B),   // x8
+        RES_u3_r8(ArgU3::Bit5, ArgR8::C),   // x9
+        RES_u3_r8(ArgU3::Bit5, ArgR8::D),   // xA
+        RES_u3_r8(ArgU3::Bit5, ArgR8::E),   // xB
+        RES_u3_r8(ArgU3::Bit5, ArgR8::H),   // xC
+        RES_u3_r8(ArgU3::Bit5, ArgR8::L),   // xD
+        RES_u3_r8(ArgU3::Bit5, ArgR8::MHL), // xE
+        RES_u3_r8(ArgU3::Bit5, ArgR8::A),   // xF
     ],
     [
         // Bx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        RES_u3_r8(ArgU3::Bit6, ArgR8::B),   // x0
+        RES_u3_r8(ArgU3::Bit6, ArgR8::C),   // x1
+        RES_u3_r8(ArgU3::Bit6, ArgR8::D),   // x2
+        RES_u3_r8(ArgU3::Bit6, ArgR8::E),   // x3
+        RES_u3_r8(ArgU3::Bit6, ArgR8::H),   // x4
+        RES_u3_r8(ArgU3::Bit6, ArgR8::L),   // x5
+        RES_u3_r8(ArgU3::Bit6, ArgR8::MHL), // x6
+        RES_u3_r8(ArgU3::Bit6, ArgR8::A),   // x7
+        RES_u3_r8(ArgU3::Bit7, ArgR8::B),   // x8
+        RES_u3_r8(ArgU3::Bit7, ArgR8::C),   // x9
+        RES_u3_r8(ArgU3::Bit7, ArgR8::D),   // xA
+        RES_u3_r8(ArgU3::Bit7, ArgR8::E),   // xB
+        RES_u3_r8(ArgU3::Bit7, ArgR8::H),   // xC
+        RES_u3_r8(ArgU3::Bit7, ArgR8::L),   // xD
+        RES_u3_r8(ArgU3::Bit7, ArgR8::MHL), // xE
+        RES_u3_r8(ArgU3::Bit7, ArgR8::A),   // xF
     ],
     [
         // Cx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SET_u3_r8(ArgU3::Bit0, ArgR8::B),   // x0
+        SET_u3_r8(ArgU3::Bit0, ArgR8::C),   // x1
+        SET_u3_r8(ArgU3::Bit0, ArgR8::D),   // x2
+        SET_u3_r8(ArgU3::Bit0, ArgR8::E),   // x3
+        SET_u3_r8(ArgU3::Bit0, ArgR8::H),   // x4
+        SET_u3_r8(ArgU3::Bit0, ArgR8::L),   // x5
+        SET_u3_r8(ArgU3::Bit0, ArgR8::MHL), // x6
+        SET_u3_r8(ArgU3::Bit0, ArgR8::A),   // x7
+        SET_u3_r8(ArgU3::Bit1, ArgR8::B),   // x8
+        SET_u3_r8(ArgU3::Bit1, ArgR8::C),   // x9
+        SET_u3_r8(ArgU3::Bit1, ArgR8::D),   // xA
+        SET_u3_r8(ArgU3::Bit1, ArgR8::E),   // xB
+        SET_u3_r8(ArgU3::Bit1, ArgR8::H),   // xC
+        SET_u3_r8(ArgU3::Bit1, ArgR8::L),   // xD
+        SET_u3_r8(ArgU3::Bit1, ArgR8::MHL), // xE
+        SET_u3_r8(ArgU3::Bit1, ArgR8::A),   // xF
     ],
     [
         // Dx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SET_u3_r8(ArgU3::Bit2, ArgR8::B),   // x0
+        SET_u3_r8(ArgU3::Bit2, ArgR8::C),   // x1
+        SET_u3_r8(ArgU3::Bit2, ArgR8::D),   // x2
+        SET_u3_r8(ArgU3::Bit2, ArgR8::E),   // x3
+        SET_u3_r8(ArgU3::Bit2, ArgR8::H),   // x4
+        SET_u3_r8(ArgU3::Bit2, ArgR8::L),   // x5
+        SET_u3_r8(ArgU3::Bit2, ArgR8::MHL), // x6
+        SET_u3_r8(ArgU3::Bit2, ArgR8::A),   // x7
+        SET_u3_r8(ArgU3::Bit3, ArgR8::B),   // x8
+        SET_u3_r8(ArgU3::Bit3, ArgR8::C),   // x9
+        SET_u3_r8(ArgU3::Bit3, ArgR8::D),   // xA
+        SET_u3_r8(ArgU3::Bit3, ArgR8::E),   // xB
+        SET_u3_r8(ArgU3::Bit3, ArgR8::H),   // xC
+        SET_u3_r8(ArgU3::Bit3, ArgR8::L),   // xD
+        SET_u3_r8(ArgU3::Bit3, ArgR8::MHL), // xE
+        SET_u3_r8(ArgU3::Bit3, ArgR8::A),   // xF
     ],
     [
         // Ex
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SET_u3_r8(ArgU3::Bit4, ArgR8::B),   // x0
+        SET_u3_r8(ArgU3::Bit4, ArgR8::C),   // x1
+        SET_u3_r8(ArgU3::Bit4, ArgR8::D),   // x2
+        SET_u3_r8(ArgU3::Bit4, ArgR8::E),   // x3
+        SET_u3_r8(ArgU3::Bit4, ArgR8::H),   // x4
+        SET_u3_r8(ArgU3::Bit4, ArgR8::L),   // x5
+        SET_u3_r8(ArgU3::Bit4, ArgR8::MHL), // x6
+        SET_u3_r8(ArgU3::Bit4, ArgR8::A),   // x7
+        SET_u3_r8(ArgU3::Bit5, ArgR8::B),   // x8
+        SET_u3_r8(ArgU3::Bit5, ArgR8::C),   // x9
+        SET_u3_r8(ArgU3::Bit5, ArgR8::D),   // xA
+        SET_u3_r8(ArgU3::Bit5, ArgR8::E),   // xB
+        SET_u3_r8(ArgU3::Bit5, ArgR8::H),   // xC
+        SET_u3_r8(ArgU3::Bit5, ArgR8::L),   // xD
+        SET_u3_r8(ArgU3::Bit5, ArgR8::MHL), // xE
+        SET_u3_r8(ArgU3::Bit5, ArgR8::A),   // xF
     ],
     [
         // Fx
-        NOP, // x0
-        NOP, // x1
-        NOP, // x2
-        NOP, // x3
-        NOP, // x4
-        NOP, // x5
-        NOP, // x6
-        NOP, // x7
-        NOP, // x8
-        NOP, // x9
-        NOP, // xA
-        NOP, // xB
-        NOP, // xC
-        NOP, // xD
-        NOP, // xE
-        NOP, // xF
+        SET_u3_r8(ArgU3::Bit6, ArgR8::B),   // x0
+        SET_u3_r8(ArgU3::Bit6, ArgR8::C),   // x1
+        SET_u3_r8(ArgU3::Bit6, ArgR8::D),   // x2
+        SET_u3_r8(ArgU3::Bit6, ArgR8::E),   // x3
+        SET_u3_r8(ArgU3::Bit6, ArgR8::H),   // x4
+        SET_u3_r8(ArgU3::Bit6, ArgR8::L),   // x5
+        SET_u3_r8(ArgU3::Bit6, ArgR8::MHL), // x6
+        SET_u3_r8(ArgU3::Bit6, ArgR8::A),   // x7
+        SET_u3_r8(ArgU3::Bit7, ArgR8::B),   // x8
+        SET_u3_r8(ArgU3::Bit7, ArgR8::C),   // x9
+        SET_u3_r8(ArgU3::Bit7, ArgR8::D),   // xA
+        SET_u3_r8(ArgU3::Bit7, ArgR8::E),   // xB
+        SET_u3_r8(ArgU3::Bit7, ArgR8::H),   // xC
+        SET_u3_r8(ArgU3::Bit7, ArgR8::L),   // xD
+        SET_u3_r8(ArgU3::Bit7, ArgR8::MHL), // xE
+        SET_u3_r8(ArgU3::Bit7, ArgR8::A),   // xF
     ],
 ];
+
+fn get_instruction(table: &[[Instruction; 16]; 16], code: u8) -> Instruction {
+    let upper = ((code & 0xF0) >> 4) as usize;
+    let lower = (code & 0xF) as usize;
+    table[upper][lower]
+}
 
 pub fn decode(mmu: &MMU, pc: u16) -> (Instruction, u16) {
     let mut inst_length: u16 = 1;
     let code = mmu.read_byte(pc);
-    let upper = ((code & 0xF0) >> 4) as usize;
-    let lower = (code & 0xF) as usize;
-    let mut inst = OP_TABLE[upper][lower];
+    let mut inst = get_instruction(&OP_TABLE, code);
 
-    if inst == PREFIX {}
+    if inst == PREFIX {
+        inst_length += 1;
+        let second = mmu.read_byte(pc + 1);
+        inst = get_instruction(&PREFIX_TABLE, second);
+    }
 
     (inst, inst_length)
 }
