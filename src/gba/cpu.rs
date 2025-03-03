@@ -784,7 +784,29 @@ impl CPU {
 
     /* #region Stack manipulation ============================================================== */
 
-    // TODO: ADD SP,e8   (m: 4)
+    // ADD SP,e8 (m: 4)
+    fn op_add_e8_to_sp(&mut self, offset: i8) {
+        let osp = self.sp;
+        let asu16 = offset as u16;
+
+        // I really don't understand how the flags are supposed to work here. This is the best I
+        // could figure from the docs I could find. Hopefully Blaarg's test ROMs will make this
+        // clear.
+        let (nhc, nc) = if offset > 0 {
+            let nibble_sum = (asu16 & 0xF) + (osp & 0xF);
+            let byte_sum = (asu16 & 0xFF) + (osp & 0xFF);
+            (nibble_sum > 0xF, byte_sum > 0xFF)
+        } else {
+            (false, false)
+        };
+
+        self.regs.set_all_flags(false, false, nhc, nc);
+
+        self.sp = osp.wrapping_add(asu16);
+
+        self.add_m_time(4);
+    }
+
     // TODO: LD [n16],SP (m: 5)
     // TODO: LD HL,SP+e8 (m: 3)
     // TODO: LD SP,HL    (m: 2)
@@ -914,7 +936,7 @@ impl CPU {
 
             // Stack manipulation
             ADD_hl_sp => self.op_add_r16_to_hl(ArgR16::SP),
-            ADD_sp_e8(operand) => todo!(), // TODO
+            ADD_sp_e8(offset) => self.op_add_e8_to_sp(offset),
             DEC_sp => self.op_dec16(ArgR16::SP),
             INC_sp => self.op_inc16(ArgR16::SP),
             LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value),
