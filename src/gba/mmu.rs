@@ -69,10 +69,6 @@ impl MMU {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.mem = [0; EFFECTIVE_MEM_SIZE];
-    }
-
     pub fn get(&self, address: u16) -> u8 {
         let eff = self.calc_eff_address(address);
         self.mem[eff]
