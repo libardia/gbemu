@@ -966,12 +966,12 @@ impl CPU {
             // Interrupt-related
             DI => self.op_disable_interrupts(),
             EI => self.op_enable_interrupts_delayed(),
-            HALT => todo!(), // TODO
+            HALT => todo!(), // TODO: op_halt
 
             // Miscellaneous
-            DAA => todo!(), // TODO
+            DAA => todo!(), // TODO: op_daa
             NOP => self.op_nop(),
-            STOP => todo!(), // TODO
+            STOP => todo!(), // TODO: op_stop
 
             // Meta
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
