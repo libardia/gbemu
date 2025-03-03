@@ -33,7 +33,8 @@ impl GBA {
     }
 
     pub fn run(&mut self, debug_print: bool) {
-        // TODO: boot sequence
+        // TODO: loading the boot rom this way is temporary
+        self.load(&mmu::BOOT_ROM);
         while !self.cpu.terminate {
             let (inst, inst_length) = decode(&self.mmu, self.cpu.pc);
             self.cpu.execute(&mut self.mmu, inst, inst_length);

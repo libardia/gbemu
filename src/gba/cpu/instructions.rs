@@ -118,6 +118,7 @@ pub enum ArgR16 {
     BC,
     DE,
     HL,
+    SP,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

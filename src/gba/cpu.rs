@@ -98,6 +98,7 @@ impl CPU {
             ArgR16::BC => self.regs.get_bc(),
             ArgR16::DE => self.regs.get_de(),
             ArgR16::HL => self.regs.get_hl(),
+            ArgR16::SP => self.sp,
         }
     }
 
@@ -119,6 +120,24 @@ impl CPU {
         }
 
         mmu.read_byte(address)
+    }
+
+    fn get_value_at_r16stk(&self, target: ArgR16STK) -> u16 {
+        match target {
+            ArgR16STK::BC => self.regs.get_bc(),
+            ArgR16STK::DE => self.regs.get_de(),
+            ArgR16STK::HL => self.regs.get_hl(),
+            ArgR16STK::AF => self.regs.get_af(),
+        }
+    }
+
+    fn set_value_at_r16stk(&mut self, target: ArgR16STK, value: u16) {
+        match target {
+            ArgR16STK::BC => self.regs.set_bc(value),
+            ArgR16STK::DE => self.regs.set_de(value),
+            ArgR16STK::HL => self.regs.set_hl(value),
+            ArgR16STK::AF => self.regs.set_af(value),
+        }
     }
 
     fn set_value_at_mr16(&mut self, mmu: &mut MMU, target: ArgR16MEM, value: u8) {
@@ -160,6 +179,7 @@ impl CPU {
             ArgR16::BC => self.regs.set_bc(value),
             ArgR16::DE => self.regs.set_de(value),
             ArgR16::HL => self.regs.set_hl(value),
+            ArgR16::SP => self.sp = value,
         }
     }
 
@@ -227,6 +247,16 @@ impl CPU {
             ArgCOND::ALWAYS => true,
         }
     }
+
+    fn push_word(&mut self, mmu: &mut MMU, value: u16) {
+        self.pc -= 2;
+        mmu.write_word(self.pc, value);
+    }
+
+    fn pop_word(&mut self, mmu: &mut MMU) -> u16 {
+        self.pc += 2;
+        mmu.read_word(self.pc)
+    }
     /* #endregion */
 }
 
@@ -262,6 +292,7 @@ impl CPU {
     }
 
     // LD r16,n16 (m: 3)
+    // LD SP,n16  (m: 3)
     fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
         self.set_value_at_r16(dest, value);
 
@@ -398,6 +429,7 @@ impl CPU {
     /* #region 16-bit arithmetic =============================================================== */
 
     // ADD HL,r16 (m: 2)
+    // ADD HL,SP  (m: 2)
     fn op_add_r16_to_hl(&mut self, operand: ArgR16) {
         let lhs = self.regs.get_hl();
         let rhs = self.get_value_at_r16(operand);
@@ -414,6 +446,7 @@ impl CPU {
     }
 
     // DEC r16 (m: 2)
+    // DEC SP  (m: 2)
     fn op_dec16(&mut self, target: ArgR16) {
         let value = self.get_value_at_r16(target);
         self.set_value_at_r16(target, value.overflowing_sub(1).0);
@@ -422,6 +455,7 @@ impl CPU {
     }
 
     // INC r16 (m: 2)
+    // INC SP  (m: 2)
     fn op_inc16(&mut self, target: ArgR16) {
         let value = self.get_value_at_r16(target);
         self.set_value_at_r16(target, value.overflowing_add(1).0);
@@ -717,18 +751,25 @@ impl CPU {
 
     /* #region Stack manipulation ============================================================== */
 
-    // TODO: ADD HL,SP   (m: 2)
     // TODO: ADD SP,e8   (m: 4)
-    // TODO: DEC SP      (m: 2)
-    // TODO: INC SP      (m: 2)
-    // TODO: LD SP,n16   (m: 3)
     // TODO: LD [n16],SP (m: 5)
     // TODO: LD HL,SP+e8 (m: 3)
     // TODO: LD SP,HL    (m: 2)
-    // TODO: POP AF      (m: 3)
-    // TODO: POP r16     (m: 3)
-    // TODO: PUSH AF     (m: 4)
-    // TODO: PUSH r16    (m: 4)
+
+    // POP AF      (m: 3)
+    // POP r16     (m: 3)
+    fn op_pop_r16(&mut self, mmu: &mut MMU, target: ArgR16STK) {
+        let value = self.pop_word(mmu);
+        self.set_value_at_r16stk(target, value);
+        self.add_m_time(3);
+    }
+
+    // PUSH AF  (m: 4)
+    // PUSH r16 (m: 4)
+    fn op_push_r16(&mut self, mmu: &mut MMU, target: ArgR16STK) {
+        self.push_word(mmu, self.get_value_at_r16stk(target));
+        self.add_m_time(4);
+    }
 
     /* #endregion */
 
@@ -822,43 +863,43 @@ impl CPU {
             SWAP_r8(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
-            CALL_n16(address) => todo!(),
-            CALL_cc_n16(condition, address) => todo!(),
+            CALL_n16(address) => todo!(),               // TODO
+            CALL_cc_n16(condition, address) => todo!(), // TODO
             JP_hl => self.op_jump_hl(),
             JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address),
             JP_cc_n16(condition, address) => self.op_jump_cond(condition, address),
             JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset),
             JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset),
-            RET_cc(condition) => todo!(),
-            RET => todo!(),
-            RETI => todo!(),
-            RST_vec(vec_address) => todo!(),
+            RET_cc(condition) => todo!(),    // TODO
+            RET => todo!(),                  // TODO
+            RETI => todo!(),                 // TODO
+            RST_vec(vec_address) => todo!(), // TODO
 
             // Carry flag
             CCF => self.op_carry_flag(false),
             SCF => self.op_carry_flag(true),
 
             // Stack manipulation
-            ADD_hl_sp => todo!(),
-            ADD_sp_e8(operand) => todo!(),
-            DEC_sp => todo!(),
-            INC_sp => todo!(),
-            LD_sp_n16(value) => todo!(),
-            LD_mn16_sp(address) => todo!(),
-            LD_hl_sp_plus_e8(offset) => todo!(),
-            LD_sp_hl => todo!(),
-            POP_r16(target) => todo!(),
-            PUSH_r16(target) => todo!(),
+            ADD_hl_sp => self.op_add_r16_to_hl(ArgR16::SP),
+            ADD_sp_e8(operand) => todo!(), // TODO
+            DEC_sp => self.op_dec16(ArgR16::SP),
+            INC_sp => self.op_inc16(ArgR16::SP),
+            LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value),
+            LD_mn16_sp(address) => todo!(),      // TODO
+            LD_hl_sp_plus_e8(offset) => todo!(), // TODO
+            LD_sp_hl => todo!(),                 // TODO
+            POP_r16(target) => self.op_pop_r16(mmu, target),
+            PUSH_r16(target) => self.op_push_r16(mmu, target),
 
             // Interrupt-related
             DI => self.op_disable_interrupts(),
             EI => self.op_enable_interrupts_delayed(),
-            HALT => todo!(),
+            HALT => todo!(), // TODO
 
             // Miscellaneous
-            DAA => todo!(),
+            DAA => todo!(), // TODO
             NOP => self.op_nop(),
-            STOP => todo!(),
+            STOP => todo!(), // TODO
 
             // Meta
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
