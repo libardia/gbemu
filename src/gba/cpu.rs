@@ -253,7 +253,7 @@ impl CPU {
         mmu.write_word(self.pc, value);
     }
 
-    fn pop_word(&mut self, mmu: &mut MMU) -> u16 {
+    fn pop_word(&mut self, mmu: &MMU) -> u16 {
         self.pc += 2;
         mmu.read_word(self.pc)
     }
@@ -691,8 +691,17 @@ impl CPU {
 
     /* #region Jumps and subroutines =========================================================== */
 
-    // TODO: CALL n16    (m:   6)
-    // TODO: CALL cc,n16 (m: 6/3)
+    // CALL n16    (m:   6)
+    // CALL cc,n16 (m: 6/3)
+    fn op_call(&mut self, mmu: &mut MMU, condition: ArgCOND, address: u16) {
+        if self.eval_condition(condition) {
+            self.push_word(mmu, self.pc);
+            self.pc = address;
+            self.add_m_time(6);
+        } else {
+            self.add_m_time(3);
+        }
+    }
 
     // JP HL (m: 1)
     fn op_jump_hl(&mut self) {
@@ -725,10 +734,34 @@ impl CPU {
         }
     }
 
-    // TODO: RET cc      (m: 5/2)
-    // TODO: RET         (m:   4)
-    // TODO: RETI        (m:   4)
-    // TODO: RST vec     (m:   4)
+    // RET cc (m: 5/2)
+    fn op_return_condition(&mut self, mmu: &MMU, condition: ArgCOND) {
+        if self.eval_condition(condition) {
+            self.pc = self.pop_word(mmu);
+            self.add_m_time(5);
+        } else {
+            self.add_m_time(2);
+        }
+    }
+
+    // RET  (m: 4)
+    // RETI (m: 4)
+    fn op_return(&mut self, mmu: &MMU, enable_interrupts: bool) {
+        if enable_interrupts {
+            // Because this is equivalent to EI then RET, the IME flag is actually set at the end
+            // of this insctruction
+            self.regs.ime = true;
+        }
+        self.pc = self.pop_word(mmu);
+        self.add_m_time(4);
+    }
+
+    // RST vec (m: 4)
+    fn op_call_vector(&mut self, mmu: &mut MMU, vec_address: ArgVEC) {
+        self.push_word(mmu, self.pc);
+        self.pc = vec_address as u16;
+        self.add_m_time(4);
+    }
 
     /* #endregion */
 
@@ -758,7 +791,7 @@ impl CPU {
 
     // POP AF      (m: 3)
     // POP r16     (m: 3)
-    fn op_pop_r16(&mut self, mmu: &mut MMU, target: ArgR16STK) {
+    fn op_pop_r16(&mut self, mmu: &MMU, target: ArgR16STK) {
         let value = self.pop_word(mmu);
         self.set_value_at_r16stk(target, value);
         self.add_m_time(3);
@@ -863,17 +896,17 @@ impl CPU {
             SWAP_r8(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
-            CALL_n16(address) => todo!(),               // TODO
-            CALL_cc_n16(condition, address) => todo!(), // TODO
+            CALL_n16(address) => self.op_call(mmu, ArgCOND::ALWAYS, address),
+            CALL_cc_n16(condition, address) => self.op_call(mmu, condition, address),
             JP_hl => self.op_jump_hl(),
             JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address),
             JP_cc_n16(condition, address) => self.op_jump_cond(condition, address),
             JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset),
             JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset),
-            RET_cc(condition) => todo!(),    // TODO
-            RET => todo!(),                  // TODO
-            RETI => todo!(),                 // TODO
-            RST_vec(vec_address) => todo!(), // TODO
+            RET_cc(condition) => self.op_return_condition(mmu, condition),
+            RET => self.op_return(mmu, false),
+            RETI => self.op_return(mmu, true),
+            RST_vec(vec_address) => self.op_call_vector(mmu, vec_address),
 
             // Carry flag
             CCF => self.op_carry_flag(false),
