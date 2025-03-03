@@ -2,17 +2,19 @@
 // and
 // https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
 
+use crate::hex::{HexI8, HexU16, HexU8};
+
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     // Load (LD_dest_source)
     LD_r8_r8(ArgR8, ArgR8),
-    LD_r16_n16(ArgR16, u16),
+    LD_r16_n16(ArgR16, HexU16),
     LD_mr16_a(ArgR16MEM),
-    LDH_mn16_a(u8),
+    LDH_mn16_a(HexU8),
     LDH_mc_a,
     LD_a_mr16(ArgR16MEM),
-    LDH_a_mn16(u8),
+    LDH_a_mn16(HexU8),
     LDH_a_mc,
 
     // 8-bit arithmetic
@@ -55,13 +57,13 @@ pub enum Instruction {
     SWAP_r8(ArgR8),
 
     // Jumps and subroutines
-    CALL_n16(u16),
-    CALL_cc_n16(ArgCOND, u16),
+    CALL_n16(HexU16),
+    CALL_cc_n16(ArgCOND, HexU16),
     JP_hl,
-    JP_n16(u16),
-    JP_cc_n16(ArgCOND, u16),
-    JR_e8(i8),
-    JR_cc_e8(ArgCOND, i8),
+    JP_n16(HexU16),
+    JP_cc_n16(ArgCOND, HexU16),
+    JR_e8(HexI8),
+    JR_cc_e8(ArgCOND, HexI8),
     RET_cc(ArgCOND),
     RET,
     RETI,
@@ -73,12 +75,12 @@ pub enum Instruction {
 
     // Stack manipulation
     ADD_hl_sp,
-    ADD_sp_e8(i8),
+    ADD_sp_e8(HexI8),
     DEC_sp,
     INC_sp,
-    LD_sp_n16(u16),
-    LD_mn16_sp(u16),
-    LD_hl_sp_plus_e8(i8),
+    LD_sp_n16(HexU16),
+    LD_mn16_sp(HexU16),
+    LD_hl_sp_plus_e8(HexI8),
     LD_sp_hl,
     POP_r16(ArgR16STK),
     PUSH_r16(ArgR16STK),
@@ -97,6 +99,7 @@ pub enum Instruction {
     PREFIX,
     INVALID,
     TERMINATE,
+    DEBUG_PRINT,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,7 +113,7 @@ pub enum ArgR8 {
     MHL,
     A,
 
-    CONST(u8),
+    CONST(HexU8),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,7 +139,7 @@ pub enum ArgR16MEM {
     HLI,
     HLD,
 
-    CONST(u16),
+    CONST(HexU16),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

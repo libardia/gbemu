@@ -75,7 +75,7 @@ impl CPU {
             ArgR8::L => self.regs.l,
             ArgR8::MHL => mmu.read_byte(self.regs.get_hl()),
             ArgR8::A => self.regs.a,
-            ArgR8::CONST(c) => c,
+            ArgR8::CONST(c) => c.0,
         }
     }
 
@@ -94,7 +94,7 @@ impl CPU {
             ArgR16MEM::DE => self.regs.get_de(),
             ArgR16MEM::HLI => self.regs.get_hl(),
             ArgR16MEM::HLD => self.regs.get_hl(),
-            ArgR16MEM::CONST(c) => c,
+            ArgR16MEM::CONST(c) => c.0,
         };
 
         if matches!(target, ArgR16MEM::HLI) {
@@ -113,7 +113,7 @@ impl CPU {
             ArgR16STK::BC => self.regs.get_bc(),
             ArgR16STK::DE => self.regs.get_de(),
             ArgR16STK::HL => self.regs.get_hl(),
-            ArgR16STK::AF => self.regs.get_af(),
+            ArgR16STK::AF => self.regs.get_af() & 0xFFF0,
         }
     }
 
@@ -122,7 +122,7 @@ impl CPU {
             ArgR16STK::BC => self.regs.set_bc(value),
             ArgR16STK::DE => self.regs.set_de(value),
             ArgR16STK::HL => self.regs.set_hl(value),
-            ArgR16STK::AF => self.regs.set_af(value),
+            ArgR16STK::AF => self.regs.set_af(value & 0xFFF0),
         }
     }
 
@@ -140,7 +140,7 @@ impl CPU {
                 self.regs.set_hl(address.overflowing_sub(1).0);
                 address
             }
-            ArgR16MEM::CONST(c) => c,
+            ArgR16MEM::CONST(c) => c.0,
         };
 
         mmu.write_byte(address, value);
@@ -235,13 +235,14 @@ impl CPU {
     }
 
     fn push_word(&mut self, mmu: &mut MMU, value: u16) {
-        self.pc -= 2;
-        mmu.write_word(self.pc, value);
+        self.sp -= 2;
+        mmu.write_word(self.sp, value);
     }
 
     fn pop_word(&mut self, mmu: &MMU) -> u16 {
-        self.pc += 2;
-        mmu.read_word(self.pc)
+        let word = mmu.read_word(self.sp);
+        self.sp += 2;
+        word
     }
 }
 
@@ -886,12 +887,12 @@ impl CPU {
         match inst {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.op_load8(mmu, dest, src),
-            LD_r16_n16(dest, value) => self.op_load_const_to_r16(dest, value),
+            LD_r16_n16(dest, value) => self.op_load_const_to_r16(dest, value.0),
             LD_mr16_a(address) => self.op_load_between_a_mr16(mmu, address, false),
-            LDH_mn16_a(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address, false),
+            LDH_mn16_a(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address.0, false),
             LDH_mc_a => self.op_loadhigh_between_a_mc(mmu, false),
             LD_a_mr16(address) => self.op_load_between_a_mr16(mmu, address, true),
-            LDH_a_mn16(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address, true),
+            LDH_a_mn16(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address.0, true),
             LDH_a_mc => self.op_loadhigh_between_a_mc(mmu, true),
 
             // 8-bit arithmetic
@@ -934,13 +935,13 @@ impl CPU {
             SWAP_r8(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
-            CALL_n16(address) => self.op_call(mmu, ArgCOND::ALWAYS, address),
-            CALL_cc_n16(condition, address) => self.op_call(mmu, condition, address),
+            CALL_n16(address) => self.op_call(mmu, ArgCOND::ALWAYS, address.0),
+            CALL_cc_n16(condition, address) => self.op_call(mmu, condition, address.0),
             JP_hl => self.op_jump_hl(),
-            JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address),
-            JP_cc_n16(condition, address) => self.op_jump_cond(condition, address),
-            JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset),
-            JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset),
+            JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address.0),
+            JP_cc_n16(condition, address) => self.op_jump_cond(condition, address.0),
+            JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset.0),
+            JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset.0),
             RET_cc(condition) => self.op_return_condition(mmu, condition),
             RET => self.op_return(mmu, false),
             RETI => self.op_return(mmu, true),
@@ -952,12 +953,12 @@ impl CPU {
 
             // Stack manipulation
             ADD_hl_sp => self.op_add_r16_to_hl(ArgR16::SP),
-            ADD_sp_e8(offset) => self.op_add_e8_to_sp(offset),
+            ADD_sp_e8(offset) => self.op_add_e8_to_sp(offset.0),
             DEC_sp => self.op_dec16(ArgR16::SP),
             INC_sp => self.op_inc16(ArgR16::SP),
-            LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value),
-            LD_mn16_sp(address) => self.op_load_sp_to_mn16(mmu, address),
-            LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset),
+            LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value.0),
+            LD_mn16_sp(address) => self.op_load_sp_to_mn16(mmu, address.0),
+            LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset.0),
             LD_sp_hl => self.op_load_hl_to_sp(),
             POP_r16(target) => self.op_pop_r16(mmu, target),
             PUSH_r16(target) => self.op_push_r16(mmu, target),
@@ -976,6 +977,7 @@ impl CPU {
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
             INVALID => panic!("Attempted to execute an invalid instruction!"),
             TERMINATE => self.terminate = true,
+            DEBUG_PRINT => println!("{self}"),
         }
 
         // Special handling for delaying changing IME

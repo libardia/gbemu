@@ -1,3 +1,5 @@
+use crate::hex::*;
+
 use super::{
     cpu::instructions::{Instruction, Instruction::*, *},
     mmu::MMU,
@@ -6,79 +8,79 @@ use super::{
 const OP_TABLE: [[Instruction; 16]; 16] = [
     [
         // 0x
-        NOP,                                 // x0
-        LD_r16_n16(ArgR16::BC, 0),           // x1**
-        LD_mr16_a(ArgR16MEM::BC),            // x2
-        INC_r16(ArgR16::BC),                 // x3
-        INC_r8(ArgR8::B),                    // x4
-        DEC_r8(ArgR8::B),                    // x5
-        LD_r8_r8(ArgR8::B, ArgR8::CONST(0)), // x6*
-        RLCA,                                // x7
-        LD_mn16_sp(0),                       // x8**
-        ADD_hl_r16(ArgR16::BC),              // x9
-        LD_a_mr16(ArgR16MEM::BC),            // xA
-        DEC_r16(ArgR16::BC),                 // xB
-        INC_r8(ArgR8::C),                    // xC
-        DEC_r8(ArgR8::C),                    // xD
-        LD_r8_r8(ArgR8::C, ArgR8::CONST(0)), // xE*
-        RRCA,                                // xF
+        NOP,                                        // x0
+        LD_r16_n16(ArgR16::BC, HexU16(0)),          // x1**
+        LD_mr16_a(ArgR16MEM::BC),                   // x2
+        INC_r16(ArgR16::BC),                        // x3
+        INC_r8(ArgR8::B),                           // x4
+        DEC_r8(ArgR8::B),                           // x5
+        LD_r8_r8(ArgR8::B, ArgR8::CONST(HexU8(0))), // x6*
+        RLCA,                                       // x7
+        LD_mn16_sp(HexU16(0)),                      // x8**
+        ADD_hl_r16(ArgR16::BC),                     // x9
+        LD_a_mr16(ArgR16MEM::BC),                   // xA
+        DEC_r16(ArgR16::BC),                        // xB
+        INC_r8(ArgR8::C),                           // xC
+        DEC_r8(ArgR8::C),                           // xD
+        LD_r8_r8(ArgR8::C, ArgR8::CONST(HexU8(0))), // xE*
+        RRCA,                                       // xF
     ],
     [
         // 1x
-        STOP,                                // x0
-        LD_r16_n16(ArgR16::DE, 0),           // x1**
-        LD_mr16_a(ArgR16MEM::DE),            // x2
-        INC_r16(ArgR16::DE),                 // x3
-        INC_r8(ArgR8::D),                    // x4
-        DEC_r8(ArgR8::D),                    // x5
-        LD_r8_r8(ArgR8::D, ArgR8::CONST(0)), // x6*
-        RLA,                                 // x7
-        JR_e8(0),                            // x8*
-        ADD_hl_r16(ArgR16::DE),              // x9
-        LD_a_mr16(ArgR16MEM::DE),            // xA
-        DEC_r16(ArgR16::DE),                 // xB
-        INC_r8(ArgR8::E),                    // xC
-        DEC_r8(ArgR8::E),                    // xD
-        LD_r8_r8(ArgR8::E, ArgR8::CONST(0)), // xE*
-        RRA,                                 // xF
+        STOP,                                       // x0
+        LD_r16_n16(ArgR16::DE, HexU16(0)),          // x1**
+        LD_mr16_a(ArgR16MEM::DE),                   // x2
+        INC_r16(ArgR16::DE),                        // x3
+        INC_r8(ArgR8::D),                           // x4
+        DEC_r8(ArgR8::D),                           // x5
+        LD_r8_r8(ArgR8::D, ArgR8::CONST(HexU8(0))), // x6*
+        RLA,                                        // x7
+        JR_e8(HexI8(0)),                            // x8*
+        ADD_hl_r16(ArgR16::DE),                     // x9
+        LD_a_mr16(ArgR16MEM::DE),                   // xA
+        DEC_r16(ArgR16::DE),                        // xB
+        INC_r8(ArgR8::E),                           // xC
+        DEC_r8(ArgR8::E),                           // xD
+        LD_r8_r8(ArgR8::E, ArgR8::CONST(HexU8(0))), // xE*
+        RRA,                                        // xF
     ],
     [
         // 2x
-        JR_cc_e8(ArgCOND::NZ, 0),            // x0*
-        LD_r16_n16(ArgR16::HL, 0),           // x1**
-        LD_mr16_a(ArgR16MEM::HLI),           // x2
-        INC_r16(ArgR16::HL),                 // x3
-        INC_r8(ArgR8::H),                    // x4
-        DEC_r8(ArgR8::H),                    // x5
-        LD_r8_r8(ArgR8::H, ArgR8::CONST(0)), // x6*
-        DAA,                                 // x7
-        JR_cc_e8(ArgCOND::Z, 0),             // x8*
-        ADD_hl_r16(ArgR16::HL),              // x9
-        LD_a_mr16(ArgR16MEM::HLI),           // xA
-        DEC_r16(ArgR16::HL),                 // xB
-        INC_r8(ArgR8::L),                    // xC
-        DEC_r8(ArgR8::L),                    // xD
-        LD_r8_r8(ArgR8::L, ArgR8::CONST(0)), // xE*
-        CPL,                                 // xF
+        JR_cc_e8(ArgCOND::NZ, HexI8(0)),            // x0*
+        LD_r16_n16(ArgR16::HL, HexU16(0)),          // x1**
+        LD_mr16_a(ArgR16MEM::HLI),                  // x2
+        INC_r16(ArgR16::HL),                        // x3
+        INC_r8(ArgR8::H),                           // x4
+        DEC_r8(ArgR8::H),                           // x5
+        LD_r8_r8(ArgR8::H, ArgR8::CONST(HexU8(0))), // x6*
+        DAA,                                        // x7
+        JR_cc_e8(ArgCOND::Z, HexI8(0)),             // x8*
+        ADD_hl_r16(ArgR16::HL),                     // x9
+        LD_a_mr16(ArgR16MEM::HLI),                  // xA
+        DEC_r16(ArgR16::HL),                        // xB
+        INC_r8(ArgR8::L),                           // xC
+        DEC_r8(ArgR8::L),                           // xD
+        LD_r8_r8(ArgR8::L, ArgR8::CONST(HexU8(0))), // xE*
+        CPL,                                        // xF
     ],
     [
         // 3x
-        JR_cc_e8(ArgCOND::NC, 0),              // x0*
-        LD_sp_n16(0),                          // x1**
-        LD_mr16_a(ArgR16MEM::HLD),             // x2
-        INC_sp,                                // x3
-        INC_r8(ArgR8::MHL),                    // x4
-        DEC_r8(ArgR8::MHL),                    // x5
-        LD_r8_r8(ArgR8::MHL, ArgR8::CONST(0)), // x6*
-        SCF,                                   // x7
-        JR_cc_e8(ArgCOND::C, 0),               // x8*
-        ADD_hl_sp,                             // x9
-        LD_a_mr16(ArgR16MEM::HLD),             // xA
-        DEC_sp,                                // xB
-        INC_r8(ArgR8::A),                      // xC
-        DEC_r8(ArgR8::A),                      // xD
-        LD_r8_r8(ArgR8::A, ArgR8::CONST(0)),   // xE*
-        CCF,                                   // xF
+        JR_cc_e8(ArgCOND::NC, HexI8(0)),              // x0*
+        LD_sp_n16(HexU16(0)),                         // x1**
+        LD_mr16_a(ArgR16MEM::HLD),                    // x2
+        INC_sp,                                       // x3
+        INC_r8(ArgR8::MHL),                           // x4
+        DEC_r8(ArgR8::MHL),                           // x5
+        LD_r8_r8(ArgR8::MHL, ArgR8::CONST(HexU8(0))), // x6*
+        SCF,                                          // x7
+        JR_cc_e8(ArgCOND::C, HexI8(0)),               // x8*
+        ADD_hl_sp,                                    // x9
+        LD_a_mr16(ArgR16MEM::HLD),                    // xA
+        DEC_sp,                                       // xB
+        INC_r8(ArgR8::A),                             // xC
+        DEC_r8(ArgR8::A),                             // xD
+        LD_r8_r8(ArgR8::A, ArgR8::CONST(HexU8(0))),   // xE*
+        CCF,                                          // xF
     ],
     [
         // 4x
@@ -234,79 +236,79 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // Cx
-        RET_cc(ArgCOND::NZ),         // x0
-        POP_r16(ArgR16STK::BC),      // x1
-        JP_cc_n16(ArgCOND::NZ, 0),   // x2**
-        JP_n16(0),                   // x3**
-        CALL_cc_n16(ArgCOND::NZ, 0), // x4**
-        PUSH_r16(ArgR16STK::BC),     // x5
-        ADD_a_r8(ArgR8::CONST(0)),   // x6*
-        RST_vec(ArgVEC::Vec0x00),    // x7
-        RET_cc(ArgCOND::Z),          // x8
-        RET,                         // x9
-        JP_cc_n16(ArgCOND::Z, 0),    // xA**
-        PREFIX,                      // xB
-        CALL_cc_n16(ArgCOND::Z, 0),  // xC**
-        CALL_n16(0),                 // xD**
-        ADC_a_r8(ArgR8::CONST(0)),   // xE*
-        RST_vec(ArgVEC::Vec0x08),    // xF
+        RET_cc(ArgCOND::NZ),                 // x0
+        POP_r16(ArgR16STK::BC),              // x1
+        JP_cc_n16(ArgCOND::NZ, HexU16(0)),   // x2**
+        JP_n16(HexU16(0)),                   // x3**
+        CALL_cc_n16(ArgCOND::NZ, HexU16(0)), // x4**
+        PUSH_r16(ArgR16STK::BC),             // x5
+        ADD_a_r8(ArgR8::CONST(HexU8(0))),    // x6*
+        RST_vec(ArgVEC::Vec0x00),            // x7
+        RET_cc(ArgCOND::Z),                  // x8
+        RET,                                 // x9
+        JP_cc_n16(ArgCOND::Z, HexU16(0)),    // xA**
+        PREFIX,                              // xB
+        CALL_cc_n16(ArgCOND::Z, HexU16(0)),  // xC**
+        CALL_n16(HexU16(0)),                 // xD**
+        ADC_a_r8(ArgR8::CONST(HexU8(0))),    // xE*
+        RST_vec(ArgVEC::Vec0x08),            // xF
     ],
     [
         // Dx
-        RET_cc(ArgCOND::NC),         // x0
-        POP_r16(ArgR16STK::DE),      // x1
-        JP_cc_n16(ArgCOND::NC, 0),   // x2**
-        INVALID,                     // x3
-        CALL_cc_n16(ArgCOND::NC, 0), // x4**
-        PUSH_r16(ArgR16STK::DE),     // x5
-        SUB_a_r8(ArgR8::CONST(0)),   // x6*
-        RST_vec(ArgVEC::Vec0x10),    // x7
-        RET_cc(ArgCOND::C),          // x8
-        RETI,                        // x9
-        JP_cc_n16(ArgCOND::C, 0),    // xA**
-        INVALID,                     // xB
-        CALL_cc_n16(ArgCOND::C, 0),  // xC**
-        INVALID,                     // xD
-        SBC_a_r8(ArgR8::CONST(0)),   // xE*
-        RST_vec(ArgVEC::Vec0x18),    // xF
+        RET_cc(ArgCOND::NC),                 // x0
+        POP_r16(ArgR16STK::DE),              // x1
+        JP_cc_n16(ArgCOND::NC, HexU16(0)),   // x2**
+        INVALID,                             // x3
+        CALL_cc_n16(ArgCOND::NC, HexU16(0)), // x4**
+        PUSH_r16(ArgR16STK::DE),             // x5
+        SUB_a_r8(ArgR8::CONST(HexU8(0))),    // x6*
+        RST_vec(ArgVEC::Vec0x10),            // x7
+        RET_cc(ArgCOND::C),                  // x8
+        RETI,                                // x9
+        JP_cc_n16(ArgCOND::C, HexU16(0)),    // xA**
+        INVALID,                             // xB
+        CALL_cc_n16(ArgCOND::C, HexU16(0)),  // xC**
+        INVALID,                             // xD
+        SBC_a_r8(ArgR8::CONST(HexU8(0))),    // xE*
+        RST_vec(ArgVEC::Vec0x18),            // xF
     ],
     [
         // Ex
-        LDH_mn16_a(0),                  // x0*
-        POP_r16(ArgR16STK::HL),         // x1
-        LDH_mc_a,                       // x2
-        INVALID,                        // x3
-        INVALID,                        // x4
-        PUSH_r16(ArgR16STK::HL),        // x5
-        AND_a_r8(ArgR8::CONST(0)),      // x6*
-        RST_vec(ArgVEC::Vec0x20),       // x7
-        ADD_sp_e8(0),                   // x8*
-        JP_hl,                          // x9
-        LD_mr16_a(ArgR16MEM::CONST(0)), // xA**
-        INVALID,                        // xB
-        TERMINATE,                      // xC         WARNING: NON-STAMDARD
-        INVALID,                        // xD
-        XOR_a_r8(ArgR8::CONST(0)),      // xE*
-        RST_vec(ArgVEC::Vec0x28),       // xF
+        LDH_mn16_a(HexU8(0)),                   // x0*
+        POP_r16(ArgR16STK::HL),                 // x1
+        LDH_mc_a,                               // x2
+        INVALID,                                // x3
+        INVALID,                                // x4
+        PUSH_r16(ArgR16STK::HL),                // x5
+        AND_a_r8(ArgR8::CONST(HexU8(0))),       // x6*
+        RST_vec(ArgVEC::Vec0x20),               // x7
+        ADD_sp_e8(HexI8(0)),                    // x8*
+        JP_hl,                                  // x9
+        LD_mr16_a(ArgR16MEM::CONST(HexU16(0))), // xA**
+        INVALID,                                // xB
+        TERMINATE,                              // xC         WARNING: NON-STAMDARD
+        DEBUG_PRINT,                            // xD         WARNING: NON-STAMDARD
+        XOR_a_r8(ArgR8::CONST(HexU8(0))),       // xE*
+        RST_vec(ArgVEC::Vec0x28),               // xF
     ],
     [
         // Fx
-        LDH_a_mn16(0),                  // x0*
-        POP_r16(ArgR16STK::AF),         // x1
-        LDH_a_mc,                       // x2
-        DI,                             // x3
-        INVALID,                        // x4
-        PUSH_r16(ArgR16STK::AF),        // x5
-        OR_a_r8(ArgR8::CONST(0)),       // x6*
-        RST_vec(ArgVEC::Vec0x30),       // x7
-        LD_hl_sp_plus_e8(0),            // x8*
-        LD_sp_hl,                       // x9
-        LD_a_mr16(ArgR16MEM::CONST(0)), // xA**
-        EI,                             // xB
-        INVALID,                        // xC
-        INVALID,                        // xD
-        CP_a_r8(ArgR8::CONST(0)),       // xE*
-        RST_vec(ArgVEC::Vec0x38),       // xF
+        LDH_a_mn16(HexU8(0)),                   // x0*
+        POP_r16(ArgR16STK::AF),                 // x1
+        LDH_a_mc,                               // x2
+        DI,                                     // x3
+        INVALID,                                // x4
+        PUSH_r16(ArgR16STK::AF),                // x5
+        OR_a_r8(ArgR8::CONST(HexU8(0))),        // x6*
+        RST_vec(ArgVEC::Vec0x30),               // x7
+        LD_hl_sp_plus_e8(HexI8(0)),             // x8*
+        LD_sp_hl,                               // x9
+        LD_a_mr16(ArgR16MEM::CONST(HexU16(0))), // xA**
+        EI,                                     // xB
+        INVALID,                                // xC
+        INVALID,                                // xD
+        CP_a_r8(ArgR8::CONST(HexU8(0))),        // xE*
+        RST_vec(ArgVEC::Vec0x38),               // xF
     ],
 ];
 
@@ -623,19 +625,19 @@ fn get_instruction(table: &[[Instruction; 16]; 16], code: u8) -> Instruction {
     table[upper][lower]
 }
 
-fn get_next_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> u8 {
+fn get_next_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> HexU8 {
     *inst_length += 1;
-    mmu.read_byte(pc + 1)
+    mmu.read_byte(pc + 1).into()
 }
 
-fn get_next_signed_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> i8 {
+fn get_next_signed_byte(mmu: &MMU, inst_length: &mut u16, pc: u16) -> HexI8 {
     *inst_length += 1;
-    mmu.read_signed_byte(pc + 1)
+    mmu.read_signed_byte(pc + 1).into()
 }
 
-fn get_next_word(mmu: &MMU, inst_length: &mut u16, pc: u16) -> u16 {
+fn get_next_word(mmu: &MMU, inst_length: &mut u16, pc: u16) -> HexU16 {
     *inst_length += 2;
-    mmu.read_word(pc + 1)
+    mmu.read_word(pc + 1).into()
 }
 
 pub fn decode(mmu: &MMU, pc: u16) -> (Instruction, u16) {
