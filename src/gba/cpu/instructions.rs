@@ -168,4 +168,5 @@ pub enum ArgCOND {
     Z,
     NC,
     C,
+    ALWAYS,
 }

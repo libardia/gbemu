@@ -217,6 +217,16 @@ impl CPU {
         // Put the final value together, and new carry is the last bit of rotated
         (new_value_last_7 | new_value_top, rotated & 1 != 0)
     }
+
+    fn eval_condition(&self, condition: ArgCOND) -> bool {
+        match condition {
+            ArgCOND::NZ => !self.regs.getf_zero(),
+            ArgCOND::Z => self.regs.getf_zero(),
+            ArgCOND::NC => !self.regs.getf_carry(),
+            ArgCOND::C => self.regs.getf_carry(),
+            ArgCOND::ALWAYS => true,
+        }
+    }
     /* #endregion */
 }
 
@@ -649,11 +659,38 @@ impl CPU {
 
     // TODO: CALL n16    (m:   6)
     // TODO: CALL cc,n16 (m: 6/3)
-    // TODO: JP HL       (m:   1)
-    // TODO: JP n16      (m:   4)
-    // TODO: JP cc,n16   (m: 4/3)
-    // TODO: JR n16      (m:   3)
-    // TODO: JR cc,n16   (m: 3/2)
+
+    // JP HL (m: 1)
+    fn op_jump_hl(&mut self) {
+        self.pc = self.regs.get_hl();
+        self.add_m_time(1);
+    }
+
+    // JP n16    (m:   4)
+    // JP cc,n16 (m: 4/3)
+    fn op_jump_cond(&mut self, condition: ArgCOND, address: u16) {
+        if self.eval_condition(condition) {
+            self.pc = address;
+            self.add_m_time(4);
+        } else {
+            self.add_m_time(3);
+        }
+    }
+
+    // JR n16    (m:   3)
+    // JR cc,n16 (m: 3/2)
+    fn op_jump_relative(&mut self, condition: ArgCOND, offset: i8) {
+        if self.eval_condition(condition) {
+            // When offset is converted to u16, it will be filled with the same bits as an i16.
+            // Because of two's complement, adding the reults (allowing for overflow) is exactly
+            // the same as subtracting, if offset was negative.
+            self.pc = self.pc.wrapping_add(offset as u16);
+            self.add_m_time(3);
+        } else {
+            self.add_m_time(2);
+        }
+    }
+
     // TODO: RET cc      (m: 5/2)
     // TODO: RET         (m:   4)
     // TODO: RETI        (m:   4)
@@ -787,11 +824,11 @@ impl CPU {
             // Jumps and subroutines
             CALL_n16(address) => todo!(),
             CALL_cc_n16(condition, address) => todo!(),
-            JP_hl => todo!(),
-            JP_n16(address) => todo!(),
-            JP_cc_n16(condition, address) => todo!(),
-            JR_e8(offset) => todo!(),
-            JR_cc_e8(condition, offset) => todo!(),
+            JP_hl => self.op_jump_hl(),
+            JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address),
+            JP_cc_n16(condition, address) => self.op_jump_cond(condition, address),
+            JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset),
+            JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset),
             RET_cc(condition) => todo!(),
             RET => todo!(),
             RETI => todo!(),
