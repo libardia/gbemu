@@ -27,7 +27,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 1x
-        STOP,                                       // x0
+        STOP(HexU8(0)),                             // x0*
         LD_r16_n16(ArgR16::DE, HexU16(0)),          // x1**
         LD_mr16_a(ArgR16MEM::DE),                   // x2
         INC_r16(ArgR16::DE),                        // x3
@@ -660,6 +660,7 @@ pub fn decode(mmu: &MMU, pc: u16) -> (Instruction, u16) {
             LD_mn16_sp(_) => LD_mn16_sp(get_next_word(mmu, &mut inst_length, pc)),
 
             // 1x
+            STOP(_) => STOP(get_next_byte(mmu, &mut inst_length, pc)),
             JR_e8(_) => JR_e8(get_next_signed_byte(mmu, &mut inst_length, pc)),
 
             // 2x

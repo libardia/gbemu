@@ -93,7 +93,7 @@ pub enum Instruction {
     // Miscellaneous
     DAA,
     NOP,
-    STOP,
+    STOP(HexU8),
 
     // Meta
     PREFIX,

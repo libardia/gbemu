@@ -860,12 +860,18 @@ impl CPU {
     }
 
     // TODO: HALT (m: --)
+    fn op_halt(&mut self) {
+        todo!()
+    }
 
     /* #endregion */
 
     /* #region Miscellaneous =================================================================== */
 
     // TODO: DAA (m: 1)
+    fn op_daa(&mut self) {
+        todo!();
+    }
 
     // NOP (m: 1)
     fn op_nop(&mut self) {
@@ -873,6 +879,9 @@ impl CPU {
     }
 
     // TODO: STOP (m: --)
+    fn op_stop(&mut self, next: u8) {
+        todo!();
+    }
 
     /* #endregion */
 }
@@ -966,12 +975,12 @@ impl CPU {
             // Interrupt-related
             DI => self.op_disable_interrupts(),
             EI => self.op_enable_interrupts_delayed(),
-            HALT => todo!(), // TODO: op_halt
+            HALT => self.op_halt(),
 
             // Miscellaneous
-            DAA => todo!(), // TODO: op_daa
+            DAA => self.op_daa(),
             NOP => self.op_nop(),
-            STOP => todo!(), // TODO: op_stop
+            STOP(next) => self.op_stop(next.0),
 
             // Meta
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
