@@ -25,7 +25,6 @@ pub struct CPU {
 }
 
 impl CPU {
-    /* #region new() and reset() */
     pub fn new() -> Self {
         CPU {
             pc: 0,
@@ -39,19 +38,6 @@ impl CPU {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.pc = 0;
-        self.sp = 0;
-        self.regs = Registers::new();
-        self.m_time = 0;
-        self.t_time = 0;
-        self.will_set_ime = false;
-        self.setting_ime = false;
-        self.terminate = false;
-    }
-    /* #endregion */
-
-    /* #region Helpers */
     fn panic_no_const() -> ! {
         panic!("Constant not allowed here")
     }
@@ -257,7 +243,6 @@ impl CPU {
         self.pc += 2;
         mmu.read_word(self.pc)
     }
-    /* #endregion */
 }
 
 // Instruction functions
@@ -807,9 +792,40 @@ impl CPU {
         self.add_m_time(4);
     }
 
-    // TODO: LD [n16],SP (m: 5)
-    // TODO: LD HL,SP+e8 (m: 3)
-    // TODO: LD SP,HL    (m: 2)
+    // LD [n16],SP (m: 5)
+    fn op_load_sp_to_mn16(&mut self, mmu: &mut MMU, address: u16) {
+        mmu.write_word(address, self.sp);
+        self.add_m_time(5);
+    }
+
+    // LD HL,SP+e8 (m: 3)
+    fn op_load_sp_plus_e8_to_hl(&mut self, offset: i8) {
+        let osp = self.sp;
+        let asu16 = offset as u16;
+
+        // I really don't understand how the flags are supposed to work here. This is the best I
+        // could figure from the docs I could find. Hopefully Blaarg's test ROMs will make this
+        // clear.
+        let (nhc, nc) = if offset > 0 {
+            let nibble_sum = (asu16 & 0xF) + (osp & 0xF);
+            let byte_sum = (asu16 & 0xFF) + (osp & 0xFF);
+            (nibble_sum > 0xF, byte_sum > 0xFF)
+        } else {
+            (false, false)
+        };
+
+        self.regs.set_all_flags(false, false, nhc, nc);
+
+        self.regs.set_hl(osp.wrapping_add(asu16));
+
+        self.add_m_time(3);
+    }
+
+    // LD SP,HL (m: 2)
+    fn op_load_hl_to_sp(&mut self) {
+        self.sp = self.regs.get_hl();
+        self.add_m_time(2);
+    }
 
     // POP AF      (m: 3)
     // POP r16     (m: 3)
@@ -940,9 +956,9 @@ impl CPU {
             DEC_sp => self.op_dec16(ArgR16::SP),
             INC_sp => self.op_inc16(ArgR16::SP),
             LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value),
-            LD_mn16_sp(address) => todo!(),      // TODO
-            LD_hl_sp_plus_e8(offset) => todo!(), // TODO
-            LD_sp_hl => todo!(),                 // TODO
+            LD_mn16_sp(address) => self.op_load_sp_to_mn16(mmu, address),
+            LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset),
+            LD_sp_hl => self.op_load_hl_to_sp(),
             POP_r16(target) => self.op_pop_r16(mmu, target),
             PUSH_r16(target) => self.op_push_r16(mmu, target),
 
