@@ -35,6 +35,7 @@ fn main() {
     gba.load(0x0000, &mmu::BOOT_ROM);
     gba.load(0x0100, &make_dummy_header());
     gba.load(0x0150, &prog);
+    // Skip the boot rom... it won't work without I/O registers
     gba.run_at(0x100);
 }
 
