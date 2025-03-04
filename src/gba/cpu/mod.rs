@@ -1,5 +1,5 @@
 pub mod instructions;
-mod registers;
+pub mod registers;
 
 use super::MMU;
 use instructions::{Instruction::*, *};
