@@ -20,8 +20,9 @@ pub struct CPU {
     // Needed to handle the delay of the IME flag
     will_set_ime: bool,
     setting_ime: bool,
-    // Nonstandard, terminate the emulator
+    // Nonstandard operations
     pub terminate: bool,
+    pub debug_print: bool,
 }
 
 impl CPU {
@@ -35,6 +36,7 @@ impl CPU {
             will_set_ime: false,
             setting_ime: false,
             terminate: false,
+            debug_print: false,
         }
     }
 
@@ -309,7 +311,7 @@ impl CPU {
     // LDH [n16],A (m: 3)
     // LDH A,[n16] (m: 3)
     fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
-        let address = 0xFF + (half_address as u16);
+        let address = 0xFF00 + (half_address as u16);
 
         if a_is_dest {
             self.regs.a = mmu.read_byte(address);
@@ -870,7 +872,30 @@ impl CPU {
 
     // TODO: DAA (m: 1)
     fn op_daa(&mut self) {
-        todo!();
+        let mut adj = 0u8;
+        if self.regs.getf_subtract() {
+            if self.regs.getf_half_carry() {
+                adj += 0x6;
+            }
+            if self.regs.getf_carry() {
+                adj += 0x60;
+            }
+            self.regs.a = self.regs.a.wrapping_sub(adj);
+        } else {
+            if self.regs.getf_half_carry() || (self.regs.a & 0xF) > 0x9 {
+                adj += 0x6;
+            }
+            if self.regs.getf_carry() || self.regs.a > 0x99 {
+                adj += 0x60;
+                self.regs.setf_carry(true);
+            }
+            self.regs.a = self.regs.a.wrapping_add(adj);
+        }
+
+        self.regs.setf_zero(self.regs.a == 0);
+        self.regs.setf_half_carry(false);
+
+        self.add_m_time(1);
     }
 
     // NOP (m: 1)
@@ -986,7 +1011,7 @@ impl CPU {
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
             INVALID => panic!("Attempted to execute an invalid instruction!"),
             TERMINATE => self.terminate = true,
-            DEBUG_PRINT => println!("{self}"),
+            DEBUG_PRINT => self.debug_print = true,
         }
 
         // Special handling for delaying changing IME

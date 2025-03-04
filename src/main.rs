@@ -11,39 +11,46 @@ fn main() {
         0x80, // A += B (0xDE)
         0x81, // A += C (0x8B)
         0xEA, 0xAD, 0xDE, // Write A to [0xDEAD]
-        0xEC, // Terminate
+        0xED, 0xEC, // Print and terminate
     ];
+
+    let breakpoints = [
+        /*0xC, 0x34, 0x40, 0x51,*/ 0x55
+    ];
+
+    gba.debug_mode = true;
+    gba.set_breakpoints(&breakpoints);
 
     gba.load(0x0000, &mmu::BOOT_ROM);
     gba.load(0x0100, &make_dummy_header());
     gba.load(0x0150, &prog);
-    gba.run(true);
-    gba.translate(&mmu::BOOT_ROM);
+    // gba.translate(0x170);
+    gba.run();
 }
 
 const HEADER_BEGIN: usize = 0x0100;
 const HEADER_END: usize = 0x014F;
 const HEADER_SIZE: usize = HEADER_END - HEADER_BEGIN + 1;
 fn make_dummy_header() -> [u8; HEADER_SIZE] {
-    const LOGO: [u8; 48] = [
+    let logo = [
         0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00,
         0x0D, 0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD,
         0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB,
         0xB9, 0x33, 0x3E,
     ];
 
-    const ENTRY: [u8; 4] = [
+    let entry = [
         // NOP; JMP 0x0150
         0x00, 0xC3, 0x50, 0x01,
     ];
 
     let mut header: [u8; HEADER_SIZE] = [0u8; HEADER_SIZE];
-    for (i, b) in ENTRY.iter().enumerate() {
+    for (i, b) in entry.iter().enumerate() {
         let address = (i + 0x100) - HEADER_BEGIN;
         header[address] = *b;
     }
 
-    for (i, b) in LOGO.iter().enumerate() {
+    for (i, b) in logo.iter().enumerate() {
         let address = (i + 0x104) - HEADER_BEGIN;
         header[address] = *b;
     }

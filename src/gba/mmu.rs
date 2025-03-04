@@ -1,6 +1,6 @@
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
-use crate::hex::*;
+use crate::hex::HexU8;
 
 pub const BOOT_ROM: [u8; 256] = [
     0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
@@ -57,7 +57,6 @@ const ECHO_RAM_OFFSET: u16 = 0x2000;
 
 const EFFECTIVE_MEM_SIZE: usize = TOTAL_MEM_SIZE - ECHO_RAM.size as usize;
 
-#[derive(Debug)]
 pub struct MMU {
     pub mem: [u8; EFFECTIVE_MEM_SIZE],
 }
@@ -142,20 +141,44 @@ impl MMU {
     }
 }
 
-impl Display for MMU {
+impl Debug for MMU {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "MMU: [")?;
-        let mut one = false;
-        for a in 0..TOTAL_MEM_SIZE {
-            let b = self.read_byte(a as u16);
+        let addr_end = 0xFFFF + 1;
+        writeln!(f, "MMU: [")?;
+        for a in 0..addr_end {
+            let b = self.get(a as u16);
             if b != 0 {
-                one = true;
-                write!(f, "\n\t{:?} = {:?}", HexU16(a as u16), HexU8(b))?;
+                writeln!(f, "\t0x{:0>4X}: {:?}", a, HexU8(b))?;
             }
         }
-        if one {
-            write!(f, "\n")?;
-        }
         write!(f, "]")
+    }
+}
+
+impl Display for MMU {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let addr_end = 0xFFFF + 1;
+        let u8_end = 0xFF + 1;
+        write!(f, "MMU:")?;
+        for i in 0..u8_end {
+            write!(f, " xx{:0>2X}", i)?;
+        }
+        let mut a = 0;
+        while a < addr_end {
+            write!(f, "\n")?;
+            for i in 0..(0xFF + 1) {
+                if i == 0 {
+                    write!(f, "{:0>2X}xx", (a & 0xFF00) >> 8)?;
+                }
+                let b = self.get(a as u16);
+                if b != 0 {
+                    write!(f, "  {:0>2X} ", b)?;
+                } else {
+                    write!(f, "     ")?;
+                }
+                a += 1;
+            }
+        }
+        write!(f, "")
     }
 }
