@@ -6,6 +6,8 @@ use gba::*;
 fn main() {
     let mut gba = GBA::new();
 
+    const JR_1: u8 = -5i8 as u8;
+    const JR_2: u8 = -8i8 as u8;
     let prog = [
         0x01, 0xAD, 0xDE, // Write 0xDEAD into BC
         0x80, // A += B (0xDE)
@@ -18,9 +20,9 @@ fn main() {
         0x70, // Write B into [HL]
         0x2B, // Decrement HL
         0xBD, // Compare A & L
-        0x20, (-5i8) as u8, // Jump if zero flag is set, back 5
+        0x20, JR_1, // Jump if zero flag is set, back 5
         0xBC, // Compare A & H
-        0x20, (-8i8) as u8, // Jump if zero flag is set, back 8
+        0x20, JR_2, // Jump if zero flag is set, back 8
         0xED, // Print
         0xEC, // Terminate
     ];
@@ -28,7 +30,7 @@ fn main() {
     let breakpoints = [0x100];
 
     gba.debug_mode = true;
-    // gba.set_breakpoints(&breakpoints);
+    gba.set_breakpoints(&breakpoints);
 
     gba.load(0x0000, &mmu::BOOT_ROM);
     gba.load(0x0100, &make_dummy_header());
