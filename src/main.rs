@@ -11,21 +11,29 @@ fn main() {
         0x80, // A += B (0xDE)
         0x81, // A += C (0x8B)
         0xEA, 0xAD, 0xDE, // Write A to [0xDEAD]
-        0xED, 0xEC, // Print and terminate
+        0xED, // Print
+        0x21, 0xFF, 0xFF, // Write 0xFFFF into HL
+        0xAF, // A = A xor A; sets A to 0
+        0x06, 0xFF, // Load 0xFF into B
+        0x70, // Write B into [HL]
+        0x2B, // Decrement HL
+        0xBD, // Compare A & L
+        0x20, (-5i8) as u8, // Jump if zero flag is set, back 5
+        0xBC, // Compare A & H
+        0x20, (-8i8) as u8, // Jump if zero flag is set, back 8
+        0xED, // Print
+        0xEC, // Terminate
     ];
 
-    let breakpoints = [
-        /*0xC, 0x34, 0x40, 0x51,*/ 0x55
-    ];
+    let breakpoints = [0x100];
 
     gba.debug_mode = true;
-    gba.set_breakpoints(&breakpoints);
+    // gba.set_breakpoints(&breakpoints);
 
     gba.load(0x0000, &mmu::BOOT_ROM);
     gba.load(0x0100, &make_dummy_header());
     gba.load(0x0150, &prog);
-    // gba.translate(0x170);
-    gba.run();
+    gba.run_at(0x100);
 }
 
 const HEADER_BEGIN: usize = 0x0100;

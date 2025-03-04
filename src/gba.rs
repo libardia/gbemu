@@ -50,7 +50,12 @@ impl GBA {
     }
 
     pub fn run(&mut self) {
+        self.run_at(0);
+    }
+
+    pub fn run_at(&mut self, start_at: u16) {
         // TODO: load boot rom
+        self.cpu.pc = start_at;
         while !self.cpu.terminate {
             let pc_before = self.cpu.pc;
             let (inst, inst_length) = decode(&self.mmu, self.cpu.pc);
@@ -67,6 +72,7 @@ impl GBA {
 
             if self.debug_mode && self.cpu.debug_print {
                 self.debug_print(pc_before, inst, inst_length, true);
+                self.cpu.debug_print = false;
             }
         }
     }

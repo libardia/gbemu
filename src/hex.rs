@@ -14,7 +14,7 @@ macro_rules! implements_for_number_type {
         impl Debug for $type {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let pad = $padding;
-                write!(f, "{}x{:0>pad$X} = {}", $key, self.0, self.0)
+                write!(f, "0{}x{:0>pad$X}", $key, self.0)
             }
         }
 
@@ -26,6 +26,6 @@ macro_rules! implements_for_number_type {
     };
 }
 
-implements_for_number_type!(HexU8, u8, "u", 2);
-implements_for_number_type!(HexU16, u16, "u", 4);
+implements_for_number_type!(HexU8, u8, "", 2);
+implements_for_number_type!(HexU16, u16, "", 4);
 implements_for_number_type!(HexI8, i8, "i", 2);
