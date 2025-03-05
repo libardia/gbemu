@@ -81,7 +81,7 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             self.pc += inst_length;
 
             // Execute instruction
-            self.execute_one(inst);
+            self.step(inst);
 
             // Print, if the debug print instruction was executed
             if self.debug_mode && self.debug_print {
@@ -1028,7 +1028,7 @@ impl<M: MMU> BasicCPU<M> {
 
 // Execute block ==================================================================================
 impl<M: MMU> BasicCPU<M> {
-    fn execute_one(&mut self, inst: Instruction) {
+    fn step(&mut self, inst: Instruction) {
         match inst {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.op_load8(dest, src),

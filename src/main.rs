@@ -12,6 +12,7 @@ mod hex;
 mod mmu;
 mod mmu_basic;
 
+#[allow(unused)]
 fn main() {
     type MMU = BasicMMU;
     type CPU = BasicCPU<MMU>;
