@@ -22,7 +22,7 @@ where
     pub fn new() -> Self {
         let mmu = Rc::new(RefCell::new(M::new()));
         let cpu = C::new(mmu.clone());
-        let gpu = G::new(mmu.clone());
+        let gpu = G::new(mmu.clone(), 3);
         Self { cpu, gpu, mmu }
     }
 
