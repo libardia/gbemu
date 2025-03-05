@@ -1,25 +1,29 @@
 use std::{cell::RefCell, fs, rc::Rc};
 
-use crate::{cpu::CPU, mmu::MMU};
+use crate::{cpu::CPU, gpu::GPU, mmu::MMU};
 
 #[derive(Debug)]
-pub struct GB<C, M: MMU>
+pub struct GB<C, G, M: MMU>
 where
     C: CPU<M>,
+    G: GPU<M>,
 {
     cpu: C,
+    gpu: G,
     mmu: Rc<RefCell<M>>,
 }
 
-impl<C, M: MMU> GB<C, M>
+impl<C, G, M: MMU> GB<C, G, M>
 where
     C: CPU<M>,
+    G: GPU<M>,
 {
     /// Create a new GameBoy.
     pub fn new() -> Self {
         let mmu = Rc::new(RefCell::new(M::new()));
         let cpu = C::new(mmu.clone());
-        Self { cpu, mmu }
+        let gpu = G::new(mmu.clone());
+        Self { cpu, gpu, mmu }
     }
 
     /// Set debug mode. When `true`, breakpoints and debug printing is enabled.
