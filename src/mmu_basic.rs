@@ -2,60 +2,28 @@ use std::fmt::{Debug, Display};
 
 use crate::{hex::HexU8, mmu::MMU};
 
-#[allow(dead_code)]
-mod regions {
-    #[derive(Debug, Clone, Copy)]
-    pub struct MemoryRegion {
-        pub begin: u16,
-        pub end: u16,
-        pub size: u16,
-    }
+const ECHO_RAM_BEGIN: u16 = 0xE000;
+const ECHO_RAM_END: u16 = 0xFDFF;
+const ECHO_RAM_SIZE: u16 = 0x1E00;
 
-    impl MemoryRegion {
-        pub const fn new(begin: u16, end: u16) -> Self {
-            MemoryRegion {
-                begin,
-                end,
-                size: end - begin + 1,
-            }
-        }
-    }
+const UNUSABLE_RAM_BEGIN: u16 = 0xFEA0;
+const UNUSABLE_RAM_END: u16 = 0xFEFF;
 
-    pub const MAIN_ROM: MemoryRegion = MemoryRegion::new(0x0000, 0x3FFF);
-    pub const SWITCH_ROM: MemoryRegion = MemoryRegion::new(0x4000, 0x7FFF);
-    pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0x9FFF);
-    pub const EXT_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xBFFF);
-    pub const WORK_RAM_1: MemoryRegion = MemoryRegion::new(0xC000, 0xCFFF);
-    pub const WORK_RAM_2: MemoryRegion = MemoryRegion::new(0xD000, 0xDFFF);
-    pub const ECHO_RAM: MemoryRegion = MemoryRegion::new(0xE000, 0xFDFF);
-    pub const OAM: MemoryRegion = MemoryRegion::new(0xFE00, 0xFE9F);
-    pub const UNUSABLE: MemoryRegion = MemoryRegion::new(0xFEA0, 0xFEFF);
-    pub const IO: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF7F);
-    pub const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF80, 0xFFFE);
-    pub const IE: MemoryRegion = MemoryRegion::new(0xFFFF, 0xFFFF);
-}
-
-use regions::*;
-const APPARENT_MEM_SIZE: usize = 0xFFFF + 1;
 const ECHO_RAM_OFFSET: u16 = 0x2000;
-const EFFECTIVE_MEM_SIZE: usize = APPARENT_MEM_SIZE - ECHO_RAM.size as usize;
+
+const APPARENT_MEM_SIZE: usize = 0xFFFF + 1;
+const EFFECTIVE_MEM_SIZE: usize = APPARENT_MEM_SIZE - ECHO_RAM_SIZE as usize;
 
 pub struct BasicMMU {
     mem: [u8; EFFECTIVE_MEM_SIZE],
 }
 
 impl BasicMMU {
-    fn is_in_region(address: u16, region: MemoryRegion) -> bool {
-        address >= region.begin && address <= region.end
-    }
-
     fn eff_address(&self, address: u16) -> usize {
-        (if address < ECHO_RAM.begin {
-            address
-        } else if address <= ECHO_RAM.end {
-            address - ECHO_RAM_OFFSET
-        } else {
-            address - ECHO_RAM.size
+        (match address {
+            ..ECHO_RAM_BEGIN => address,
+            ..=ECHO_RAM_END => address - ECHO_RAM_OFFSET,
+            _ => address - ECHO_RAM_SIZE,
         }) as usize
     }
 }
@@ -76,29 +44,19 @@ impl MMU for BasicMMU {
     }
 
     fn read_byte(&self, address: u16) -> u8 {
-        // TODO: when is OAM block?
-        let oam_block = false;
-        if Self::is_in_region(address, UNUSABLE) {
-            if oam_block {
-                // TODO: OAM corruption happens here. Also, what actually gets returned..?
-                return 0xFF;
-            } else {
-                return 0;
-            }
+        match address {
+            ..UNUSABLE_RAM_BEGIN => self.get(address),
+            ..=UNUSABLE_RAM_END => 0xFF,
+            _ => self.get(address),
         }
-
-        self.get(address)
     }
 
     fn write_byte(&mut self, address: u16, value: u8) {
-        if address > SWITCH_ROM.end {
-            if Self::is_in_region(address, UNUSABLE) {
-                // TODO: OAM corruption happens here, I think? And idk what gets written.
-                self.set(address, value);
-            } else {
-                self.set(address, value);
-            }
-        }
+        match address {
+            ..UNUSABLE_RAM_BEGIN => self.set(address, value),
+            ..=UNUSABLE_RAM_END => (),
+            _ => self.set(address, value),
+        };
     }
 }
 
