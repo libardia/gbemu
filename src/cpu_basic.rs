@@ -977,14 +977,14 @@ impl<M: MMU> BasicCPU<M> {
 
     // TODO: HALT (m: --)
     fn op_halt(&mut self) {
-        todo!()
+        todo!("HALT")
     }
 
     /* #endregion */
 
     /* #region Miscellaneous =================================================================== */
 
-    // TODO: DAA (m: 1)
+    // DAA (m: 1)
     fn op_daa(&mut self) {
         let mut adj = 0u8;
         if self.regs.getf_subtract() {
@@ -1019,7 +1019,7 @@ impl<M: MMU> BasicCPU<M> {
 
     // TODO: STOP (m: --)
     fn op_stop(&mut self, next: u8) {
-        todo!();
+        todo!("STOP");
     }
 
     /* #endregion */
