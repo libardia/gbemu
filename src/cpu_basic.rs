@@ -1019,6 +1019,7 @@ impl<M: MMU> BasicCPU<M> {
 
     // TODO: STOP (m: --)
     fn op_stop(&mut self, next: u8) {
+        let _ = next;
         todo!("STOP");
     }
 
