@@ -72,7 +72,7 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
                 self.breakpoint_mode = true;
                 println!("STATE BEFORE THIS INSTRUCTION:");
-                self.debug_print(inst, inst_length, true);
+                self.debug_print(inst, inst_length, false);
                 self.debug_wait();
             }
 
@@ -115,14 +115,24 @@ impl<M: MMU> BasicCPU<M> {
     }
 
     fn debug_wait(&mut self) {
-        let mut input = String::new();
-        print!("\nLeave blank to step, x to continue: ");
-        stdout().flush().ok();
-        stdin().read_line(&mut input).ok();
-        if input.trim() == "x" {
-            self.breakpoint_mode = false;
+        let mut advance = false;
+        while !advance {
+            advance = true;
+            let mut input = String::new();
+            print!("\nLeave blank to step, m to print memory, x to continue: ");
+            stdout().flush().ok();
+            stdin().read_line(&mut input).ok();
+            let input = input.trim();
+            match input {
+                "x" => self.breakpoint_mode = false,
+                "m" => {
+                    println!("{:?}", self.mmu.borrow());
+                    advance = false;
+                }
+                _ => (),
+            }
+            println!();
         }
-        println!()
     }
 }
 

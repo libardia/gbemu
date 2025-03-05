@@ -1,7 +1,4 @@
-use std::{
-    cell::{Ref, RefCell, RefMut},
-    rc::Rc,
-};
+use std::{cell::RefCell, fs, rc::Rc};
 
 use crate::{cpu::CPU, mmu::MMU};
 
@@ -38,6 +35,13 @@ where
     /// Load a program into ROM.
     pub fn load_rom(&self, load_at: u16, rom: &[u8]) {
         self.mmu.borrow_mut().load_rom(load_at, rom);
+    }
+
+    /// Load a program into ROM from file.
+    pub fn load_rom_file(&self, file_path: &str) {
+        let bytes =
+            fs::read(file_path).expect(format!("Failed to read file {}", file_path).as_str());
+        self.load_rom(0, &bytes);
     }
 
     /// Begin emulation, starting execution at 0.
