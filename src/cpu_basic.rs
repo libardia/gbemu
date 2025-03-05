@@ -1,33 +1,51 @@
+use std::{
+    cell::RefCell,
+    fmt::Display,
+    io::{stdin, stdout, Write},
+    rc::Rc,
+};
+
+use decoder::Decoder;
+use instructions::{Instruction::*, *};
+use registers::Registers;
+
+use crate::{cpu::CPU, mmu::MMU};
+
+pub mod decoder;
 pub mod instructions;
 pub mod registers;
 
-use super::MMU;
-use instructions::{Instruction::*, *};
-use registers::Registers;
-use std::fmt::{self, Display, Formatter};
-
 #[derive(Debug)]
-pub struct CPU {
+pub struct BasicCPU<M: MMU> {
+    mmu: Rc<RefCell<M>>,
+    decoder: Decoder<M>,
+
     // Program counter
-    pub pc: u16,
+    pc: u16,
     // Stack pointer
-    pub sp: u16,
+    sp: u16,
     // The 8 main registers
-    pub regs: Registers,
+    regs: Registers,
     // Timers (emulation purposes only, not in real hardware)
-    pub m_time: u64,
-    pub t_time: u64,
+    m_time: u64,
+    t_time: u64,
     // Needed to handle the delay of the IME flag
     will_set_ime: bool,
     setting_ime: bool,
     // Nonstandard operations
-    pub terminate: bool,
-    pub debug_print: bool,
+    terminate: bool,
+    debug_print: bool,
+    // Debugging
+    debug_mode: bool,
+    breakpoint_mode: bool,
+    breakpoints: Vec<u16>,
 }
 
-impl CPU {
-    pub fn new() -> Self {
-        CPU {
+impl<M: MMU> CPU<M> for BasicCPU<M> {
+    fn new(mmu: Rc<RefCell<M>>) -> Self {
+        Self {
+            mmu: mmu.clone(),
+            decoder: Decoder::new(mmu.clone()),
             pc: 0,
             sp: 0,
             regs: Registers::new(),
@@ -37,7 +55,93 @@ impl CPU {
             setting_ime: false,
             terminate: false,
             debug_print: false,
+            debug_mode: false,
+            breakpoint_mode: false,
+            breakpoints: vec![],
         }
+    }
+
+    fn execute_at(&mut self, address: u16) {
+        self.pc = address;
+
+        while !self.terminate {
+            // Decode instruction at pc
+            let (inst, inst_length) = self.decoder.decode(&self.pc);
+
+            // Stop and enter breakpoint mode if requested
+            if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
+                self.breakpoint_mode = true;
+                println!("STATE BEFORE THIS INSTRUCTION:");
+                self.debug_print(inst, inst_length, true);
+                self.debug_wait();
+            }
+
+            // Advance pc
+            // TODO: Emulate halt bug
+            self.pc += inst_length;
+
+            // Execute instruction
+            self.execute_one(inst);
+
+            // Print, if the debug print instruction was executed
+            if self.debug_mode && self.debug_print {
+                self.debug_print(inst, inst_length, true);
+                self.debug_print = false;
+            }
+        }
+    }
+
+    fn set_debug_mode(&mut self, mode: bool) {
+        self.debug_mode = mode;
+    }
+
+    fn set_breakpoints(&mut self, breakpoints: &[u16]) {
+        for bp in breakpoints {
+            self.breakpoints.push(*bp);
+        }
+    }
+}
+
+// Debugging ======================================================================================
+impl<M: MMU> BasicCPU<M> {
+    fn debug_print(&self, inst: Instruction, inst_length: u16, print_mmu: bool) {
+        if print_mmu {
+            println!("{:?}", self.mmu.borrow())
+        }
+        println!(
+            "pc 0x{:0>4X}: {:?}, {} bytes\n{}\n",
+            self.pc, inst, inst_length, self
+        );
+    }
+
+    fn debug_wait(&mut self) {
+        let mut input = String::new();
+        print!("\nLeave blank to step, x to continue: ");
+        stdout().flush().ok();
+        stdin().read_line(&mut input).ok();
+        if input.trim() == "x" {
+            self.breakpoint_mode = false;
+        }
+        println!()
+    }
+}
+
+// Instruction helpers ============================================================================
+impl<M: MMU> BasicCPU<M> {
+    fn mmu_read_byte(&self, address: u16) -> u8 {
+        self.mmu.borrow().read_byte(address)
+    }
+
+    fn mmu_write_byte(&self, address: u16, value: u8) {
+        self.mmu.borrow_mut().write_byte(address, value);
+    }
+
+    fn mmu_read_word(&self, address: u16) -> u16 {
+        self.mmu.borrow().read_word(address)
+    }
+
+    fn mmu_write_word(&self, address: u16, value: u16) {
+        self.mmu.borrow_mut().write_word(address, value);
     }
 
     fn panic_no_const() -> ! {
@@ -67,7 +171,7 @@ impl CPU {
         }
     }
 
-    fn get_value_at_r8(&self, mmu: &MMU, target: ArgR8) -> u8 {
+    fn get_value_at_r8(&self, target: ArgR8) -> u8 {
         match target {
             ArgR8::B => self.regs.b,
             ArgR8::C => self.regs.c,
@@ -75,7 +179,7 @@ impl CPU {
             ArgR8::E => self.regs.e,
             ArgR8::H => self.regs.h,
             ArgR8::L => self.regs.l,
-            ArgR8::MHL => mmu.read_byte(self.regs.get_hl()),
+            ArgR8::MHL => self.mmu_read_byte(self.regs.get_hl()),
             ArgR8::A => self.regs.a,
             ArgR8::CONST(c) => c.0,
         }
@@ -90,7 +194,7 @@ impl CPU {
         }
     }
 
-    fn get_value_at_mr16(&mut self, mmu: &MMU, target: ArgR16MEM) -> u8 {
+    fn get_value_at_mr16(&mut self, target: ArgR16MEM) -> u8 {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
@@ -107,7 +211,7 @@ impl CPU {
             self.regs.set_hl(v);
         }
 
-        mmu.read_byte(address)
+        self.mmu_read_byte(address)
     }
 
     fn get_value_at_r16stk(&self, target: ArgR16STK) -> u16 {
@@ -128,7 +232,7 @@ impl CPU {
         }
     }
 
-    fn set_value_at_mr16(&mut self, mmu: &mut MMU, target: ArgR16MEM, value: u8) {
+    fn set_value_at_mr16(&mut self, target: ArgR16MEM, value: u8) {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
@@ -145,10 +249,10 @@ impl CPU {
             ArgR16MEM::CONST(c) => c.0,
         };
 
-        mmu.write_byte(address, value);
+        self.mmu_write_byte(address, value);
     }
 
-    fn set_value_at_r8(&mut self, mmu: &mut MMU, target: ArgR8, value: u8) {
+    fn set_value_at_r8(&mut self, target: ArgR8, value: u8) {
         match target {
             ArgR8::B => self.regs.b = value,
             ArgR8::C => self.regs.c = value,
@@ -156,7 +260,7 @@ impl CPU {
             ArgR8::E => self.regs.e = value,
             ArgR8::H => self.regs.h = value,
             ArgR8::L => self.regs.l = value,
-            ArgR8::MHL => mmu.write_byte(self.regs.get_hl(), value),
+            ArgR8::MHL => self.mmu_write_byte(self.regs.get_hl(), value),
             ArgR8::A => self.regs.a = value,
             ArgR8::CONST(_) => Self::panic_no_const(),
         }
@@ -171,8 +275,8 @@ impl CPU {
         }
     }
 
-    fn do_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) -> u8 {
-        let value = self.get_value_at_r8(mmu, operand);
+    fn do_sub8(&mut self, operand: ArgR8, with_carry: bool) -> u8 {
+        let value = self.get_value_at_r8(operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
         let (result, overflow1) = self.regs.a.overflowing_sub(value);
         let (result, overflow2) = result.overflowing_sub(cv);
@@ -236,20 +340,20 @@ impl CPU {
         }
     }
 
-    fn push_word(&mut self, mmu: &mut MMU, value: u16) {
+    fn push_word(&mut self, value: u16) {
         self.sp -= 2;
-        mmu.write_word(self.sp, value);
+        self.mmu_write_word(self.sp, value);
     }
 
-    fn pop_word(&mut self, mmu: &MMU) -> u16 {
-        let word = mmu.read_word(self.sp);
+    fn pop_word(&mut self) -> u16 {
+        let word = self.mmu_read_word(self.sp);
         self.sp += 2;
         word
     }
 }
 
-// Instruction functions
-impl CPU {
+// All Instructions ===============================================================================
+impl<M: MMU> BasicCPU<M> {
     /* #region Load instructions =============================================================== */
 
     // LD r8,r8   (m: 1)
@@ -257,7 +361,7 @@ impl CPU {
     // LD [HL],r8 (m: 2)
     // LD [HL],n8 (m: 3)
     // LD r8,[HL] (m: 2)
-    fn op_load8(&mut self, mmu: &mut MMU, dest: ArgR8, src: ArgR8) {
+    fn op_load8(&mut self, dest: ArgR8, src: ArgR8) {
         if matches!((dest, src), (ArgR8::MHL, ArgR8::MHL)) {
             Self::panic_impossible_arguments();
         }
@@ -268,9 +372,9 @@ impl CPU {
             return;
         }
 
-        let value = self.get_value_at_r8(mmu, src);
+        let value = self.get_value_at_r8(src);
 
-        self.set_value_at_r8(mmu, dest, value);
+        self.set_value_at_r8(dest, value);
 
         self.add_m_time(match (dest, src) {
             (ArgR8::MHL, ArgR8::CONST(_)) => 3,
@@ -295,11 +399,11 @@ impl CPU {
     // LD [HLD],A (m: 2)
     // LD A,[HLI] (m: 2)
     // LD A,[HLD] (m: 2)
-    fn op_load_between_a_mr16(&mut self, mmu: &mut MMU, address: ArgR16MEM, a_is_dest: bool) {
+    fn op_load_between_a_mr16(&mut self, address: ArgR16MEM, a_is_dest: bool) {
         if a_is_dest {
-            self.regs.a = self.get_value_at_mr16(mmu, address);
+            self.regs.a = self.get_value_at_mr16(address);
         } else {
-            self.set_value_at_mr16(mmu, address, self.regs.a);
+            self.set_value_at_mr16(address, self.regs.a);
         }
 
         self.add_m_time(match address {
@@ -310,13 +414,13 @@ impl CPU {
 
     // LDH [n16],A (m: 3)
     // LDH A,[n16] (m: 3)
-    fn op_loadhigh_between_a_mn16(&mut self, mmu: &mut MMU, half_address: u8, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mn16(&mut self, half_address: u8, a_is_dest: bool) {
         let address = 0xFF00 + (half_address as u16);
 
         if a_is_dest {
-            self.regs.a = mmu.read_byte(address);
+            self.regs.a = self.mmu_read_byte(address);
         } else {
-            mmu.write_byte(address, self.regs.a);
+            self.mmu_write_byte(address, self.regs.a);
         }
 
         self.add_m_time(3);
@@ -324,13 +428,13 @@ impl CPU {
 
     // LDH [C],A (m: 2)
     // LDH A,[C] (m: 2)
-    fn op_loadhigh_between_a_mc(&mut self, mmu: &mut MMU, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mc(&mut self, a_is_dest: bool) {
         let address = 0xFF00 + (self.regs.c as u16);
 
         if a_is_dest {
-            self.regs.a = mmu.read_byte(address);
+            self.regs.a = self.mmu_read_byte(address);
         } else {
-            mmu.write_byte(address, self.regs.a);
+            self.mmu_write_byte(address, self.regs.a);
         }
 
         self.add_m_time(2);
@@ -346,8 +450,8 @@ impl CPU {
     // ADD A,r8   (m: 1)
     // ADD A,[HL] (m: 2)
     // ADD A,n8   (m: 2)
-    fn op_add8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        let value = self.get_value_at_r8(mmu, operand);
+    fn op_add8(&mut self, operand: ArgR8, with_carry: bool) {
+        let value = self.get_value_at_r8(operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
         let (result, overflow1) = self.regs.a.overflowing_add(value);
         let (result, overflow2) = result.overflowing_add(cv);
@@ -364,38 +468,38 @@ impl CPU {
     // CP A,r8   (m: 1)
     // CP A,[HL] (m: 2)
     // CP A,n8   (m: 2)
-    fn op_compare8(&mut self, mmu: &MMU, operand: ArgR8) {
-        self.do_sub8(mmu, operand, false);
+    fn op_compare8(&mut self, operand: ArgR8) {
+        self.do_sub8(operand, false);
 
         self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
     }
 
     // DEC r8   (m: 1)
     // DEC [HL] (m: 3)
-    fn op_dec8(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, target);
+    fn op_dec8(&mut self, target: ArgR8) {
+        let value = self.get_value_at_r8(target);
         let new_value = value.overflowing_sub(1).0;
 
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(true);
         self.regs.setf_half_carry(value & 0xF == 0);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
 
     // INC r8   (m: 1)
     // INC [HL] (m: 3)
-    fn op_inc8(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, target);
+    fn op_inc8(&mut self, target: ArgR8) {
+        let value = self.get_value_at_r8(target);
         let new_value = value.overflowing_add(1).0;
 
         self.regs.setf_zero(new_value == 0);
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(value & 0xF == 0xF);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 3, 1);
     }
@@ -406,8 +510,8 @@ impl CPU {
     // SUB A,r8   (m: 1)
     // SUB A,[HL] (m: 2)
     // SUB A,n8   (m: 2)
-    fn op_sub8(&mut self, mmu: &MMU, operand: ArgR8, with_carry: bool) {
-        self.regs.a = self.do_sub8(mmu, operand, with_carry);
+    fn op_sub8(&mut self, operand: ArgR8, with_carry: bool) {
+        self.regs.a = self.do_sub8(operand, with_carry);
 
         self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
     }
@@ -458,8 +562,8 @@ impl CPU {
     // AND A,r8   (m: 1)
     // AND A,[HL] (m: 2)
     // AND A,n8   (m: 2)
-    fn op_bitwise_and_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, operand);
+    fn op_bitwise_and_r8(&mut self, operand: ArgR8) {
+        let value = self.get_value_at_r8(operand);
         let result = self.regs.a & value;
 
         self.regs.set_all_flags(result == 0, false, true, false);
@@ -482,8 +586,8 @@ impl CPU {
     // OR A,r8   (m: 1)
     // OR A,[HL] (m: 2)
     // OR A,n8   (m: 2)
-    fn op_bitwise_or_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, operand);
+    fn op_bitwise_or_r8(&mut self, operand: ArgR8) {
+        let value = self.get_value_at_r8(operand);
         let result = self.regs.a | value;
 
         self.regs.set_all_flags(result == 0, false, false, false);
@@ -496,8 +600,8 @@ impl CPU {
     // XOR A,r8   (m: 1)
     // XOR A,[HL] (m: 2)
     // XOR A,n8   (m: 2)
-    fn op_bitwise_xor_r8(&mut self, mmu: &MMU, operand: ArgR8) {
-        let value = self.get_value_at_r8(mmu, operand);
+    fn op_bitwise_xor_r8(&mut self, operand: ArgR8) {
+        let value = self.get_value_at_r8(operand);
         let result = self.regs.a ^ value;
 
         self.regs.set_all_flags(result == 0, false, false, false);
@@ -513,12 +617,12 @@ impl CPU {
 
     // BIT u3,r8   (m: 2)
     // BIT u3,[HL] (m: 3)
-    fn op_bit_test_r8(&mut self, mmu: &MMU, operand: ArgR8, bit_index: ArgU3) {
+    fn op_bit_test_r8(&mut self, operand: ArgR8, bit_index: ArgU3) {
         if matches!(operand, ArgR8::CONST(_)) {
             Self::panic_no_const();
         }
 
-        let value = self.get_value_at_r8(mmu, operand);
+        let value = self.get_value_at_r8(operand);
 
         self.regs.setf_zero(value & (bit_index as u8) == 0);
         self.regs.setf_subtract(false);
@@ -531,12 +635,12 @@ impl CPU {
     // RES u3,[HL] (m: 4)
     // SET u3,r8   (m: 2)
     // SET u3,[HL] (m: 4)
-    fn op_set_bit_r8(&mut self, mmu: &mut MMU, operand: ArgR8, bit_index: ArgU3, set: bool) {
+    fn op_set_bit_r8(&mut self, operand: ArgR8, bit_index: ArgU3, set: bool) {
         if matches!(operand, ArgR8::CONST(_)) {
             Self::panic_no_const();
         }
 
-        let value = self.get_value_at_r8(mmu, operand);
+        let value = self.get_value_at_r8(operand);
 
         let new_value = if set {
             value | (bit_index as u8)
@@ -544,7 +648,7 @@ impl CPU {
             value & !(bit_index as u8)
         };
 
-        self.set_value_at_r8(mmu, operand, new_value);
+        self.set_value_at_r8(operand, new_value);
 
         self.add_more_mtime_if_mhl(operand, 4, 2);
     }
@@ -557,17 +661,17 @@ impl CPU {
     // RL [HL]  (m: 4)
     // RLC r8   (m: 2)
     // RLC [HL] (m: 4)
-    fn op_rotate_r8_left(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
+    fn op_rotate_r8_left(&mut self, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_left(self.get_value_at_r8(mmu, target))
+            self.do_rotate_left(self.get_value_at_r8(target))
         } else {
-            self.do_rotate_left_carry(self.get_value_at_r8(mmu, target))
+            self.do_rotate_left_carry(self.get_value_at_r8(target))
         };
 
         self.regs
             .set_all_flags(new_value == 0, false, false, new_carry);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -592,17 +696,17 @@ impl CPU {
     // RR [HL]  (m: 4)
     // RRC r8   (m: 2)
     // RRC [HL] (m: 4)
-    fn op_rotate_r8_right(&mut self, mmu: &mut MMU, target: ArgR8, through_carry: bool) {
+    fn op_rotate_r8_right(&mut self, target: ArgR8, through_carry: bool) {
         let (new_value, new_carry) = if through_carry {
-            self.do_rotate_right(self.get_value_at_r8(mmu, target))
+            self.do_rotate_right(self.get_value_at_r8(target))
         } else {
-            self.do_rotate_right_carry(self.get_value_at_r8(mmu, target))
+            self.do_rotate_right_carry(self.get_value_at_r8(target))
         };
 
         self.regs
             .set_all_flags(new_value == 0, false, false, new_carry);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -625,15 +729,15 @@ impl CPU {
 
     // SLA r8   (m: 2)
     // SLA [HL] (m: 4)
-    fn op_shift_left_arithmetic(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, target);
+    fn op_shift_left_arithmetic(&mut self, target: ArgR8) {
+        let value = self.get_value_at_r8(target);
         let original_top_bit = value & 0x80;
         let new_value = value << 1;
 
         self.regs
             .set_all_flags(new_value == 0, false, false, original_top_bit != 0);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -642,8 +746,8 @@ impl CPU {
     // SRA [HL] (m: 4)
     // SRL r8   (m: 2)
     // SRL [HL] (m: 4)
-    fn op_shift_right(&mut self, mmu: &mut MMU, target: ArgR8, is_arithmetic: bool) {
-        let value = self.get_value_at_r8(mmu, target);
+    fn op_shift_right(&mut self, target: ArgR8, is_arithmetic: bool) {
+        let value = self.get_value_at_r8(target);
         let original_bottom_bit = value & 1;
         let shifted_value = value >> 1;
 
@@ -656,21 +760,21 @@ impl CPU {
         self.regs
             .set_all_flags(new_value == 0, false, false, original_bottom_bit != 0);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
 
     // SWAP r8   (m: 2)
     // SWAP [HL] (m: 4)
-    fn op_swap(&mut self, mmu: &mut MMU, target: ArgR8) {
-        let value = self.get_value_at_r8(mmu, target);
+    fn op_swap(&mut self, target: ArgR8) {
+        let value = self.get_value_at_r8(target);
 
         let new_value = ((value & 0x0F) << 4) | ((value & 0xF0) >> 4);
 
         self.regs.set_all_flags(new_value == 0, false, false, false);
 
-        self.set_value_at_r8(mmu, target, new_value);
+        self.set_value_at_r8(target, new_value);
 
         self.add_more_mtime_if_mhl(target, 4, 2);
     }
@@ -681,9 +785,9 @@ impl CPU {
 
     // CALL n16    (m:   6)
     // CALL cc,n16 (m: 6/3)
-    fn op_call(&mut self, mmu: &mut MMU, condition: ArgCOND, address: u16) {
+    fn op_call(&mut self, condition: ArgCOND, address: u16) {
         if self.eval_condition(condition) {
-            self.push_word(mmu, self.pc);
+            self.push_word(self.pc);
             self.pc = address;
             self.add_m_time(6);
         } else {
@@ -723,9 +827,9 @@ impl CPU {
     }
 
     // RET cc (m: 5/2)
-    fn op_return_condition(&mut self, mmu: &MMU, condition: ArgCOND) {
+    fn op_return_condition(&mut self, condition: ArgCOND) {
         if self.eval_condition(condition) {
-            self.pc = self.pop_word(mmu);
+            self.pc = self.pop_word();
             self.add_m_time(5);
         } else {
             self.add_m_time(2);
@@ -734,19 +838,19 @@ impl CPU {
 
     // RET  (m: 4)
     // RETI (m: 4)
-    fn op_return(&mut self, mmu: &MMU, enable_interrupts: bool) {
+    fn op_return(&mut self, enable_interrupts: bool) {
         if enable_interrupts {
             // Because this is equivalent to EI then RET, the IME flag is actually set at the end
             // of this insctruction
             self.regs.ime = true;
         }
-        self.pc = self.pop_word(mmu);
+        self.pc = self.pop_word();
         self.add_m_time(4);
     }
 
     // RST vec (m: 4)
-    fn op_call_vector(&mut self, mmu: &mut MMU, vec_address: ArgVEC) {
-        self.push_word(mmu, self.pc);
+    fn op_call_vector(&mut self, vec_address: ArgVEC) {
+        self.push_word(self.pc);
         self.pc = vec_address as u16;
         self.add_m_time(4);
     }
@@ -796,8 +900,8 @@ impl CPU {
     }
 
     // LD [n16],SP (m: 5)
-    fn op_load_sp_to_mn16(&mut self, mmu: &mut MMU, address: u16) {
-        mmu.write_word(address, self.sp);
+    fn op_load_sp_to_mn16(&mut self, address: u16) {
+        self.mmu_write_word(address, self.sp);
         self.add_m_time(5);
     }
 
@@ -832,16 +936,16 @@ impl CPU {
 
     // POP AF      (m: 3)
     // POP r16     (m: 3)
-    fn op_pop_r16(&mut self, mmu: &MMU, target: ArgR16STK) {
-        let value = self.pop_word(mmu);
+    fn op_pop_r16(&mut self, target: ArgR16STK) {
+        let value = self.pop_word();
         self.set_value_at_r16stk(target, value);
         self.add_m_time(3);
     }
 
     // PUSH AF  (m: 4)
     // PUSH r16 (m: 4)
-    fn op_push_r16(&mut self, mmu: &mut MMU, target: ArgR16STK) {
-        self.push_word(mmu, self.get_value_at_r16stk(target));
+    fn op_push_r16(&mut self, target: ArgR16STK) {
+        self.push_word(self.get_value_at_r16stk(target));
         self.add_m_time(4);
     }
 
@@ -911,32 +1015,28 @@ impl CPU {
     /* #endregion */
 }
 
-// Execute
-impl CPU {
-    pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction, inst_length: u16) {
-        // Advance PC first
-        // TODO: emulate HALT bug
-        self.pc += inst_length;
-
+// Execute block ==================================================================================
+impl<M: MMU> BasicCPU<M> {
+    fn execute_one(&mut self, inst: Instruction) {
         match inst {
             // Load (LD_dest_source)
-            LD_r8_r8(dest, src) => self.op_load8(mmu, dest, src),
+            LD_r8_r8(dest, src) => self.op_load8(dest, src),
             LD_r16_n16(dest, value) => self.op_load_const_to_r16(dest, value.0),
-            LD_mr16_a(address) => self.op_load_between_a_mr16(mmu, address, false),
-            LDH_mn16_a(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address.0, false),
-            LDH_mc_a => self.op_loadhigh_between_a_mc(mmu, false),
-            LD_a_mr16(address) => self.op_load_between_a_mr16(mmu, address, true),
-            LDH_a_mn16(half_address) => self.op_loadhigh_between_a_mn16(mmu, half_address.0, true),
-            LDH_a_mc => self.op_loadhigh_between_a_mc(mmu, true),
+            LD_mr16_a(address) => self.op_load_between_a_mr16(address, false),
+            LDH_mn16_a(half_address) => self.op_loadhigh_between_a_mn16(half_address.0, false),
+            LDH_mc_a => self.op_loadhigh_between_a_mc(false),
+            LD_a_mr16(address) => self.op_load_between_a_mr16(address, true),
+            LDH_a_mn16(half_address) => self.op_loadhigh_between_a_mn16(half_address.0, true),
+            LDH_a_mc => self.op_loadhigh_between_a_mc(true),
 
             // 8-bit arithmetic
-            ADC_a_r8(operand) => self.op_add8(mmu, operand, true),
-            ADD_a_r8(operand) => self.op_add8(mmu, operand, false),
-            CP_a_r8(operand) => self.op_compare8(mmu, operand),
-            DEC_r8(target) => self.op_dec8(mmu, target),
-            INC_r8(target) => self.op_inc8(mmu, target),
-            SBC_a_r8(operand) => self.op_sub8(mmu, operand, true),
-            SUB_a_r8(operand) => self.op_sub8(mmu, operand, false),
+            ADC_a_r8(operand) => self.op_add8(operand, true),
+            ADD_a_r8(operand) => self.op_add8(operand, false),
+            CP_a_r8(operand) => self.op_compare8(operand),
+            DEC_r8(target) => self.op_dec8(target),
+            INC_r8(target) => self.op_inc8(target),
+            SBC_a_r8(operand) => self.op_sub8(operand, true),
+            SUB_a_r8(operand) => self.op_sub8(operand, false),
 
             // 16-bit arithmetic
             ADD_hl_r16(operand) => self.op_add_r16_to_hl(operand),
@@ -944,42 +1044,42 @@ impl CPU {
             INC_r16(target) => self.op_inc16(target),
 
             // Bitwise logic
-            AND_a_r8(operand) => self.op_bitwise_and_r8(mmu, operand),
+            AND_a_r8(operand) => self.op_bitwise_and_r8(operand),
             CPL => self.op_bitwise_complement(),
-            OR_a_r8(operand) => self.op_bitwise_or_r8(mmu, operand),
-            XOR_a_r8(operand) => self.op_bitwise_xor_r8(mmu, operand),
+            OR_a_r8(operand) => self.op_bitwise_or_r8(operand),
+            XOR_a_r8(operand) => self.op_bitwise_xor_r8(operand),
 
             // Bit flags
-            BIT_u3_r8(bit_index, operand) => self.op_bit_test_r8(mmu, operand, bit_index),
-            RES_u3_r8(bit_index, operand) => self.op_set_bit_r8(mmu, operand, bit_index, false),
-            SET_u3_r8(bit_index, operand) => self.op_set_bit_r8(mmu, operand, bit_index, true),
+            BIT_u3_r8(bit_index, operand) => self.op_bit_test_r8(operand, bit_index),
+            RES_u3_r8(bit_index, operand) => self.op_set_bit_r8(operand, bit_index, false),
+            SET_u3_r8(bit_index, operand) => self.op_set_bit_r8(operand, bit_index, true),
 
             // Bit shift
-            RL_r8(target) => self.op_rotate_r8_left(mmu, target, false),
+            RL_r8(target) => self.op_rotate_r8_left(target, false),
             RLA => self.op_rotate_a_left(false),
-            RLC_r8(target) => self.op_rotate_r8_left(mmu, target, true),
+            RLC_r8(target) => self.op_rotate_r8_left(target, true),
             RLCA => self.op_rotate_a_left(true),
-            RR_r8(target) => self.op_rotate_r8_right(mmu, target, false),
+            RR_r8(target) => self.op_rotate_r8_right(target, false),
             RRA => self.op_rotate_a_right(false),
-            RRC_r8(target) => self.op_rotate_r8_right(mmu, target, false),
+            RRC_r8(target) => self.op_rotate_r8_right(target, false),
             RRCA => self.op_rotate_a_right(true),
-            SLA_r8(target) => self.op_shift_left_arithmetic(mmu, target),
-            SRA_r8(target) => self.op_shift_right(mmu, target, true),
-            SRL_r8(target) => self.op_shift_right(mmu, target, false),
-            SWAP_r8(target) => self.op_swap(mmu, target),
+            SLA_r8(target) => self.op_shift_left_arithmetic(target),
+            SRA_r8(target) => self.op_shift_right(target, true),
+            SRL_r8(target) => self.op_shift_right(target, false),
+            SWAP_r8(target) => self.op_swap(target),
 
             // Jumps and subroutines
-            CALL_n16(address) => self.op_call(mmu, ArgCOND::ALWAYS, address.0),
-            CALL_cc_n16(condition, address) => self.op_call(mmu, condition, address.0),
+            CALL_n16(address) => self.op_call(ArgCOND::ALWAYS, address.0),
+            CALL_cc_n16(condition, address) => self.op_call(condition, address.0),
             JP_hl => self.op_jump_hl(),
             JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address.0),
             JP_cc_n16(condition, address) => self.op_jump_cond(condition, address.0),
             JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset.0),
             JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset.0),
-            RET_cc(condition) => self.op_return_condition(mmu, condition),
-            RET => self.op_return(mmu, false),
-            RETI => self.op_return(mmu, true),
-            RST_vec(vec_address) => self.op_call_vector(mmu, vec_address),
+            RET_cc(condition) => self.op_return_condition(condition),
+            RET => self.op_return(false),
+            RETI => self.op_return(true),
+            RST_vec(vec_address) => self.op_call_vector(vec_address),
 
             // Carry flag
             CCF => self.op_carry_flag(false),
@@ -991,11 +1091,11 @@ impl CPU {
             DEC_sp => self.op_dec16(ArgR16::SP),
             INC_sp => self.op_inc16(ArgR16::SP),
             LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value.0),
-            LD_mn16_sp(address) => self.op_load_sp_to_mn16(mmu, address.0),
+            LD_mn16_sp(address) => self.op_load_sp_to_mn16(address.0),
             LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset.0),
             LD_sp_hl => self.op_load_hl_to_sp(),
-            POP_r16(target) => self.op_pop_r16(mmu, target),
-            PUSH_r16(target) => self.op_push_r16(mmu, target),
+            POP_r16(target) => self.op_pop_r16(target),
+            PUSH_r16(target) => self.op_push_r16(target),
 
             // Interrupt-related
             DI => self.op_disable_interrupts(),
@@ -1027,10 +1127,10 @@ impl CPU {
     }
 }
 
-/* #region Display ============================================================================= */
-impl Display for CPU {
+// Display ========================================================================================
+impl<M: MMU> Display for BasicCPU<M> {
     #[rustfmt::skip]
-    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         let Registers {
             a,
             f,
@@ -1052,4 +1152,3 @@ impl Display for CPU {
         write!(formatter, "+--------------------------+")
     }
 }
-/* #endregion */

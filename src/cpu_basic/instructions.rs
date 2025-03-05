@@ -2,7 +2,7 @@
 // and
 // https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
 
-use crate::hex::{HexI8, HexU16, HexU8};
+use crate::hex::*;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
