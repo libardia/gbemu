@@ -59,15 +59,17 @@ fn main() {
         0xEC, // Terminate
     ];
 
+    let infinite_loop = [0x20, -2i8 as u8];
+
     let breakpoints = [0x100];
 
-    gb.set_debug_mode(true);
+    // gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(
     //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
     // );
-    gb.load_rom(0x100, &binary_coded_decimal);
+    gb.load_rom(0x100, &infinite_loop);
 
     gb.execute_at(0x100);
 }

@@ -2,7 +2,7 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use minifb::{Window, WindowOptions};
 
-use crate::{gpu::GPU, mmu::MMU};
+use crate::{cpu::MTime, gpu::GPU, mmu::MMU};
 
 const BASE_WIDTH: usize = 160;
 const BASE_HEIGHT: usize = 144;
@@ -30,7 +30,7 @@ impl<M: MMU> GPU<M> for BasicGPU<M> {
         }
     }
 
-    fn draw(&self) {
+    fn draw(&self, m_time: MTime) {
         todo!()
     }
 }

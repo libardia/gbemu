@@ -1,10 +1,23 @@
 use std::{
     cell::RefCell,
     fmt::{Debug, Display},
+    ops::AddAssign,
     rc::Rc,
 };
 
 use crate::mmu::MMU;
+
+pub struct MTime(u64);
+impl From<u64> for MTime {
+    fn from(value: u64) -> Self {
+        MTime(value)
+    }
+}
+impl AddAssign for MTime {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 = self.0 + rhs.0;
+    }
+}
 
 /// Trait defining behavior for all CPUs.
 pub trait CPU<M: MMU>: Debug + Display {
@@ -14,7 +27,7 @@ pub trait CPU<M: MMU>: Debug + Display {
     /// Execute a single instruction, advancing the program counter. Returns the number of cycles
     /// elapsed in M-time, which is the actual number of cycles elapsed divided by 4. Multply by 4
     /// to get the actual cycles.
-    fn step(&mut self) -> u64;
+    fn step(&mut self) -> MTime;
 
     /// Get program counter.
     fn get_pc(&self) -> u16;
