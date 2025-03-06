@@ -1,23 +1,12 @@
 use std::{
     cell::RefCell,
     fmt::{Debug, Display},
-    ops::AddAssign,
     rc::Rc,
 };
 
 use crate::mmu::MMU;
 
-pub struct MTime(u64);
-impl From<u64> for MTime {
-    fn from(value: u64) -> Self {
-        MTime(value)
-    }
-}
-impl AddAssign for MTime {
-    fn add_assign(&mut self, rhs: Self) {
-        self.0 = self.0 + rhs.0;
-    }
-}
+pub type MTime = u32;
 
 /// Trait defining behavior for all CPUs.
 pub trait CPU<M: MMU>: Debug + Display {

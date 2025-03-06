@@ -1,10 +1,6 @@
 use std::{cell::RefCell, fs, rc::Rc};
 
-use crate::{
-    cpu::{MTime, CPU},
-    gpu::GPU,
-    mmu::MMU,
-};
+use crate::{cpu::CPU, gpu::GPU, mmu::MMU};
 
 pub struct GB<C, G, M: MMU>
 where
@@ -59,9 +55,9 @@ where
     /// Begin emulation, starting execution at the given address.
     pub fn execute_at(&mut self, address: u16) {
         self.cpu.set_pc(address);
-        let mut cycles_elapsed: MTime = 0.into();
-        while !self.cpu.should_terminate() {
-            cycles_elapsed += self.cpu.step();
+        while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
+            let dm = self.cpu.step();
+            self.gpu.draw_dots(dm);
         }
     }
 }
