@@ -912,7 +912,7 @@ impl<M: MMU> BasicCPU<M> {
     }
 
     // LD [n16],SP (m: 5)
-    fn op_load_sp_to_mn16(&mut self, address: u16) -> u64 {
+    fn op_load_sp_to_mn16(&self, address: u16) -> u64 {
         self.mmu_write_word(address, self.sp);
         5
     }
@@ -978,7 +978,7 @@ impl<M: MMU> BasicCPU<M> {
     }
 
     // TODO: HALT (m: --)
-    fn op_halt(&mut self) -> u64 {
+    fn op_halt(&self) -> u64 {
         todo!("HALT")
     }
 
@@ -1015,13 +1015,13 @@ impl<M: MMU> BasicCPU<M> {
     }
 
     // NOP (m: 1)
-    fn op_nop(&mut self) -> u64 {
+    fn op_nop(&self) -> u64 {
         // Wait 1 m-cycle and do nothing
         1
     }
 
     // TODO: STOP (m: --)
-    fn op_stop(&mut self, next: u8) -> u64 {
+    fn op_stop(&self, next: u8) -> u64 {
         let _ = next;
         todo!("STOP");
     }
