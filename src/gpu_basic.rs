@@ -29,7 +29,13 @@ impl<M: MMU> GPU<M> for BasicGPU<M> {
             win,
         }
     }
+
+    fn draw(&self) {
+        todo!()
+    }
 }
+
+impl<M: MMU> BasicGPU<M> {}
 
 impl<M: MMU> Display for BasicGPU<M> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

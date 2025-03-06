@@ -54,6 +54,7 @@ where
 
     /// Begin emulation, starting execution at the given address.
     pub fn execute_at(&mut self, address: u16) {
+        self.cpu.set_pc(address);
         let mut cycles_elapsed = 0;
         while !self.cpu.should_terminate() {
             cycles_elapsed += self.cpu.step();
