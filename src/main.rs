@@ -1,24 +1,24 @@
 use cpu_basic::BasicCPU;
 use gb::GB;
-use gpu_basic::BasicGPU;
 use mmu_basic::BasicMMU;
+use ppu_basic::BasicPPU;
 
 mod cpu;
 mod cpu_basic;
 mod gb;
-mod gpu;
-mod gpu_basic;
 mod hex;
 mod mmu;
 mod mmu_basic;
+mod ppu;
+mod ppu_basic;
 
 #[allow(unused)]
 fn main() {
     type MMU = BasicMMU;
     type CPU = BasicCPU<MMU>;
-    type GPU = BasicGPU<MMU>;
+    type PPU = BasicPPU<MMU>;
 
-    let mut gb: GB<CPU, GPU, MMU> = GB::new();
+    let mut gb: GB<CPU, PPU, MMU> = GB::new();
 
     let simple_add = [
         0x01, 0xAD, 0xDE, // Write 0xDEAD into BC

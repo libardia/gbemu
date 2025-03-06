@@ -1,28 +1,28 @@
 use std::{cell::RefCell, fs, rc::Rc};
 
-use crate::{cpu::CPU, gpu::GPU, mmu::MMU};
+use crate::{cpu::CPU, mmu::MMU, ppu::PPU};
 
-pub struct GB<C, G, M: MMU>
+pub struct GB<C, P, M: MMU>
 where
     C: CPU<M>,
-    G: GPU<M>,
+    P: PPU<M>,
 {
     cpu: C,
-    gpu: G,
+    ppu: P,
     mmu: Rc<RefCell<M>>,
 }
 
-impl<C, G, M: MMU> GB<C, G, M>
+impl<C, P, M: MMU> GB<C, P, M>
 where
     C: CPU<M>,
-    G: GPU<M>,
+    P: PPU<M>,
 {
     /// Create a new GameBoy.
     pub fn new() -> Self {
         let mmu = Rc::new(RefCell::new(M::new()));
         let cpu = C::new(mmu.clone());
-        let gpu = G::new(mmu.clone(), 3);
-        Self { cpu, gpu, mmu }
+        let gpu = P::new(mmu.clone(), 3);
+        Self { cpu, ppu: gpu, mmu }
     }
 
     /// Set debug mode. When `true`, breakpoints and debug printing is enabled.
@@ -55,9 +55,9 @@ where
     /// Begin emulation, starting execution at the given address.
     pub fn execute_at(&mut self, address: u16) {
         self.cpu.set_pc(address);
-        while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
+        while !self.cpu.should_terminate() && !self.ppu.should_terminate() {
             let dm = self.cpu.step();
-            self.gpu.draw_dots(dm);
+            self.ppu.step_dots(dm);
         }
     }
 }
