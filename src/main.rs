@@ -64,8 +64,10 @@ fn main() {
     gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);
 
-    gb.load_rom_file(
-        r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
-    );
+    // gb.load_rom_file(
+    //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
+    // );
+    gb.load_rom(0x100, &binary_coded_decimal);
+
     gb.execute_at(0x100);
 }

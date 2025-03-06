@@ -61,34 +61,43 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
         }
     }
 
-    fn execute_at(&mut self, address: u16) {
-        self.pc = address;
+    fn step(&mut self) -> u64 {
+        // Decode instruction at pc
+        let (inst, inst_length) = self.decoder.decode(&self.pc);
 
-        while !self.terminate {
-            // Decode instruction at pc
-            let (inst, inst_length) = self.decoder.decode(&self.pc);
+        // Stop and enter breakpoint mode if requested
+        if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
+            self.breakpoint_mode = true;
+            println!("STATE BEFORE THIS INSTRUCTION:");
+            self.debug_print(inst, inst_length, false);
+            self.debug_wait();
+        }
 
-            // Stop and enter breakpoint mode if requested
-            if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
-                self.breakpoint_mode = true;
-                println!("STATE BEFORE THIS INSTRUCTION:");
-                self.debug_print(inst, inst_length, false);
-                self.debug_wait();
-            }
+        // Advance pc
+        // TODO: Emulate halt bug
+        self.pc += inst_length;
 
-            // Advance pc
-            // TODO: Emulate halt bug
-            self.pc += inst_length;
+        // Execute instruction
+        let cycles_elapsed = self.execute(inst);
 
-            // Execute instruction
-            self.step(inst);
-
-            // Print, if the debug print instruction was executed
-            if self.debug_mode && self.debug_print {
-                self.debug_print(inst, inst_length, true);
-                self.debug_print = false;
+        // Special handling for delaying changing IME
+        if self.will_set_ime {
+            if self.setting_ime {
+                self.regs.ime = true;
+                self.will_set_ime = false;
+                self.setting_ime = false;
+            } else {
+                self.setting_ime = true;
             }
         }
+
+        // Print, if the debug print instruction was executed
+        if self.debug_mode && self.debug_print {
+            self.debug_print(inst, inst_length, true);
+            self.debug_print = false;
+        }
+
+        cycles_elapsed
     }
 
     fn set_debug_mode(&mut self, mode: bool) {
@@ -99,6 +108,18 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
         for bp in breakpoints {
             self.breakpoints.push(*bp);
         }
+    }
+
+    fn get_pc(&self) -> u16 {
+        self.pc
+    }
+
+    fn set_pc(&mut self, value: u16) {
+        self.pc = value;
+    }
+
+    fn should_terminate(&self) -> bool {
+        self.terminate
     }
 }
 
@@ -162,22 +183,17 @@ impl<M: MMU> BasicCPU<M> {
         panic!("This combination of arguments is impossible for this instruction");
     }
 
-    fn add_m_time(&mut self, m: u64) {
-        self.m_time += m;
-        self.t_time = self.m_time * 4;
-    }
-
-    fn add_more_mtime_if_const_or_mhl(&mut self, arg: ArgR8, slow: u64, fast: u64) {
+    fn more_mtime_if_const_or_mhl(&self, arg: ArgR8, slow: u64, fast: u64) -> u64 {
         match arg {
-            ArgR8::CONST(_) | ArgR8::MHL => self.add_m_time(slow),
-            _ => self.add_m_time(fast),
+            ArgR8::CONST(_) | ArgR8::MHL => slow,
+            _ => fast,
         }
     }
 
-    fn add_more_mtime_if_mhl(&mut self, arg: ArgR8, slow: u64, fast: u64) {
+    fn more_mtime_if_mhl(&self, arg: ArgR8, slow: u64, fast: u64) -> u64 {
         match arg {
-            ArgR8::MHL => self.add_m_time(slow),
-            _ => self.add_m_time(fast),
+            ArgR8::MHL => slow,
+            _ => fast,
         }
     }
 
@@ -208,18 +224,10 @@ impl<M: MMU> BasicCPU<M> {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
-            ArgR16MEM::HLI => self.regs.get_hl(),
-            ArgR16MEM::HLD => self.regs.get_hl(),
+            ArgR16MEM::HLI => self.regs.hl_pp(),
+            ArgR16MEM::HLD => self.regs.hl_mm(),
             ArgR16MEM::CONST(c) => c.0,
         };
-
-        if matches!(target, ArgR16MEM::HLI) {
-            let (v, _) = self.regs.get_hl().overflowing_add(1);
-            self.regs.set_hl(v);
-        } else if matches!(target, ArgR16MEM::HLD) {
-            let (v, _) = self.regs.get_hl().overflowing_sub(1);
-            self.regs.set_hl(v);
-        }
 
         self.mmu_read_byte(address)
     }
@@ -246,16 +254,8 @@ impl<M: MMU> BasicCPU<M> {
         let address = match target {
             ArgR16MEM::BC => self.regs.get_bc(),
             ArgR16MEM::DE => self.regs.get_de(),
-            ArgR16MEM::HLI => {
-                let address = self.regs.get_hl();
-                self.regs.set_hl(address.overflowing_add(1).0);
-                address
-            }
-            ArgR16MEM::HLD => {
-                let address = self.regs.get_hl();
-                self.regs.set_hl(address.overflowing_sub(1).0);
-                address
-            }
+            ArgR16MEM::HLI => self.regs.hl_pp(),
+            ArgR16MEM::HLD => self.regs.hl_mm(),
             ArgR16MEM::CONST(c) => c.0,
         };
 
@@ -371,34 +371,33 @@ impl<M: MMU> BasicCPU<M> {
     // LD [HL],r8 (m: 2)
     // LD [HL],n8 (m: 3)
     // LD r8,[HL] (m: 2)
-    fn op_load8(&mut self, dest: ArgR8, src: ArgR8) {
+    fn op_load8(&mut self, dest: ArgR8, src: ArgR8) -> u64 {
         if matches!((dest, src), (ArgR8::MHL, ArgR8::MHL)) {
             Self::panic_impossible_arguments();
         }
 
         if dest == src {
             // No op if src == dest
-            self.op_nop();
-            return;
+            self.op_nop()
+        } else {
+            let value = self.get_value_at_r8(src);
+
+            self.set_value_at_r8(dest, value);
+
+            match (dest, src) {
+                (ArgR8::MHL, ArgR8::CONST(_)) => 3,
+                (_, ArgR8::CONST(_) | ArgR8::MHL) => 2,
+                (_, _) => 1,
+            }
         }
-
-        let value = self.get_value_at_r8(src);
-
-        self.set_value_at_r8(dest, value);
-
-        self.add_m_time(match (dest, src) {
-            (ArgR8::MHL, ArgR8::CONST(_)) => 3,
-            (_, ArgR8::CONST(_) | ArgR8::MHL) => 2,
-            (_, _) => 1,
-        });
     }
 
     // LD r16,n16 (m: 3)
     // LD SP,n16  (m: 3)
-    fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) {
+    fn op_load_const_to_r16(&mut self, dest: ArgR16, value: u16) -> u64 {
         self.set_value_at_r16(dest, value);
 
-        self.add_m_time(3);
+        3
     }
 
     // LD [r16],A (m: 2)
@@ -409,22 +408,22 @@ impl<M: MMU> BasicCPU<M> {
     // LD [HLD],A (m: 2)
     // LD A,[HLI] (m: 2)
     // LD A,[HLD] (m: 2)
-    fn op_load_between_a_mr16(&mut self, address: ArgR16MEM, a_is_dest: bool) {
+    fn op_load_between_a_mr16(&mut self, address: ArgR16MEM, a_is_dest: bool) -> u64 {
         if a_is_dest {
             self.regs.a = self.get_value_at_mr16(address);
         } else {
             self.set_value_at_mr16(address, self.regs.a);
         }
 
-        self.add_m_time(match address {
+        match address {
             ArgR16MEM::CONST(_) => 4,
             _ => 2,
-        });
+        }
     }
 
     // LDH [n16],A (m: 3)
     // LDH A,[n16] (m: 3)
-    fn op_loadhigh_between_a_mn16(&mut self, half_address: u8, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mn16(&mut self, half_address: u8, a_is_dest: bool) -> u64 {
         let address = 0xFF00 + (half_address as u16);
 
         if a_is_dest {
@@ -433,12 +432,12 @@ impl<M: MMU> BasicCPU<M> {
             self.mmu_write_byte(address, self.regs.a);
         }
 
-        self.add_m_time(3);
+        3
     }
 
     // LDH [C],A (m: 2)
     // LDH A,[C] (m: 2)
-    fn op_loadhigh_between_a_mc(&mut self, a_is_dest: bool) {
+    fn op_loadhigh_between_a_mc(&mut self, a_is_dest: bool) -> u64 {
         let address = 0xFF00 + (self.regs.c as u16);
 
         if a_is_dest {
@@ -447,7 +446,7 @@ impl<M: MMU> BasicCPU<M> {
             self.mmu_write_byte(address, self.regs.a);
         }
 
-        self.add_m_time(2);
+        2
     }
 
     /* #endregion */
@@ -460,7 +459,7 @@ impl<M: MMU> BasicCPU<M> {
     // ADD A,r8   (m: 1)
     // ADD A,[HL] (m: 2)
     // ADD A,n8   (m: 2)
-    fn op_add8(&mut self, operand: ArgR8, with_carry: bool) {
+    fn op_add8(&mut self, operand: ArgR8, with_carry: bool) -> u64 {
         let value = self.get_value_at_r8(operand);
         let cv = (with_carry && self.regs.getf_carry()) as u8;
         let (result, overflow1) = self.regs.a.overflowing_add(value);
@@ -472,21 +471,21 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = result;
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     // CP A,r8   (m: 1)
     // CP A,[HL] (m: 2)
     // CP A,n8   (m: 2)
-    fn op_compare8(&mut self, operand: ArgR8) {
+    fn op_compare8(&mut self, operand: ArgR8) -> u64 {
         self.do_sub8(operand, false);
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     // DEC r8   (m: 1)
     // DEC [HL] (m: 3)
-    fn op_dec8(&mut self, target: ArgR8) {
+    fn op_dec8(&mut self, target: ArgR8) -> u64 {
         let value = self.get_value_at_r8(target);
         let new_value = value.overflowing_sub(1).0;
 
@@ -496,12 +495,12 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 3, 1);
+        self.more_mtime_if_mhl(target, 3, 1)
     }
 
     // INC r8   (m: 1)
     // INC [HL] (m: 3)
-    fn op_inc8(&mut self, target: ArgR8) {
+    fn op_inc8(&mut self, target: ArgR8) -> u64 {
         let value = self.get_value_at_r8(target);
         let new_value = value.overflowing_add(1).0;
 
@@ -511,7 +510,7 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 3, 1);
+        self.more_mtime_if_mhl(target, 3, 1)
     }
 
     // SBC A,r8   (m: 1)
@@ -520,10 +519,10 @@ impl<M: MMU> BasicCPU<M> {
     // SUB A,r8   (m: 1)
     // SUB A,[HL] (m: 2)
     // SUB A,n8   (m: 2)
-    fn op_sub8(&mut self, operand: ArgR8, with_carry: bool) {
+    fn op_sub8(&mut self, operand: ArgR8, with_carry: bool) -> u64 {
         self.regs.a = self.do_sub8(operand, with_carry);
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     /* #endregion */
@@ -532,7 +531,7 @@ impl<M: MMU> BasicCPU<M> {
 
     // ADD HL,r16 (m: 2)
     // ADD HL,SP  (m: 2)
-    fn op_add_r16_to_hl(&mut self, operand: ArgR16) {
+    fn op_add_r16_to_hl(&mut self, operand: ArgR16) -> u64 {
         let lhs = self.regs.get_hl();
         let rhs = self.get_value_at_r16(operand);
         let (result, overflow) = lhs.overflowing_add(rhs);
@@ -544,25 +543,25 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.set_hl(result);
 
-        self.add_m_time(2);
+        2
     }
 
     // DEC r16 (m: 2)
     // DEC SP  (m: 2)
-    fn op_dec16(&mut self, target: ArgR16) {
+    fn op_dec16(&mut self, target: ArgR16) -> u64 {
         let value = self.get_value_at_r16(target);
         self.set_value_at_r16(target, value.overflowing_sub(1).0);
 
-        self.add_m_time(2);
+        2
     }
 
     // INC r16 (m: 2)
     // INC SP  (m: 2)
-    fn op_inc16(&mut self, target: ArgR16) {
+    fn op_inc16(&mut self, target: ArgR16) -> u64 {
         let value = self.get_value_at_r16(target);
         self.set_value_at_r16(target, value.overflowing_add(1).0);
 
-        self.add_m_time(2);
+        2
     }
 
     /* #endregion */
@@ -572,7 +571,7 @@ impl<M: MMU> BasicCPU<M> {
     // AND A,r8   (m: 1)
     // AND A,[HL] (m: 2)
     // AND A,n8   (m: 2)
-    fn op_bitwise_and_r8(&mut self, operand: ArgR8) {
+    fn op_bitwise_and_r8(&mut self, operand: ArgR8) -> u64 {
         let value = self.get_value_at_r8(operand);
         let result = self.regs.a & value;
 
@@ -580,23 +579,23 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = result;
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     // CPL (m: 1)
-    fn op_bitwise_complement(&mut self) {
+    fn op_bitwise_complement(&mut self) -> u64 {
         self.regs.a = !self.regs.a;
 
         self.regs.setf_subtract(true);
         self.regs.setf_half_carry(true);
 
-        self.add_m_time(1);
+        1
     }
 
     // OR A,r8   (m: 1)
     // OR A,[HL] (m: 2)
     // OR A,n8   (m: 2)
-    fn op_bitwise_or_r8(&mut self, operand: ArgR8) {
+    fn op_bitwise_or_r8(&mut self, operand: ArgR8) -> u64 {
         let value = self.get_value_at_r8(operand);
         let result = self.regs.a | value;
 
@@ -604,13 +603,13 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = result;
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     // XOR A,r8   (m: 1)
     // XOR A,[HL] (m: 2)
     // XOR A,n8   (m: 2)
-    fn op_bitwise_xor_r8(&mut self, operand: ArgR8) {
+    fn op_bitwise_xor_r8(&mut self, operand: ArgR8) -> u64 {
         let value = self.get_value_at_r8(operand);
         let result = self.regs.a ^ value;
 
@@ -618,7 +617,7 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = result;
 
-        self.add_more_mtime_if_const_or_mhl(operand, 2, 1);
+        self.more_mtime_if_const_or_mhl(operand, 2, 1)
     }
 
     /* #endregion */
@@ -627,7 +626,7 @@ impl<M: MMU> BasicCPU<M> {
 
     // BIT u3,r8   (m: 2)
     // BIT u3,[HL] (m: 3)
-    fn op_bit_test_r8(&mut self, operand: ArgR8, bit_index: ArgU3) {
+    fn op_bit_test_r8(&mut self, operand: ArgR8, bit_index: ArgU3) -> u64 {
         if matches!(operand, ArgR8::CONST(_)) {
             Self::panic_no_const();
         }
@@ -638,14 +637,14 @@ impl<M: MMU> BasicCPU<M> {
         self.regs.setf_subtract(false);
         self.regs.setf_half_carry(true);
 
-        self.add_more_mtime_if_mhl(operand, 3, 2);
+        self.more_mtime_if_mhl(operand, 3, 2)
     }
 
     // RES u3,r8   (m: 2)
     // RES u3,[HL] (m: 4)
     // SET u3,r8   (m: 2)
     // SET u3,[HL] (m: 4)
-    fn op_set_bit_r8(&mut self, operand: ArgR8, bit_index: ArgU3, set: bool) {
+    fn op_set_bit_r8(&mut self, operand: ArgR8, bit_index: ArgU3, set: bool) -> u64 {
         if matches!(operand, ArgR8::CONST(_)) {
             Self::panic_no_const();
         }
@@ -660,7 +659,7 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(operand, new_value);
 
-        self.add_more_mtime_if_mhl(operand, 4, 2);
+        self.more_mtime_if_mhl(operand, 4, 2)
     }
 
     /* #endregion */
@@ -671,7 +670,7 @@ impl<M: MMU> BasicCPU<M> {
     // RL [HL]  (m: 4)
     // RLC r8   (m: 2)
     // RLC [HL] (m: 4)
-    fn op_rotate_r8_left(&mut self, target: ArgR8, through_carry: bool) {
+    fn op_rotate_r8_left(&mut self, target: ArgR8, through_carry: bool) -> u64 {
         let (new_value, new_carry) = if through_carry {
             self.do_rotate_left(self.get_value_at_r8(target))
         } else {
@@ -683,12 +682,12 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 4, 2);
+        self.more_mtime_if_mhl(target, 4, 2)
     }
 
     // RLA  (m: 1)
     // RLCA (m: 1)
-    fn op_rotate_a_left(&mut self, through_carry: bool) {
+    fn op_rotate_a_left(&mut self, through_carry: bool) -> u64 {
         let (new_value, new_carry) = if through_carry {
             self.do_rotate_left(self.regs.a)
         } else {
@@ -699,14 +698,14 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = new_value;
 
-        self.add_m_time(1);
+        1
     }
 
     // RR r8    (m: 2)
     // RR [HL]  (m: 4)
     // RRC r8   (m: 2)
     // RRC [HL] (m: 4)
-    fn op_rotate_r8_right(&mut self, target: ArgR8, through_carry: bool) {
+    fn op_rotate_r8_right(&mut self, target: ArgR8, through_carry: bool) -> u64 {
         let (new_value, new_carry) = if through_carry {
             self.do_rotate_right(self.get_value_at_r8(target))
         } else {
@@ -718,12 +717,12 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 4, 2);
+        self.more_mtime_if_mhl(target, 4, 2)
     }
 
     // RRA  (m: 1)
     // RRCA (m: 1)
-    fn op_rotate_a_right(&mut self, through_carry: bool) {
+    fn op_rotate_a_right(&mut self, through_carry: bool) -> u64 {
         let (new_value, new_carry) = if through_carry {
             self.do_rotate_right(self.regs.a)
         } else {
@@ -734,12 +733,12 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.a = new_value;
 
-        self.add_m_time(1);
+        1
     }
 
     // SLA r8   (m: 2)
     // SLA [HL] (m: 4)
-    fn op_shift_left_arithmetic(&mut self, target: ArgR8) {
+    fn op_shift_left_arithmetic(&mut self, target: ArgR8) -> u64 {
         let value = self.get_value_at_r8(target);
         let original_top_bit = value & 0x80;
         let new_value = value << 1;
@@ -749,14 +748,14 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 4, 2);
+        self.more_mtime_if_mhl(target, 4, 2)
     }
 
     // SRA r8   (m: 2)
     // SRA [HL] (m: 4)
     // SRL r8   (m: 2)
     // SRL [HL] (m: 4)
-    fn op_shift_right(&mut self, target: ArgR8, is_arithmetic: bool) {
+    fn op_shift_right(&mut self, target: ArgR8, is_arithmetic: bool) -> u64 {
         let value = self.get_value_at_r8(target);
         let original_bottom_bit = value & 1;
         let shifted_value = value >> 1;
@@ -772,12 +771,12 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 4, 2);
+        self.more_mtime_if_mhl(target, 4, 2)
     }
 
     // SWAP r8   (m: 2)
     // SWAP [HL] (m: 4)
-    fn op_swap(&mut self, target: ArgR8) {
+    fn op_swap(&mut self, target: ArgR8) -> u64 {
         let value = self.get_value_at_r8(target);
 
         let new_value = ((value & 0x0F) << 4) | ((value & 0xF0) >> 4);
@@ -786,7 +785,7 @@ impl<M: MMU> BasicCPU<M> {
 
         self.set_value_at_r8(target, new_value);
 
-        self.add_more_mtime_if_mhl(target, 4, 2);
+        self.more_mtime_if_mhl(target, 4, 2)
     }
 
     /* #endregion */
@@ -795,74 +794,76 @@ impl<M: MMU> BasicCPU<M> {
 
     // CALL n16    (m:   6)
     // CALL cc,n16 (m: 6/3)
-    fn op_call(&mut self, condition: ArgCOND, address: u16) {
+    fn op_call(&mut self, condition: ArgCOND, address: u16) -> u64 {
         if self.eval_condition(condition) {
             self.push_word(self.pc);
             self.pc = address;
-            self.add_m_time(6);
+            6
         } else {
-            self.add_m_time(3);
+            3
         }
     }
 
     // JP HL (m: 1)
-    fn op_jump_hl(&mut self) {
+    fn op_jump_hl(&mut self) -> u64 {
         self.pc = self.regs.get_hl();
-        self.add_m_time(1);
+        1
     }
 
     // JP n16    (m:   4)
     // JP cc,n16 (m: 4/3)
-    fn op_jump_cond(&mut self, condition: ArgCOND, address: u16) {
+    fn op_jump_cond(&mut self, condition: ArgCOND, address: u16) -> u64 {
         if self.eval_condition(condition) {
             self.pc = address;
-            self.add_m_time(4);
+            4
         } else {
-            self.add_m_time(3);
+            3
         }
     }
 
     // JR n16    (m:   3)
     // JR cc,n16 (m: 3/2)
-    fn op_jump_relative(&mut self, condition: ArgCOND, offset: i8) {
+    fn op_jump_relative(&mut self, condition: ArgCOND, offset: i8) -> u64 {
         if self.eval_condition(condition) {
             // When offset is converted to u16, it will be filled with the same bits as an i16.
             // Because of two's complement, adding the reults (allowing for overflow) is exactly
             // the same as subtracting, if offset was negative.
             self.pc = self.pc.wrapping_add(offset as u16);
-            self.add_m_time(3);
+            3
         } else {
-            self.add_m_time(2);
+            2
         }
     }
 
     // RET cc (m: 5/2)
-    fn op_return_condition(&mut self, condition: ArgCOND) {
+    fn op_return_condition(&mut self, condition: ArgCOND) -> u64 {
         if self.eval_condition(condition) {
             self.pc = self.pop_word();
-            self.add_m_time(5);
+            5
         } else {
-            self.add_m_time(2);
+            2
         }
     }
 
     // RET  (m: 4)
     // RETI (m: 4)
-    fn op_return(&mut self, enable_interrupts: bool) {
+    fn op_return(&mut self, enable_interrupts: bool) -> u64 {
         if enable_interrupts {
             // Because this is equivalent to EI then RET, the IME flag is actually set at the end
             // of this insctruction
             self.regs.ime = true;
         }
         self.pc = self.pop_word();
-        self.add_m_time(4);
+
+        4
     }
 
     // RST vec (m: 4)
-    fn op_call_vector(&mut self, vec_address: ArgVEC) {
+    fn op_call_vector(&mut self, vec_address: ArgVEC) -> u64 {
         self.push_word(self.pc);
         self.pc = vec_address as u16;
-        self.add_m_time(4);
+
+        4
     }
 
     /* #endregion */
@@ -871,7 +872,7 @@ impl<M: MMU> BasicCPU<M> {
 
     // CCF (m: 1)
     // SCF (m: 1)
-    fn op_carry_flag(&mut self, is_set: bool) {
+    fn op_carry_flag(&mut self, is_set: bool) -> u64 {
         self.regs.setf_carry(if is_set {
             true
         } else {
@@ -879,7 +880,8 @@ impl<M: MMU> BasicCPU<M> {
         });
         self.regs.setf_half_carry(false);
         self.regs.setf_subtract(false);
-        self.add_m_time(1);
+
+        1
     }
 
     /* #endregion */
@@ -887,7 +889,7 @@ impl<M: MMU> BasicCPU<M> {
     /* #region Stack manipulation ============================================================== */
 
     // ADD SP,e8 (m: 4)
-    fn op_add_e8_to_sp(&mut self, offset: i8) {
+    fn op_add_e8_to_sp(&mut self, offset: i8) -> u64 {
         let osp = self.sp;
         let asu16 = offset as u16;
 
@@ -906,17 +908,17 @@ impl<M: MMU> BasicCPU<M> {
 
         self.sp = osp.wrapping_add(asu16);
 
-        self.add_m_time(4);
+        4
     }
 
     // LD [n16],SP (m: 5)
-    fn op_load_sp_to_mn16(&mut self, address: u16) {
+    fn op_load_sp_to_mn16(&mut self, address: u16) -> u64 {
         self.mmu_write_word(address, self.sp);
-        self.add_m_time(5);
+        5
     }
 
     // LD HL,SP+e8 (m: 3)
-    fn op_load_sp_plus_e8_to_hl(&mut self, offset: i8) {
+    fn op_load_sp_plus_e8_to_hl(&mut self, offset: i8) -> u64 {
         let osp = self.sp;
         let asu16 = offset as u16;
 
@@ -935,28 +937,28 @@ impl<M: MMU> BasicCPU<M> {
 
         self.regs.set_hl(osp.wrapping_add(asu16));
 
-        self.add_m_time(3);
+        3
     }
 
     // LD SP,HL (m: 2)
-    fn op_load_hl_to_sp(&mut self) {
+    fn op_load_hl_to_sp(&mut self) -> u64 {
         self.sp = self.regs.get_hl();
-        self.add_m_time(2);
+        2
     }
 
     // POP AF      (m: 3)
     // POP r16     (m: 3)
-    fn op_pop_r16(&mut self, target: ArgR16STK) {
+    fn op_pop_r16(&mut self, target: ArgR16STK) -> u64 {
         let value = self.pop_word();
         self.set_value_at_r16stk(target, value);
-        self.add_m_time(3);
+        3
     }
 
     // PUSH AF  (m: 4)
     // PUSH r16 (m: 4)
-    fn op_push_r16(&mut self, target: ArgR16STK) {
+    fn op_push_r16(&mut self, target: ArgR16STK) -> u64 {
         self.push_word(self.get_value_at_r16stk(target));
-        self.add_m_time(4);
+        4
     }
 
     /* #endregion */
@@ -964,19 +966,19 @@ impl<M: MMU> BasicCPU<M> {
     /* #region Interrupt-related =============================================================== */
 
     // DI (m: 1)
-    fn op_disable_interrupts(&mut self) {
+    fn op_disable_interrupts(&mut self) -> u64 {
         self.regs.ime = false;
-        self.add_m_time(1);
+        1
     }
 
     // EI (m: 1)
-    fn op_enable_interrupts_delayed(&mut self) {
+    fn op_enable_interrupts_delayed(&mut self) -> u64 {
         self.will_set_ime = true;
-        self.add_m_time(1);
+        1
     }
 
     // TODO: HALT (m: --)
-    fn op_halt(&mut self) {
+    fn op_halt(&mut self) -> u64 {
         todo!("HALT")
     }
 
@@ -985,7 +987,7 @@ impl<M: MMU> BasicCPU<M> {
     /* #region Miscellaneous =================================================================== */
 
     // DAA (m: 1)
-    fn op_daa(&mut self) {
+    fn op_daa(&mut self) -> u64 {
         let mut adj = 0u8;
         if self.regs.getf_subtract() {
             if self.regs.getf_half_carry() {
@@ -1009,18 +1011,35 @@ impl<M: MMU> BasicCPU<M> {
         self.regs.setf_zero(self.regs.a == 0);
         self.regs.setf_half_carry(false);
 
-        self.add_m_time(1);
+        1
     }
 
     // NOP (m: 1)
-    fn op_nop(&mut self) {
-        self.add_m_time(1);
+    fn op_nop(&mut self) -> u64 {
+        // Wait 1 m-cycle and do nothing
+        1
     }
 
     // TODO: STOP (m: --)
-    fn op_stop(&mut self, next: u8) {
+    fn op_stop(&mut self, next: u8) -> u64 {
         let _ = next;
         todo!("STOP");
+    }
+
+    /* #endregion */
+
+    /* #region Miscellaneous =================================================================== */
+
+    // TERMINATE (m: 0)
+    fn op_terminate(&mut self) -> u64 {
+        self.terminate = true;
+        0
+    }
+
+    // DEBUG_PRINT (m: 0)
+    fn op_debug_print(&mut self) -> u64 {
+        self.debug_print = true;
+        0
     }
 
     /* #endregion */
@@ -1028,7 +1047,7 @@ impl<M: MMU> BasicCPU<M> {
 
 // Execute block ==================================================================================
 impl<M: MMU> BasicCPU<M> {
-    fn step(&mut self, inst: Instruction) {
+    fn execute(&mut self, inst: Instruction) -> u64 {
         match inst {
             // Load (LD_dest_source)
             LD_r8_r8(dest, src) => self.op_load8(dest, src),
@@ -1121,19 +1140,8 @@ impl<M: MMU> BasicCPU<M> {
             // Meta
             PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
             INVALID => panic!("Attempted to execute an invalid instruction!"),
-            TERMINATE => self.terminate = true,
-            DEBUG_PRINT => self.debug_print = true,
-        }
-
-        // Special handling for delaying changing IME
-        if self.will_set_ime {
-            if self.setting_ime {
-                self.regs.ime = true;
-                self.will_set_ime = false;
-                self.setting_ime = false;
-            } else {
-                self.setting_ime = true;
-            }
+            TERMINATE => self.op_terminate(),
+            DEBUG_PRINT => self.op_debug_print(),
         }
     }
 }

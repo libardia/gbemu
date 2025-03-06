@@ -77,6 +77,20 @@ impl Registers {
     make_r16_getset!(get_de, set_de, d, e);
     make_r16_getset!(get_hl, set_hl, h, l);
 
+    /// Increment HL, and return the value _before_ it was incremented.
+    pub fn hl_pp(&mut self) -> u16 {
+        let before = self.get_hl();
+        self.set_hl(self.get_hl().wrapping_add(1));
+        before
+    }
+
+    /// Decrement HL, and return the value _before_ it was incremented.
+    pub fn hl_mm(&mut self) -> u16 {
+        let before = self.get_hl();
+        self.set_hl(self.get_hl().wrapping_sub(1));
+        before
+    }
+
     // Getters and setters for the flags stored in the F register
     make_flag_getset!(getf_zero, setf_zero, F_ZERO);
     make_flag_getset!(getf_subtract, setf_subtract, F_SUB);
