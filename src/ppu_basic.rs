@@ -1,6 +1,6 @@
-use std::{cell::RefCell, fmt::Display, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, fmt::Display, ops::Index, rc::Rc};
 
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Window, WindowOptions};
 
 use crate::{cpu::MTime, mmu::MMU, ppu::PPU};
 
@@ -16,15 +16,59 @@ const IO_STAT: u16 = 0xFF41;
 const IO_SCY: u16 = 0xFF42;
 const IO_SCX: u16 = 0xFF43;
 const IO_LY: u16 = 0xFF44;
-const IO_LYC: u16 = 0xFF44;
+const IO_LYC: u16 = 0xFF45;
+const IO_DMA: u16 = 0xFF46;
+const IO_BGP: u16 = 0xFF47;
+const IO_OBP_0: u16 = 0xFF48;
+const IO_OBP_1: u16 = 0xFF49;
+const IO_WY: u16 = 0xFF4A;
+const IO_WX: u16 = 0xFF4B;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PPUMode {
-    HORIZONTAL_BLANK,
-    VERTICAL_BLANK,
-    OAM_SCAN,
-    DRAWING,
+    HorizontalBlank,
+    VerticalBlank,
+    OamScan,
+    Drawing,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Color {
+    White = 0x00,
+    LightGray = 0x55,
+    DarkGrey = 0xAA,
+    Black = 0xFF,
+    Transparent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Palette(u8);
+impl From<u8> for Palette {
+    fn from(value: u8) -> Self {
+        Palette(value)
+    }
+}
+impl Index<u8> for Palette {
+    type Output = Color;
+
+    fn index(&self, index: u8) -> &Self::Output {
+        assert!(index <= 3, "Palette only indexes values 0-3");
+        let shift = index * 2;
+        let mask = 0b11 << shift;
+        let bits = self.0 & mask;
+        let code = bits >> shift;
+        match code {
+            0 => &Color::White,
+            1 => &Color::LightGray,
+            2 => &Color::DarkGrey,
+            3 => &Color::Black,
+            _ => unreachable!("Invalid color in palette"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Pixel {}
 
 #[derive(Debug)]
 pub struct BasicPPU<M: MMU> {
@@ -35,17 +79,27 @@ pub struct BasicPPU<M: MMU> {
     width: usize,
     height: usize,
     // Draw state
-    last_executed_mode: PPUMode,
+    frame_buffer: Vec<u32>,
     mode: PPUMode,
-    scanline: u8,
+    next_mode: PPUMode,
+    current_line: u8,
     wait: u8,
     dots_this_frame: u32,
-    frame_buffer: Vec<u32>,
+    dots_this_mode: u32,
+    bg_fifo: VecDeque<Pixel>,
+    obj_fifo: VecDeque<Pixel>,
+    // Palettes
+    bg_palette: Palette,
+    obj_palette_0: Palette,
+    obj_palette_1: Palette,
     // LCD status and control
     io_lcdc: u8,
     io_stat: u8,
+    compare_line: u8,
     viewport_x: u8,
     viewport_y: u8,
+    window_xp7: u8,
+    window_y: u8,
 }
 
 impl<M: MMU> PPU<M> for BasicPPU<M> {
@@ -60,21 +114,41 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             scale,
             width,
             height,
-            last_executed_mode: PPUMode::VERTICAL_BLANK,
-            mode: PPUMode::OAM_SCAN,
-            scanline: 0,
+            mode: PPUMode::OamScan,
+            next_mode: PPUMode::OamScan,
+            current_line: 0,
+            compare_line: 0,
             wait: 0,
             dots_this_frame: 0,
+            dots_this_mode: 0,
             frame_buffer: vec![Self::from_u8_rgb(0, 0, 0); width * height],
             io_lcdc: 0,
             io_stat: 0,
             viewport_x: 0,
             viewport_y: 0,
+            window_xp7: 0,
+            window_y: 0,
+            bg_palette: 0.into(),
+            obj_palette_0: 0.into(),
+            obj_palette_1: 0.into(),
+            bg_fifo: VecDeque::new(),
+            obj_fifo: VecDeque::new(),
         }
     }
 
     fn step_dots(&mut self, dm: MTime) {
+        // The number of dots passed is 4 times the CPU m-times passed
         let dots = dm * 4;
+
+        // Load IO registers relevant to the PPU
+        self.load_io();
+
+        for _ in 0..dots {
+            self.step();
+        }
+
+        // Write out the IO registers the PPU changed
+        self.set_io();
     }
 
     fn should_terminate(&self) -> bool {
@@ -82,30 +156,33 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
     }
 }
 
-macro_rules! get_byte_flag {
-    ($get_name:ident, $byte:ident, $mask:expr) => {
+macro_rules! get_bit_flag {
+    ($get_name:ident, $byte:ident, $bit_pos:expr) => {
         fn $get_name(&self) -> bool {
-            self.$byte & $mask != 0
+            const MASK: u8 = 1 << $bit_pos;
+            self.$byte & MASK != 0
         }
     };
 }
 
-macro_rules! set_byte_flag {
-    ($set_name:ident, $byte:ident, $mask:expr) => {
+macro_rules! set_bit_flag {
+    ($set_name:ident, $byte:ident, $bit_pos:expr) => {
         fn $set_name(&mut self, value: bool) {
+            const MASK: u8 = 1 << $bit_pos;
+            const INV_MASK: u8 = !MASK;
             if value {
-                self.$byte |= $mask;
+                self.$byte |= MASK;
             } else {
-                self.$byte &= !$mask
+                self.$byte &= INV_MASK;
             }
         }
     };
 }
 
-macro_rules! getset_byte_flag {
-    ($get_name:ident, $set_name:ident, $byte:ident, $mask:expr) => {
-        get_byte_flag!($get_name, $byte, $mask);
-        set_byte_flag!($set_name, $byte, $mask);
+macro_rules! getset_bit_flag {
+    ($get_name:ident, $set_name:ident, $byte:ident, $bit_pos:expr) => {
+        get_bit_flag!($get_name, $byte, $bit_pos);
+        set_bit_flag!($set_name, $byte, $bit_pos);
     };
 }
 
@@ -116,39 +193,76 @@ impl<M: MMU> BasicPPU<M> {
     }
 
     fn load_io(&mut self) {
+        // Convenience
         let b_mmu = self.mmu.borrow();
+
+        // Load IO registers
         self.io_lcdc = b_mmu.get(IO_LCDC);
         self.io_stat = b_mmu.get(IO_STAT);
-        self.viewport_x = b_mmu.get(IO_SCX);
+        self.compare_line = b_mmu.get(IO_LYC);
+        self.bg_palette = b_mmu.get(IO_BGP).into();
+        self.obj_palette_0 = b_mmu.get(IO_OBP_0).into();
+        self.obj_palette_1 = b_mmu.get(IO_OBP_1).into();
         self.viewport_y = b_mmu.get(IO_SCY);
+        self.viewport_x = b_mmu.get(IO_SCX);
+        self.window_y = b_mmu.get(IO_WY);
+        self.window_xp7 = b_mmu.get(IO_WX);
     }
 
     fn set_io(&mut self) {
-        let mut b_mmu = self.mmu.borrow_mut();
-        b_mmu.set(IO_STAT, (self.io_stat & 0b1111_1100) | (self.mode as u8));
+        // Set LYC == LY bit in IO_STAT
+        self.set_lyc_eq_ly(self.current_line == self.compare_line);
+
+        // Set mode in IO_STAT
+        self.io_stat = (self.io_stat & 0b1111_1100) | (self.mode as u8);
+
+        // Convenience
+        let mut mb_mmu = self.mmu.borrow_mut();
+
+        // Set registers
+        mb_mmu.set(IO_STAT, self.io_stat);
+        mb_mmu.set(IO_LY, self.current_line);
     }
 
-    get_byte_flag!(get_enabled, io_lcdc, 1 << 7);
-    get_byte_flag!(get_window_tile_map, io_lcdc, 1 << 6);
-    get_byte_flag!(get_window_enabled, io_lcdc, 1 << 5);
-    get_byte_flag!(get_bg_window_tiles, io_lcdc, 1 << 4);
-    get_byte_flag!(get_bg_tile_map, io_lcdc, 1 << 3);
-    get_byte_flag!(get_obj_size, io_lcdc, 1 << 2);
-    get_byte_flag!(get_obj_enabled, io_lcdc, 1 << 1);
-    get_byte_flag!(get_bg_window_enabled, io_lcdc, 1 << 0);
+    get_bit_flag!(get_enabled, io_lcdc, 7);
+    get_bit_flag!(get_window_tile_map, io_lcdc, 6);
+    get_bit_flag!(get_window_enabled, io_lcdc, 5);
+    get_bit_flag!(get_bg_window_tiles, io_lcdc, 4);
+    get_bit_flag!(get_bg_tile_map, io_lcdc, 3);
+    get_bit_flag!(get_obj_size, io_lcdc, 2);
+    get_bit_flag!(get_obj_enabled, io_lcdc, 1);
+    get_bit_flag!(get_bg_window_enabled, io_lcdc, 0);
 
-    get_byte_flag!(get_lyc_interrupt, io_stat, 1 << 6);
-    get_byte_flag!(get_mode_2_interrupt, io_stat, 1 << 5);
-    get_byte_flag!(get_mode_1_interrupt, io_stat, 1 << 4);
-    get_byte_flag!(get_mode_0_interrupt, io_stat, 1 << 3);
-    set_byte_flag!(set_lyc_eq_ly, io_stat, 1 << 2);
+    get_bit_flag!(get_lyc_interrupt, io_stat, 6);
+    get_bit_flag!(get_mode_2_interrupt, io_stat, 5);
+    get_bit_flag!(get_mode_1_interrupt, io_stat, 4);
+    get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
+    set_bit_flag!(set_lyc_eq_ly, io_stat, 2);
 
-    fn do_oam_scan(&mut self) {
-        // TODO: Do OAM scan
-    }
+    fn step(&mut self) {
+        // TODO: PPU step
 
-    fn do_draw(&mut self) {
-        // TODO: Do draw
+        match self.mode {
+            PPUMode::OamScan => {}
+            PPUMode::Drawing => {}
+            PPUMode::HorizontalBlank => {}
+            PPUMode::VerticalBlank => {
+                if self.dots_this_mode == 0 {
+                    // At the beginning of vblank, draw the frame buffer and unblock all memory.
+                    self.win
+                        .update_with_buffer(&self.frame_buffer, self.width, self.height)
+                        .ok();
+                }
+            }
+        }
+
+        if self.mode != self.next_mode {
+            self.mode = self.next_mode;
+            self.dots_this_mode = 0;
+        } else {
+            self.dots_this_mode += 1;
+        }
+        self.dots_this_frame += 1;
     }
 }
 

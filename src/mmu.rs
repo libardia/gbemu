@@ -44,6 +44,12 @@ pub trait MMU: Debug + Display {
         self.write_byte(address, (value & 0xFF) as u8);
         self.write_byte(address + 1, ((value & 0xFF00) >> 8) as u8);
     }
+
+    /// Block a range of memory until unblocked, including `start` but not including `end`.
+    fn block_range(&mut self, begin: u16, end: u16);
+
+    /// Unblock a range of memory, including `start` but not including `end`.
+    fn unblock_range(&mut self, begin: u16, end: u16);
 }
 
 // A copy of the boot ROM.
