@@ -43,6 +43,9 @@ pub struct BasicPPU<M: MMU> {
     frame_buffer: Vec<u32>,
     // LCD status and control
     io_lcdc: u8,
+    io_stat: u8,
+    viewport_x: u8,
+    viewport_y: u8,
 }
 
 impl<M: MMU> PPU<M> for BasicPPU<M> {
@@ -64,12 +67,14 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             dots_this_frame: 0,
             frame_buffer: vec![Self::from_u8_rgb(0, 0, 0); width * height],
             io_lcdc: 0,
+            io_stat: 0,
+            viewport_x: 0,
+            viewport_y: 0,
         }
     }
 
     fn step_dots(&mut self, dm: MTime) {
         let dots = dm * 4;
-        self.get_bg_window_enabled();
     }
 
     fn should_terminate(&self) -> bool {
@@ -77,11 +82,30 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
     }
 }
 
-macro_rules! get_lcdc_flag {
-    ($get_name:ident, $mask:expr) => {
+macro_rules! get_byte_flag {
+    ($get_name:ident, $byte:ident, $mask:expr) => {
         fn $get_name(&self) -> bool {
-            self.io_lcdc & $mask != 0
+            self.$byte & $mask != 0
         }
+    };
+}
+
+macro_rules! set_byte_flag {
+    ($set_name:ident, $byte:ident, $mask:expr) => {
+        fn $set_name(&mut self, value: bool) {
+            if value {
+                self.$byte |= $mask;
+            } else {
+                self.$byte &= !$mask
+            }
+        }
+    };
+}
+
+macro_rules! getset_byte_flag {
+    ($get_name:ident, $set_name:ident, $byte:ident, $mask:expr) => {
+        get_byte_flag!($get_name, $byte, $mask);
+        set_byte_flag!($set_name, $byte, $mask);
     };
 }
 
@@ -92,17 +116,32 @@ impl<M: MMU> BasicPPU<M> {
     }
 
     fn load_io(&mut self) {
-        self.io_lcdc = self.mmu.borrow().read_byte(IO_LCDC);
+        let b_mmu = self.mmu.borrow();
+        self.io_lcdc = b_mmu.get(IO_LCDC);
+        self.io_stat = b_mmu.get(IO_STAT);
+        self.viewport_x = b_mmu.get(IO_SCX);
+        self.viewport_y = b_mmu.get(IO_SCY);
     }
 
-    get_lcdc_flag!(get_enabled, 1 << 7);
-    get_lcdc_flag!(get_window_tile_map, 1 << 6);
-    get_lcdc_flag!(get_window_enabled, 1 << 5);
-    get_lcdc_flag!(get_bg_window_tiles, 1 << 4);
-    get_lcdc_flag!(get_bg_tile_map, 1 << 3);
-    get_lcdc_flag!(get_obj_size, 1 << 2);
-    get_lcdc_flag!(get_obj_enabled, 1 << 1);
-    get_lcdc_flag!(get_bg_window_enabled, 1 << 0);
+    fn set_io(&mut self) {
+        let mut b_mmu = self.mmu.borrow_mut();
+        b_mmu.set(IO_STAT, (self.io_stat & 0b1111_1100) | (self.mode as u8));
+    }
+
+    get_byte_flag!(get_enabled, io_lcdc, 1 << 7);
+    get_byte_flag!(get_window_tile_map, io_lcdc, 1 << 6);
+    get_byte_flag!(get_window_enabled, io_lcdc, 1 << 5);
+    get_byte_flag!(get_bg_window_tiles, io_lcdc, 1 << 4);
+    get_byte_flag!(get_bg_tile_map, io_lcdc, 1 << 3);
+    get_byte_flag!(get_obj_size, io_lcdc, 1 << 2);
+    get_byte_flag!(get_obj_enabled, io_lcdc, 1 << 1);
+    get_byte_flag!(get_bg_window_enabled, io_lcdc, 1 << 0);
+
+    get_byte_flag!(get_lyc_interrupt, io_stat, 1 << 6);
+    get_byte_flag!(get_mode_2_interrupt, io_stat, 1 << 5);
+    get_byte_flag!(get_mode_1_interrupt, io_stat, 1 << 4);
+    get_byte_flag!(get_mode_0_interrupt, io_stat, 1 << 3);
+    set_byte_flag!(set_lyc_eq_ly, io_stat, 1 << 2);
 
     fn do_oam_scan(&mut self) {
         // TODO: Do OAM scan
