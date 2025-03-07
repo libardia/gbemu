@@ -61,15 +61,16 @@ fn main() {
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0x100];
+    let breakpoints = [0x34];
 
-    // gb.set_debug_mode(true);
+    gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(
     //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
     // );
-    gb.load_rom(0x100, &infinite_loop);
+    // gb.load_rom(0x100, &infinite_loop);
+    gb.load_rom(0, &mmu::BOOT_ROM);
 
-    gb.execute_at(0x100);
+    gb.execute_at(0);
 }

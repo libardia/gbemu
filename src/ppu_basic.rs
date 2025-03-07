@@ -11,7 +11,7 @@ const DOTS_PER_DRAW: u32 = 65664;
 const DOTS_PER_VBLANK: u32 = 4560;
 const DOTS_PER_FRAME: u32 = DOTS_PER_DRAW + DOTS_PER_VBLANK;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PPUMode {
     HORIZONTAL_BLANK,
     VERTICAL_BLANK,
@@ -28,6 +28,7 @@ pub struct BasicPPU<M: MMU> {
     width: usize,
     height: usize,
     // Draw state
+    last_executed_mode: PPUMode,
     mode: PPUMode,
     scanline: u8,
     wait: u8,
@@ -47,6 +48,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             scale,
             width,
             height,
+            last_executed_mode: PPUMode::VERTICAL_BLANK,
             mode: PPUMode::OAM_SCAN,
             scanline: 0,
             wait: 0,
@@ -59,27 +61,30 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         let dots = dm * 4;
 
         match self.mode {
-            PPUMode::OAM_SCAN => {}
-            PPUMode::DRAWING => todo!(),
-            PPUMode::HORIZONTAL_BLANK => todo!(),
-            PPUMode::VERTICAL_BLANK => todo!(),
-        }
-
-        // Draw a dot, or skip it if we're waiting
-        if self.wait > 0 {
-            self.wait -= 1;
-        } else {
-            self.draw_dot();
-        }
-
-        // One more dot passed this frame
-        self.dots_this_frame += 1;
-
-        // If we've drawn all scanlines, update the window
-        if self.dots_this_frame >= DOTS_PER_DRAW {
-            self.win
-                .update_with_buffer(&self.frame_buffer, self.width, self.height)
-                .ok();
+            PPUMode::OAM_SCAN => {
+                if self.last_executed_mode != PPUMode::OAM_SCAN {
+                    self.last_executed_mode = PPUMode::OAM_SCAN;
+                    self.do_oam_scan();
+                }
+            }
+            PPUMode::DRAWING => {
+                if self.last_executed_mode != PPUMode::DRAWING {
+                    self.do_draw();
+                    self.last_executed_mode = PPUMode::DRAWING;
+                }
+            }
+            PPUMode::HORIZONTAL_BLANK => {
+                if self.last_executed_mode != PPUMode::HORIZONTAL_BLANK {
+                    self.do_oam_scan();
+                    self.last_executed_mode = PPUMode::HORIZONTAL_BLANK;
+                }
+            }
+            PPUMode::VERTICAL_BLANK => {
+                if self.last_executed_mode != PPUMode::VERTICAL_BLANK {
+                    self.do_oam_scan();
+                    self.last_executed_mode = PPUMode::VERTICAL_BLANK;
+                }
+            }
         }
     }
 
@@ -94,8 +99,12 @@ impl<M: MMU> BasicPPU<M> {
         (r << 16) | (g << 8) | b
     }
 
-    fn draw_dot(&mut self) {
-        // TODO: Draw one dot
+    fn do_oam_scan(&mut self) {
+        // TODO: Do OAM scan
+    }
+
+    fn do_draw(&mut self) {
+        // TODO: Do draw
     }
 }
 

@@ -56,7 +56,7 @@ impl MMU for BasicMMU {
             ..UNUSABLE_RAM_BEGIN => self.set(address, value),
             ..=UNUSABLE_RAM_END => (),
             _ => self.set(address, value),
-        };
+        }
     }
 }
 

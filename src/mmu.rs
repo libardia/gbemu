@@ -36,13 +36,13 @@ pub trait MMU: Debug + Display {
         let ls = self.read_byte(address);
         let ms = self.read_byte(address + 1);
 
-        ((ms as u16) << 8) + (ls as u16)
+        ((ms as u16) << 8) | (ls as u16)
     }
 
     /// Write a word (u16) to memory, in little-endian order.
     fn write_word(&mut self, address: u16, value: u16) {
         self.write_byte(address, (value & 0xFF) as u8);
-        self.write_byte(address, ((value & 0xFF00) >> 8) as u8);
+        self.write_byte(address + 1, ((value & 0xFF00) >> 8) as u8);
     }
 }
 

@@ -34,7 +34,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         DEC_r8(ArgR8::D),                           // x5
         LD_r8_r8(ArgR8::D, ArgR8::CONST(HexU8(0))), // x6*
         RLA,                                        // x7
-        JR_e8(HexI8(0)),                            // x8*
+        JR_e8(0),                                   // x8*
         ADD_hl_r16(ArgR16::DE),                     // x9
         LD_a_mr16(ArgR16MEM::DE),                   // xA
         DEC_r16(ArgR16::DE),                        // xB
@@ -45,7 +45,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 2x
-        JR_cc_e8(ArgCOND::NZ, HexI8(0)),            // x0*
+        JR_cc_e8(ArgCOND::NZ, 0),                   // x0*
         LD_r16_n16(ArgR16::HL, HexU16(0)),          // x1**
         LD_mr16_a(ArgR16MEM::HLI),                  // x2
         INC_r16(ArgR16::HL),                        // x3
@@ -53,7 +53,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         DEC_r8(ArgR8::H),                           // x5
         LD_r8_r8(ArgR8::H, ArgR8::CONST(HexU8(0))), // x6*
         DAA,                                        // x7
-        JR_cc_e8(ArgCOND::Z, HexI8(0)),             // x8*
+        JR_cc_e8(ArgCOND::Z, 0),                    // x8*
         ADD_hl_r16(ArgR16::HL),                     // x9
         LD_a_mr16(ArgR16MEM::HLI),                  // xA
         DEC_r16(ArgR16::HL),                        // xB
@@ -64,7 +64,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
     ],
     [
         // 3x
-        JR_cc_e8(ArgCOND::NC, HexI8(0)),              // x0*
+        JR_cc_e8(ArgCOND::NC, 0),                     // x0*
         LD_sp_n16(HexU16(0)),                         // x1**
         LD_mr16_a(ArgR16MEM::HLD),                    // x2
         INC_sp,                                       // x3
@@ -72,7 +72,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         DEC_r8(ArgR8::MHL),                           // x5
         LD_r8_r8(ArgR8::MHL, ArgR8::CONST(HexU8(0))), // x6*
         SCF,                                          // x7
-        JR_cc_e8(ArgCOND::C, HexI8(0)),               // x8*
+        JR_cc_e8(ArgCOND::C, 0),                      // x8*
         ADD_hl_sp,                                    // x9
         LD_a_mr16(ArgR16MEM::HLD),                    // xA
         DEC_sp,                                       // xB
@@ -281,7 +281,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         PUSH_r16(ArgR16STK::HL),                // x5
         AND_a_r8(ArgR8::CONST(HexU8(0))),       // x6*
         RST_vec(ArgVEC::Vec0x20),               // x7
-        ADD_sp_e8(HexI8(0)),                    // x8*
+        ADD_sp_e8(0),                           // x8*
         JP_hl,                                  // x9
         LD_mr16_a(ArgR16MEM::CONST(HexU16(0))), // xA**
         INVALID,                                // xB
@@ -300,7 +300,7 @@ const OP_TABLE: [[Instruction; 16]; 16] = [
         PUSH_r16(ArgR16STK::AF),                // x5
         OR_a_r8(ArgR8::CONST(HexU8(0))),        // x6*
         RST_vec(ArgVEC::Vec0x30),               // x7
-        LD_hl_sp_plus_e8(HexI8(0)),             // x8*
+        LD_hl_sp_plus_e8(0),                    // x8*
         LD_sp_hl,                               // x9
         LD_a_mr16(ArgR16MEM::CONST(HexU16(0))), // xA**
         EI,                                     // xB
@@ -646,9 +646,9 @@ impl<M: MMU> Decoder<M> {
         self.mmu.borrow().read_byte(self.pc + 1).into()
     }
 
-    fn get_next_signed_byte(&mut self) -> HexI8 {
+    fn get_next_signed_byte(&mut self) -> i8 {
         self.inst_length += 1;
-        self.mmu.borrow().read_signed_byte(self.pc + 1).into()
+        self.mmu.borrow().read_signed_byte(self.pc + 1)
     }
 
     fn get_next_word(&mut self) -> HexU16 {

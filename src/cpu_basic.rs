@@ -39,6 +39,7 @@ pub struct BasicCPU<M: MMU> {
     debug_mode: bool,
     breakpoint_mode: bool,
     breakpoints: Vec<u16>,
+    breakpoint_print_mmu: bool,
 }
 
 impl<M: MMU> CPU<M> for BasicCPU<M> {
@@ -56,6 +57,7 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             debug_mode: false,
             breakpoint_mode: false,
             breakpoints: vec![],
+            breakpoint_print_mmu: false,
         }
     }
 
@@ -66,9 +68,7 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
         // Stop and enter breakpoint mode if requested
         if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
             self.breakpoint_mode = true;
-            println!("STATE BEFORE THIS INSTRUCTION:");
-            self.debug_print(inst, inst_length, false);
-            self.debug_wait();
+            self.debug_break(inst, inst_length);
         }
 
         // Advance pc
@@ -128,29 +128,33 @@ impl<M: MMU> BasicCPU<M> {
             println!("{:?}", self.mmu.borrow())
         }
         println!(
-            "pc 0x{:0>4X}: {:?}, {} bytes\n{}\n",
-            self.pc, inst, inst_length, self
+            "PC 0x{:0>4X}: {:?}, {} bytes\nNext PC (unless jump): 0x{:0>4X}\n{}\n",
+            self.pc,
+            inst,
+            inst_length,
+            self.pc + inst_length,
+            self
         );
     }
 
-    fn debug_wait(&mut self) {
-        let mut advance = false;
-        while !advance {
-            advance = true;
-            let mut input = String::new();
-            print!("\nLeave blank to step, m to print memory, x to continue: ");
-            stdout().flush().ok();
-            stdin().read_line(&mut input).ok();
-            let input = input.trim();
-            match input {
-                "x" => self.breakpoint_mode = false,
-                "m" => {
-                    println!("{:?}", self.mmu.borrow());
-                    advance = false;
-                }
-                _ => (),
-            }
-            println!();
+    fn debug_break(&mut self, inst: Instruction, inst_length: u16) {
+        println!("STATE BEFORE THIS INSTRUCTION:");
+        self.debug_print(inst, inst_length, self.breakpoint_print_mmu);
+        if self.breakpoint_print_mmu {
+            self.breakpoint_print_mmu = false;
+        }
+
+        let mut input = String::new();
+        print!("\nLeave blank to step, m to step and print memory, x to continue: ");
+        stdout().flush().ok();
+        stdin().read_line(&mut input).ok();
+        println!();
+
+        let input = input.trim();
+        match input {
+            "x" => self.breakpoint_mode = false,
+            "m" => self.breakpoint_print_mmu = true,
+            _ => (),
         }
     }
 }
@@ -1026,7 +1030,7 @@ impl<M: MMU> BasicCPU<M> {
 
     /* #endregion */
 
-    /* #region Miscellaneous =================================================================== */
+    /* #region Non-standard ==================================================================== */
 
     // TERMINATE (m: 0)
     fn op_terminate(&mut self) -> MTime {
@@ -1102,8 +1106,8 @@ impl<M: MMU> BasicCPU<M> {
             JP_hl => self.op_jump_hl(),
             JP_n16(address) => self.op_jump_cond(ArgCOND::ALWAYS, address.0),
             JP_cc_n16(condition, address) => self.op_jump_cond(condition, address.0),
-            JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset.0),
-            JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset.0),
+            JR_e8(offset) => self.op_jump_relative(ArgCOND::ALWAYS, offset),
+            JR_cc_e8(condition, offset) => self.op_jump_relative(condition, offset),
             RET_cc(condition) => self.op_return_condition(condition),
             RET => self.op_return(false),
             RETI => self.op_return(true),
@@ -1115,12 +1119,12 @@ impl<M: MMU> BasicCPU<M> {
 
             // Stack manipulation
             ADD_hl_sp => self.op_add_r16_to_hl(ArgR16::SP),
-            ADD_sp_e8(offset) => self.op_add_e8_to_sp(offset.0),
+            ADD_sp_e8(offset) => self.op_add_e8_to_sp(offset),
             DEC_sp => self.op_dec16(ArgR16::SP),
             INC_sp => self.op_inc16(ArgR16::SP),
             LD_sp_n16(value) => self.op_load_const_to_r16(ArgR16::SP, value.0),
             LD_mn16_sp(address) => self.op_load_sp_to_mn16(address.0),
-            LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset.0),
+            LD_hl_sp_plus_e8(offset) => self.op_load_sp_plus_e8_to_hl(offset),
             LD_sp_hl => self.op_load_hl_to_sp(),
             POP_r16(target) => self.op_pop_r16(target),
             PUSH_r16(target) => self.op_push_r16(target),
