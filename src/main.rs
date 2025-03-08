@@ -66,7 +66,7 @@ fn main() {
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0x34];
+    let breakpoints = [0xC];
 
     // gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);

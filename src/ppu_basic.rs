@@ -1,6 +1,5 @@
 use std::{
     cell::RefCell,
-    collections::VecDeque,
     fmt::Display,
     ops::Index,
     rc::Rc,
@@ -8,6 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use draw_state::DrawState;
 use minifb::{Window, WindowOptions};
 
 use crate::{
@@ -21,6 +21,8 @@ use crate::{
     ppu::PPU,
 };
 
+pub mod draw_state;
+
 const BASE_WIDTH: usize = 160;
 const BASE_HEIGHT: usize = 144;
 
@@ -30,31 +32,46 @@ const LINES_PER_FRAME: u16 = 154;
 
 const DOTS_PER_OAM_SCAN: u16 = 80;
 
-fn color_from_rgb(r: u8, g: u8, b: u8) -> u32 {
+const fn color_from_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
     (r << 16) | (g << 8) | b
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PPUMode {
-    HorizontalBlank,
-    VerticalBlank,
-    OamScan,
-    Drawing,
-}
+const WHITE: u32 = color_from_rgb(0xFF, 0xFF, 0xFF);
+const LIGHT_GRAY: u32 = color_from_rgb(0xAA, 0xAA, 0xAA);
+const DARK_GRAY: u32 = color_from_rgb(0x55, 0x55, 0x55);
+const BLACK: u32 = color_from_rgb(0x00, 0x00, 0x00);
+
+const GB_GREEN_0: u32 = color_from_rgb(0x9B, 0xBC, 0x0F);
+const GB_GREEN_1: u32 = color_from_rgb(0x8B, 0xAC, 0x0F);
+const GB_GREEN_2: u32 = color_from_rgb(0x30, 0x62, 0x30);
+const GB_GREEN_3: u32 = color_from_rgb(0x0F, 0x38, 0x0F);
+
+const GRAYSCALE_PALETTE: MetaPalette = MetaPalette(WHITE, LIGHT_GRAY, DARK_GRAY, BLACK);
+const GAMEBOY_PALETTE: MetaPalette = MetaPalette(GB_GREEN_0, GB_GREEN_1, GB_GREEN_2, GB_GREEN_3);
+
+/* #region Types =============================================================================== */
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Color {
-    White = 0xFF,
-    LightGray = 0xAA,
-    DarkGrey = 0x55,
-    Black = 0x00,
-    Transparent,
+    Color0,
+    Color1,
+    Color2,
+    Color3,
 }
-impl Color {
-    pub fn to_minifb_color(&self) -> u32 {
-        let v = *self as u8;
-        color_from_rgb(v, v, v)
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct MetaPalette(u32, u32, u32, u32);
+impl Index<Color> for MetaPalette {
+    type Output = u32;
+
+    fn index(&self, index: Color) -> &Self::Output {
+        match index {
+            Color::Color0 => &self.0,
+            Color::Color1 => &self.1,
+            Color::Color2 => &self.2,
+            Color::Color3 => &self.3,
+        }
     }
 }
 
@@ -75,17 +92,24 @@ impl Index<u8> for Palette {
         let bits = self.0 & mask;
         let code = bits >> shift;
         match code {
-            0 => &Color::White,
-            1 => &Color::LightGray,
-            2 => &Color::DarkGrey,
-            3 => &Color::Black,
+            0 => &Color::Color0,
+            1 => &Color::Color1,
+            2 => &Color::Color2,
+            3 => &Color::Color3,
             _ => unreachable!("Invalid color in palette"),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Pixel {}
+pub enum PPUMode {
+    HorizontalBlank,
+    VerticalBlank,
+    OamScan,
+    Drawing,
+}
+
+/* #endregion */
 
 #[derive(Debug)]
 pub struct BasicPPU<M: MMU> {
@@ -95,19 +119,12 @@ pub struct BasicPPU<M: MMU> {
     w_scale: usize,
     w_width: usize,
     w_height: usize,
-    // Draw state
-    last_frame_time: Instant,
-    frame_rate: f32,
+    meta_palette: MetaPalette,
     time_per_frame: Duration,
+    last_frame_time: Instant,
+    // Draw state
     frame_buffer: Vec<u32>,
-    mode: PPUMode,
-    next_mode: PPUMode,
-    current_line: u8,
-    wait: u8,
-    dots_this_line: u16,
-    dots_this_mode: u16,
-    bg_fifo: VecDeque<Pixel>,
-    obj_fifo: VecDeque<Pixel>,
+    ds: DrawState,
     // Palettes
     bg_palette: Palette,
     obj_palette_0: Palette,
@@ -131,23 +148,18 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         let height = BASE_HEIGHT * scale;
         let win = Window::new("gbemu", width, height, WindowOptions::default())
             .expect("Failed to create window");
-        Self {
+
+        let mut new = Self {
             mmu: mmu.clone(),
             win,
             w_scale: scale,
             w_width: width,
             w_height: height,
-            mode: PPUMode::OamScan,
-            next_mode: PPUMode::OamScan,
-            current_line: 0,
+            frame_buffer: Vec::new(),
+            ds: DrawState::new(),
             compare_line: 0,
-            wait: 0,
-            dots_this_line: 0,
-            dots_this_mode: 0,
             last_frame_time: Instant::now(),
             time_per_frame: Duration::from_micros((1e6f32 / frame_rate).round() as u64),
-            frame_rate,
-            frame_buffer: vec![Color::White.to_minifb_color(); width * height],
             io_lcdc: 0,
             io_stat: 0,
             viewport_x: 0,
@@ -157,11 +169,13 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             bg_palette: 0.into(),
             obj_palette_0: 0.into(),
             obj_palette_1: 0.into(),
-            bg_fifo: VecDeque::new(),
-            obj_fifo: VecDeque::new(),
             d_px: 0,
             d_py: 0,
-        }
+            meta_palette: GAMEBOY_PALETTE,
+        };
+
+        new.reset_frame_buffer();
+        new
     }
 
     fn step_dots(&mut self, dm: MTime) {
@@ -169,7 +183,23 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         let dots = dm * 4;
 
         // Load IO registers relevant to the PPU
+        let last_enabled = self.get_enabled();
         self.load_io();
+
+        // LCD was just enabled
+        if !last_enabled && self.get_enabled() {
+            // Reset draw state
+            self.reset_state();
+        }
+        // LCD was just disabled
+        else if last_enabled && !self.get_enabled() {
+            // Reset frame buffer
+            self.reset_frame_buffer();
+
+            // Make sure memory is unblocked
+            self.mmu.borrow_mut().unblock_range(OAM);
+            self.mmu.borrow_mut().unblock_range(VRAM);
+        }
 
         // Step an amount of time equal to the dots
         for _ in 0..dots {
@@ -184,6 +214,8 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         !self.win.is_open()
     }
 }
+
+/* #region Macros ============================================================================== */
 
 macro_rules! get_bit_flag {
     ($get_name:ident, $byte:ident, $bit_pos:expr) => {
@@ -215,15 +247,26 @@ macro_rules! getset_bit_flag {
     };
 }
 
+/* #endregion */
+
 impl<M: MMU> BasicPPU<M> {
-    fn draw_scaled_pixel(&mut self, color: u32, x: u8, y: u8) {
+    /* #region Helpers ========================================================================= */
+    fn reset_frame_buffer(&mut self) {
+        self.frame_buffer = vec![self.meta_palette[Color::Color0]; self.w_width * self.w_height];
+    }
+
+    fn reset_state(&mut self) {
+        self.ds = DrawState::new();
+    }
+
+    fn draw_scaled_pixel(&mut self, color: Color, x: u8, y: u8) {
         let actual_x = x as usize * self.w_scale;
         let actual_y = y as usize * self.w_scale;
         let flattened = actual_y * self.w_width + actual_x;
         for dy in 0..self.w_scale {
             for dx in 0..self.w_scale {
                 let i = flattened + (dy * self.w_width) + dx;
-                self.frame_buffer[i] = color;
+                self.frame_buffer[i] = self.meta_palette[color];
             }
         }
     }
@@ -269,17 +312,17 @@ impl<M: MMU> BasicPPU<M> {
 
     fn set_io(&mut self) {
         // Set LYC == LY bit in IO_STAT
-        self.set_lyc_eq_ly(self.current_line == self.compare_line);
+        self.set_lyc_eq_ly(self.ds.current_line == self.compare_line);
 
         // Set mode in IO_STAT
-        self.io_stat = (self.io_stat & 0b1111_1100) | (self.mode as u8);
+        self.io_stat = (self.io_stat & 0b1111_1100) | (self.ds.mode as u8);
 
         // Convenience
         let mut mb_mmu = self.mmu.borrow_mut();
 
         // Set registers
         mb_mmu.set(STAT, self.io_stat);
-        mb_mmu.set(LY, self.current_line);
+        mb_mmu.set(LY, self.ds.current_line);
     }
 
     get_bit_flag!(get_enabled, io_lcdc, 7);
@@ -297,26 +340,30 @@ impl<M: MMU> BasicPPU<M> {
     get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
     set_bit_flag!(set_lyc_eq_ly, io_stat, 2);
 
+    /* #endregion */
+
+    /* #region Step ============================================================================ */
+
     fn step(&mut self) {
         // Increment line
-        if self.dots_this_line == DOTS_PER_LINE {
-            self.dots_this_line = 0;
-            self.current_line += 1;
-            if self.current_line as u16 == LINES_PER_FRAME {
-                self.current_line = 0;
+        if self.ds.dots_this_line == DOTS_PER_LINE {
+            self.ds.dots_this_line = 0;
+            self.ds.current_line += 1;
+            if self.ds.current_line as u16 == LINES_PER_FRAME {
+                self.ds.current_line = 0;
             }
         }
 
         // Change mode
-        if self.mode != self.next_mode {
-            self.mode = self.next_mode;
-            self.dots_this_mode = 0;
+        if self.ds.mode != self.ds.next_mode {
+            self.ds.mode = self.ds.next_mode;
+            self.ds.dots_this_mode = 0;
         }
 
-        self.dots_this_mode += 1;
-        self.dots_this_line += 1;
+        self.ds.dots_this_mode += 1;
+        self.ds.dots_this_line += 1;
 
-        match self.mode {
+        match self.ds.mode {
             PPUMode::OamScan => {
                 // At the beginning of OAM scan, block OAM.
                 self.mmu.borrow_mut().block_range(OAM);
@@ -324,23 +371,19 @@ impl<M: MMU> BasicPPU<M> {
                 // TODO: OAM scan
 
                 // OAM scan is always 80 dots long
-                if self.dots_this_line == DOTS_PER_OAM_SCAN {
-                    self.next_mode = PPUMode::Drawing
+                if self.ds.dots_this_line == DOTS_PER_OAM_SCAN {
+                    self.ds.next_mode = PPUMode::Drawing
                 }
             }
             PPUMode::Drawing => {
                 // At the beginning of draw, block VRAM.
-                if self.dots_this_mode == 1 {
+                if self.ds.dots_this_mode == 1 {
                     self.mmu.borrow_mut().block_range(VRAM);
-                    // for debug
-                    if self.current_line as u16 == LINES_PER_DRAW - 1 {
+                    // dummy, for debug
+                    if self.ds.current_line as u16 == LINES_PER_DRAW - 1 {
                         // let mut rng = rand::rng();
                         // let color = color_from_rgb(rng.random(), rng.random(), rng.random());
-                        self.draw_scaled_pixel(
-                            Color::Black.to_minifb_color(),
-                            self.d_px,
-                            self.d_py,
-                        );
+                        self.draw_scaled_pixel(Color::Color3, self.d_px, self.d_py);
                         self.d_px += 1;
                         if self.d_px as usize > BASE_WIDTH {
                             self.d_px = 0;
@@ -351,27 +394,27 @@ impl<M: MMU> BasicPPU<M> {
 
                 // TODO: Drawing mode
 
-                // This is a dummy impl for draw mode
-                if self.dots_this_mode == 200 {
-                    self.next_mode = PPUMode::HorizontalBlank;
+                // This is a dummy impl so draw mode ends
+                if self.ds.dots_this_mode == 200 {
+                    self.ds.next_mode = PPUMode::HorizontalBlank;
                 }
             }
             PPUMode::HorizontalBlank => {
                 // At the beginning of hblank, unblock all memory.
-                if self.dots_this_mode == 1 {
+                if self.ds.dots_this_mode == 1 {
                     let mut bm_mmu = self.mmu.borrow_mut();
                     bm_mmu.unblock_range(VRAM);
                     bm_mmu.unblock_range(OAM);
                 }
                 // At the end of the line, switch to...
-                else if self.dots_this_line == DOTS_PER_LINE {
+                else if self.ds.dots_this_line == DOTS_PER_LINE {
                     // ...vblank, if this is the last draw scanline
-                    if self.current_line as u16 == LINES_PER_DRAW - 1 {
-                        self.next_mode = PPUMode::VerticalBlank;
+                    if self.ds.current_line as u16 == LINES_PER_DRAW - 1 {
+                        self.ds.next_mode = PPUMode::VerticalBlank;
                     }
                     // ...OAM scan, if there are more draw scanlines
                     else {
-                        self.next_mode = PPUMode::OamScan;
+                        self.ds.next_mode = PPUMode::OamScan;
                     }
                 }
                 // Otherwise do nothing.
@@ -379,19 +422,21 @@ impl<M: MMU> BasicPPU<M> {
             PPUMode::VerticalBlank => {
                 // At the beginning of vblank, draw the frame buffer. Theoretically it isn't
                 // necessary to unblock memory because hblank will right before this.
-                if self.dots_this_mode == 1 {
+                if self.ds.dots_this_mode == 1 {
                     self.present();
                 }
                 // At the end of the line, and if this is the last scanline, switch back to OAM scan
-                else if self.dots_this_line == DOTS_PER_LINE
-                    && self.current_line as u16 == LINES_PER_FRAME - 1
+                else if self.ds.dots_this_line == DOTS_PER_LINE
+                    && self.ds.current_line as u16 == LINES_PER_FRAME - 1
                 {
-                    self.next_mode = PPUMode::OamScan;
+                    self.ds.next_mode = PPUMode::OamScan;
                 }
                 // Otherwise do nothing.
             }
         }
     }
+
+    /* #endregion */
 }
 
 impl<M: MMU> Display for BasicPPU<M> {
