@@ -2,6 +2,8 @@ use std::{cell::RefCell, fs, rc::Rc};
 
 use crate::{cpu::CPU, mmu::MMU, ppu::PPU};
 
+pub const DEFAULT_FPS: f32 = 59.737156;
+
 pub struct GB<C, P, M: MMU>
 where
     C: CPU<M>,
@@ -17,11 +19,16 @@ where
     C: CPU<M>,
     P: PPU<M>,
 {
-    /// Create a new GameBoy.
-    pub fn new() -> Self {
+    /// Create a new GameBoy with the default frame rate.
+    pub fn new(scale: usize) -> Self {
+        Self::new_with_fps(scale, DEFAULT_FPS)
+    }
+
+    /// Create a new GameBoy with the given frame rate.
+    pub fn new_with_fps(scale: usize, frame_rate: f32) -> Self {
         let mmu = Rc::new(RefCell::new(M::new()));
         let cpu = C::new(mmu.clone());
-        let gpu = P::new(mmu.clone(), 3);
+        let gpu = P::new(mmu.clone(), scale, frame_rate);
         Self { cpu, ppu: gpu, mmu }
     }
 
