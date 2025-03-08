@@ -30,6 +30,9 @@ const DOTS_PER_LINE: u16 = 456;
 const LINES_PER_DRAW: u16 = 144;
 const LINES_PER_FRAME: u16 = 154;
 
+const DRAW_ON_DOT: u32 = 65664;
+const DOTS_PER_FRAME: u32 = 70224;
+
 const DOTS_PER_OAM_SCAN: u16 = 80;
 
 const fn color_from_rgb(r: u8, g: u8, b: u8) -> u32 {
@@ -122,6 +125,7 @@ pub struct BasicPPU<M: MMU> {
     meta_palette: MetaPalette,
     time_per_frame: Duration,
     last_frame_time: Instant,
+    dots_this_frame: u32,
     // Draw state
     frame_buffer: Vec<u32>,
     ds: DrawState,
@@ -172,6 +176,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             d_px: 0,
             d_py: 0,
             meta_palette: GAMEBOY_PALETTE,
+            dots_this_frame: 0,
         };
 
         new.reset_frame_buffer();
@@ -190,6 +195,9 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         if !last_enabled && self.get_enabled() {
             // Reset draw state
             self.reset_state();
+
+            // Reset `dots_this_frame`
+            self.dots_this_frame = 0;
         }
         // LCD was just disabled
         else if last_enabled && !self.get_enabled() {
@@ -203,7 +211,15 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
 
         // Step an amount of time equal to the dots
         for _ in 0..dots {
-            self.step();
+            if self.get_enabled() {
+                self.step();
+            }
+
+            if DRAW_ON_DOT == self.dots_this_frame {
+                self.present();
+            }
+
+            self.dots_this_frame = (self.dots_this_frame + 1) % DOTS_PER_FRAME;
         }
 
         // Write out the IO registers the PPU changed
@@ -420,13 +436,8 @@ impl<M: MMU> BasicPPU<M> {
                 // Otherwise do nothing.
             }
             PPUMode::VerticalBlank => {
-                // At the beginning of vblank, draw the frame buffer. Theoretically it isn't
-                // necessary to unblock memory because hblank will right before this.
-                if self.ds.dots_this_mode == 1 {
-                    self.present();
-                }
                 // At the end of the line, and if this is the last scanline, switch back to OAM scan
-                else if self.ds.dots_this_line == DOTS_PER_LINE
+                if self.ds.dots_this_line == DOTS_PER_LINE
                     && self.ds.current_line as u16 == LINES_PER_FRAME - 1
                 {
                     self.ds.next_mode = PPUMode::OamScan;
