@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Display};
 
+use crate::mem_region::MemoryRegion;
+
 /// Trait defining behavior for all MMUs.
 pub trait MMU: Debug + Display {
     /// Create a new instance of the MMU.
@@ -46,10 +48,10 @@ pub trait MMU: Debug + Display {
     }
 
     /// Block a range of memory until unblocked, including `start` but not including `end`.
-    fn block_range(&mut self, begin: u16, end: u16);
+    fn block_range(&mut self, region: MemoryRegion);
 
     /// Unblock a range of memory, including `start` but not including `end`.
-    fn unblock_range(&mut self, begin: u16, end: u16);
+    fn unblock_range(&mut self, region: MemoryRegion);
 }
 
 // A copy of the boot ROM.

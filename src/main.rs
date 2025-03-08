@@ -11,6 +11,7 @@ mod mmu;
 mod mmu_basic;
 mod ppu;
 mod ppu_basic;
+mod mem_region;
 
 #[allow(unused)]
 fn main() {
@@ -63,7 +64,7 @@ fn main() {
 
     let breakpoints = [0x34];
 
-    gb.set_debug_mode(true);
+    // gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(

@@ -1,21 +1,13 @@
 use std::fmt::{Debug, Display};
 
-use crate::{hex::HexU8, mmu::MMU};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct MemoryRegion(pub u16, pub u16);
-impl MemoryRegion {
-    pub fn contains(&self, address: u16) -> bool {
-        (self.0..self.1).contains(&address)
-    }
-
-    pub const fn size(&self) -> u16 {
-        self.1 - self.0
-    }
-}
-
-const ECHO_RAM: MemoryRegion = MemoryRegion(0xE000, 0xFE00);
-const UNUSABLE_RAM: MemoryRegion = MemoryRegion(0xFEA0, 0xFF00);
+use crate::{
+    hex::HexU8,
+    mem_region::{
+        regions::{ECHO_RAM, UNUSABLE_MEM},
+        MemoryRegion,
+    },
+    mmu::MMU,
+};
 
 const APPARENT_MEM_SIZE: usize = 0xFFFF + 1;
 const EFFECTIVE_MEM_SIZE: usize = APPARENT_MEM_SIZE - ECHO_RAM.size() as usize;
@@ -29,7 +21,7 @@ impl BasicMMU {
     fn eff_address(&self, address: u16) -> usize {
         const ECHO_RAM_OFFSET: u16 = 0x2000;
 
-        let eff_address = if address < ECHO_RAM.0 {
+        let eff_address = if address < ECHO_RAM.begin {
             address
         } else if ECHO_RAM.contains(address) {
             address - ECHO_RAM_OFFSET
@@ -43,9 +35,12 @@ impl BasicMMU {
 
 impl MMU for BasicMMU {
     fn new() -> Self {
+        let mut blocked = Vec::new();
+        blocked.reserve(10);
+
         Self {
             mem: [0; EFFECTIVE_MEM_SIZE],
-            blocked_regions: Vec::new(),
+            blocked_regions: blocked,
         }
     }
 
@@ -65,7 +60,7 @@ impl MMU for BasicMMU {
             }
         }
 
-        if UNUSABLE_RAM.contains(address) {
+        if UNUSABLE_MEM.contains(address) {
             // Reads in the unusable range return 0xFF
             0xFF
         } else {
@@ -82,18 +77,17 @@ impl MMU for BasicMMU {
         }
 
         // Writes in the unusable range are ignored
-        if !UNUSABLE_RAM.contains(address) {
+        if !UNUSABLE_MEM.contains(address) {
             self.set(address, value);
         }
     }
 
-    fn block_range(&mut self, begin: u16, end: u16) {
-        self.blocked_regions.push(MemoryRegion(begin, end));
+    fn block_range(&mut self, region: MemoryRegion) {
+        self.blocked_regions.push(region);
     }
 
-    fn unblock_range(&mut self, begin: u16, end: u16) {
-        self.blocked_regions
-            .retain(|&x| x != MemoryRegion(begin, end));
+    fn unblock_range(&mut self, region: MemoryRegion) {
+        self.blocked_regions.retain(|&x| x != region);
     }
 }
 
