@@ -19,11 +19,7 @@ fn main() {
     type CPU = BasicCPU<MMU>;
     type PPU = BasicPPU<MMU>;
 
-    let mut gb: GB<CPU, PPU, MMU> = GB::new(5);
-    // let mut gb: GB<CPU, PPU, MMU> = GB::new_with_fps(5, 999.0);
-    // let mut gb: GB<CPU, PPU, MMU> = GB::new_with_fps(5, 1.0);
-    // let mut gb: GB<CPU, PPU, MMU> = GB::new_with_fps(5, 30.0);
-    // let mut gb: GB<CPU, PPU, MMU> = GB::new_with_fps(5, 60.0);
+    let mut gb: GB<CPU, PPU, MMU> = GB::new(3);
 
     let simple_add = [
         0x01, 0xAD, 0xDE, // Write 0xDEAD into BC

@@ -401,7 +401,7 @@ impl<M: MMU> BasicPPU<M> {
                         // let color = color_from_rgb(rng.random(), rng.random(), rng.random());
                         self.draw_scaled_pixel(Color::Color3, self.d_px, self.d_py);
                         self.d_px += 1;
-                        if self.d_px as usize > BASE_WIDTH {
+                        if self.d_px as usize >= BASE_WIDTH {
                             self.d_px = 0;
                             self.d_py = (self.d_py + 1) % BASE_HEIGHT as u8;
                         }
