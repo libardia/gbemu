@@ -78,6 +78,7 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             self.debug_break(inst, inst_length);
         }
 
+        // For logging and debug purposes
         self.current_inst_pc = self.pc;
         self.current_inst = inst;
         self.current_inst_code = code;
