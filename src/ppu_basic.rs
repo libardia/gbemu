@@ -8,6 +8,7 @@ use std::{
 };
 
 use draw_state::DrawState;
+use log::debug;
 use minifb::{Window, WindowOptions};
 
 use crate::{
@@ -194,6 +195,8 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
 
         // LCD was just enabled
         if !last_enabled && self.get_enabled() {
+            debug!("LCD was enabled!");
+
             // Reset draw state
             self.reset_state();
 
@@ -202,6 +205,8 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
         }
         // LCD was just disabled
         else if last_enabled && !self.get_enabled() {
+            debug!("LCD was disabled!");
+
             // Reset frame buffer
             self.reset_frame_buffer();
 

@@ -1,10 +1,13 @@
 use cpu_basic::BasicCPU;
 use gb::GB;
+use log::{debug, error, info, trace, warn, LevelFilter};
 use mmu_basic::BasicMMU;
 use ppu_basic::BasicPPU;
+use simple_logger::SimpleLogger;
 
 mod cpu;
 mod cpu_basic;
+mod either;
 mod gb;
 mod hex;
 mod mem_region;
@@ -12,7 +15,6 @@ mod mmu;
 mod mmu_basic;
 mod ppu;
 mod ppu_basic;
-mod either;
 
 fn make_dummy_header() -> [u8; 0x150] {
     const LOGO: [u8; 48] = [
@@ -44,6 +46,11 @@ fn make_dummy_header() -> [u8; 0x150] {
 
 #[allow(unused)]
 fn main() {
+    SimpleLogger::new()
+        .with_level(LevelFilter::Info)
+        .init()
+        .unwrap();
+
     type MMU = BasicMMU;
     type CPU = BasicCPU<MMU>;
     type PPU = BasicPPU<MMU>;
@@ -92,7 +99,7 @@ fn main() {
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0, 0xC, 0x100];
+    let breakpoints = [0x100, 0x21B, 0x239];
 
     // gb.set_debug_mode(true);
     gb.set_breakpoints(&breakpoints);

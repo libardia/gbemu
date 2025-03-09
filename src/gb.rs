@@ -1,6 +1,8 @@
 use std::{cell::RefCell, fs, rc::Rc};
 
-use crate::{cpu::CPU, mem_region::io_regs, mmu::MMU, ppu::PPU};
+use log::info;
+
+use crate::{cpu::CPU, hex::HexU16, mem_region::io_regs, mmu::MMU, ppu::PPU};
 
 pub const DEFAULT_FPS: f32 = 59.737156;
 
@@ -44,22 +46,30 @@ where
 
     /// Boot as normal, including the boot ROM.
     pub fn boot(&mut self) {
+        info!("Performing normal boot (boot ROM is run).");
         self.execute();
     }
 
     /// Skip the boot ROM: Immediately unmap the boot ROM and begin execution at 0x100.
     pub fn quick_boot(&mut self) {
+        info!("Performing quick boot (boot ROM is skipped, and execution begins at 0x100).");
         self.mmu.borrow_mut().set(io_regs::BANK, 1);
         self.execute_at(0x100);
     }
 
     /// Load a program into ROM.
     pub fn load_rom(&self, load_at: u16, rom: &[u8]) {
+        info!(
+            "Loading ROM of size {} to address 0x{:0>4X}",
+            rom.len(),
+            load_at
+        );
         self.mmu.borrow_mut().load_rom(load_at, rom);
     }
 
     /// Load a program into ROM from file.
     pub fn load_rom_file(&self, file_path: &str) {
+        info!("Loading ROM from file: {}", file_path);
         let bytes =
             fs::read(file_path).expect(format!("Failed to read file {}", file_path).as_str());
         self.load_rom(0, &bytes);
@@ -72,6 +82,19 @@ where
 
     /// Begin emulation, starting execution at the given address.
     pub fn execute_at(&mut self, address: u16) {
+        info!("Beginning execution at address 0x{address:0>4X}.");
+        if self.cpu.get_debug_mode() {
+            info!(
+                "Debug mode is on, and breakpoints are: {:?}",
+                self.cpu
+                    .get_breakpoints()
+                    .iter()
+                    .map(|&x| HexU16(x))
+                    .collect::<Vec<_>>()
+            );
+        } else {
+            info!("Debug mode is off.");
+        }
         self.cpu.set_pc(address);
         while !self.cpu.should_terminate() && !self.ppu.should_terminate() {
             let dm = self.cpu.step();

@@ -102,10 +102,18 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
         self.debug_mode = mode;
     }
 
+    fn get_debug_mode(&self) -> bool {
+        self.debug_mode
+    }
+
     fn set_breakpoints(&mut self, breakpoints: &[u16]) {
         for bp in breakpoints {
             self.breakpoints.push(*bp);
         }
+    }
+
+    fn get_breakpoints(&self) -> &[u16] {
+        &self.breakpoints
     }
 
     fn get_pc(&self) -> u16 {

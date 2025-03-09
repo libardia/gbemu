@@ -27,8 +27,14 @@ pub trait CPU<M: MMU>: Debug + Display {
     /// Set debug mode. When `true`, breakpoints and debug printing is enabled.
     fn set_debug_mode(&mut self, mode: bool);
 
+    /// Get debug mode.
+    fn get_debug_mode(&self) -> bool;
+
     /// Set breakpoints. Breakpoints only have an effect in debug mode.
     fn set_breakpoints(&mut self, breakpoints: &[u16]);
+
+    /// Get breakpoints.
+    fn get_breakpoints(&self) -> &[u16];
 
     /// Returns if termination was requested.
     fn should_terminate(&self) -> bool;
