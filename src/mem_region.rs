@@ -28,6 +28,7 @@ impl From<(u16, u16)> for MemoryRegion {
 pub mod regions {
     use super::*;
 
+    pub const BOOT_ROM_BANK: MemoryRegion = MemoryRegion::new(0x0000, 0x0100);
     pub const ROM_BANK_0: MemoryRegion = MemoryRegion::new(0x0000, 0x4000);
     pub const ROM_BANK_N: MemoryRegion = MemoryRegion::new(0x4000, 0x8000);
     pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0xA000);
@@ -85,6 +86,7 @@ pub mod io_regs {
     pub const BGP: u16 = 0xFF47;
     pub const OBP0: u16 = 0xFF48;
     pub const OBP1: u16 = 0xFF49;
+    pub const BANK: u16 = 0xFF50;
     pub const WY: u16 = 0xFF4A;
     pub const WX: u16 = 0xFF4B;
     pub const IE: u16 = 0xFFFF;

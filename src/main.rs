@@ -102,7 +102,6 @@ fn main() {
     // gb.load_rom(0x100, &infinite_loop);
 
     gb.load_rom(0, &make_dummy_header());
-    gb.load_rom(0, &mmu::BOOT_ROM);
     gb.load_rom(0x150, &binary_coded_decimal);
 
     gb.execute_at(0);

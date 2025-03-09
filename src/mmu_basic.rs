@@ -1,12 +1,11 @@
-use std::fmt::{Debug, Display};
+use std::{fmt::{Debug, Display}, ptr::addr_eq};
 
 use crate::{
     hex::HexU8,
     mem_region::{
-        regions::{ECHO_RAM, UNUSABLE_MEM},
-        MemoryRegion,
+        io_regs, regions::{BOOT_ROM_BANK, ECHO_RAM, UNUSABLE_MEM}, MemoryRegion
     },
-    mmu::MMU,
+    mmu::{BOOT_ROM, MMU},
 };
 
 const APPARENT_MEM_SIZE: usize = 0xFFFF + 1;
@@ -60,7 +59,13 @@ impl MMU for BasicMMU {
             }
         }
 
-        if UNUSABLE_MEM.contains(address) {
+        if BOOT_ROM_BANK.contains(address) {
+            if self.get(io_regs::BANK) == 0 {
+                BOOT_ROM[address as usize]
+            } else {
+                self.get(address)
+            }
+        } else if UNUSABLE_MEM.contains(address) {
             // Reads in the unusable range return 0xFF
             0xFF
         } else {
