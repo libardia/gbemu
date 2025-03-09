@@ -656,7 +656,7 @@ impl<M: MMU> Decoder<M> {
         self.mmu.borrow().read_word(self.pc + 1).into()
     }
 
-    pub fn decode(&mut self, pc: &u16) -> (Instruction, u16) {
+    pub fn decode(&mut self, pc: &u16) -> (Instruction, u16, u8) {
         // Save and reset state
         self.pc = *pc;
         self.inst_length = 1;
@@ -717,6 +717,6 @@ impl<M: MMU> Decoder<M> {
             };
         }
 
-        (inst, self.inst_length)
+        (inst, self.inst_length, code)
     }
 }

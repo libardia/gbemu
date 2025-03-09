@@ -101,13 +101,12 @@ fn main() {
         0x06, 0x05, // Load 0x05 into B; 5 in BCD
         0x90, // A -= B (0x10 - 0x05 = 0x0B, in BCD: 0x10 - 0x05 = 0x05)
         0x27, // DAA (convert A into BCD)
-        0xED, // Print
         0xEC, // Terminate
     ];
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0x100, 0x21B, 0x239];
+    let breakpoints = [0x21D, 0x2BA];
 
     gb.set_debug_mode(log_enabled!(Level::Debug));
     gb.set_breakpoints(&breakpoints);

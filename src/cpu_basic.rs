@@ -7,7 +7,7 @@ use std::{
 
 use decoder::Decoder;
 use instructions::{Instruction::*, *};
-use log::debug;
+use log::{debug, warn};
 use registers::Registers;
 
 use crate::{
@@ -37,6 +37,9 @@ pub struct BasicCPU<M: MMU> {
     terminate: bool,
     debug_print: bool,
     // Debugging
+    current_inst_pc: u16,
+    current_inst: Instruction,
+    current_inst_code: u8,
     debug_mode: bool,
     breakpoint_mode: bool,
     breakpoints: Vec<u16>,
@@ -59,18 +62,25 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             breakpoint_mode: false,
             breakpoints: vec![],
             breakpoint_print_mmu: false,
+            current_inst_pc: 0,
+            current_inst: NOP,
+            current_inst_code: 0,
         }
     }
 
     fn step(&mut self) -> MTime {
         // Decode instruction at pc
-        let (inst, inst_length) = self.decoder.decode(&self.pc);
+        let (inst, inst_length, code) = self.decoder.decode(&self.pc);
 
         // Stop and enter breakpoint mode if requested
         if self.debug_mode && (self.breakpoint_mode || self.breakpoints.contains(&self.pc)) {
             self.breakpoint_mode = true;
             self.debug_break(inst, inst_length);
         }
+
+        self.current_inst_pc = self.pc;
+        self.current_inst = inst;
+        self.current_inst_code = code;
 
         // Advance pc
         // TODO: Emulate halt bug
@@ -133,11 +143,12 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
 // Debugging ======================================================================================
 impl<M: MMU> BasicCPU<M> {
     fn debug_print(&self, inst: Instruction, inst_length: u16, print_mmu: bool) {
+        debug!("debug_print()");
         if print_mmu {
             println!("{:?}", self.mmu.borrow())
         }
         println!(
-            "PC 0x{:0>4X}: {:?}, {} bytes\nNext PC (unless jump): 0x{:0>4X}\n{}\n",
+            "\nPC 0x{:0>4X}: {:?}, {} bytes\nNext PC (unless jump): 0x{:0>4X}\n{}\n",
             self.pc,
             inst,
             inst_length,
@@ -147,7 +158,7 @@ impl<M: MMU> BasicCPU<M> {
     }
 
     fn debug_break(&mut self, inst: Instruction, inst_length: u16) {
-        println!("STATE BEFORE THIS INSTRUCTION:");
+        debug!("debug_break()");
         self.debug_print(inst, inst_length, self.breakpoint_print_mmu);
         if self.breakpoint_print_mmu {
             self.breakpoint_print_mmu = false;
@@ -862,7 +873,10 @@ impl<M: MMU> BasicCPU<M> {
         if enable_interrupts {
             // Because this is equivalent to EI then RET, the IME flag is actually set at the end
             // of this insctruction
-            debug!("RETI: Interrupts enabled immediately.");
+            debug!(
+                "pc 0x{:0>4X}: RETI: Interrupts enabled immediately.",
+                self.current_inst_pc
+            );
             self.regs.ime = true;
         }
         self.pc = self.pop_word();
@@ -979,14 +993,20 @@ impl<M: MMU> BasicCPU<M> {
 
     // DI (m: 1)
     fn op_disable_interrupts(&mut self) -> MTime {
-        debug!("DI: Interrupts disabled.");
+        debug!(
+            "pc 0x{:0>4X}: DI: Interrupts disabled.",
+            self.current_inst_pc
+        );
         self.regs.ime = false;
         1
     }
 
     // EI (m: 1)
     fn op_enable_interrupts_delayed(&mut self) -> MTime {
-        debug!("EI: Interrupts enabled; effect delayed by 1 m-cycle.");
+        debug!(
+            "pc 0x{:0>4X}: EI: Interrupts enabled; effect delayed by 1 m-cycle.",
+            self.current_inst_pc
+        );
         self.will_set_ime = true;
         1
     }
@@ -1044,16 +1064,41 @@ impl<M: MMU> BasicCPU<M> {
 
     /* #region Non-standard ==================================================================== */
 
+    // INVALID (m: 1)
+    // In debug mode, we print a warning but otherwise continue
+    fn op_invalid(&mut self) -> MTime {
+        if self.debug_mode {
+            warn!(
+                "Ignoring invalid instruction: 0x{:0>2X} -> {:?}, at pc 0x{:0>4X}",
+                self.current_inst_code, self.current_inst, self.current_inst_pc
+            );
+        } else {
+            panic!(
+                "Attempted to execute an invalid instruction: 0x{:0>2X} -> {:?}, at pc 0x{:0>4X}",
+                self.current_inst_code, self.current_inst, self.current_inst_pc
+            );
+        }
+        1
+    }
+
     // TERMINATE (m: 0)
     fn op_terminate(&mut self) -> MTime {
-        self.terminate = true;
-        0
+        if self.debug_mode {
+            self.terminate = true;
+            0
+        } else {
+            self.op_invalid()
+        }
     }
 
     // DEBUG_PRINT (m: 0)
     fn op_debug_print(&mut self) -> MTime {
-        self.debug_print = true;
-        0
+        if self.debug_mode {
+            self.debug_print = true;
+            0
+        } else {
+            self.op_invalid()
+        }
     }
 
     /* #endregion */
@@ -1152,8 +1197,8 @@ impl<M: MMU> BasicCPU<M> {
             STOP(next) => self.op_stop(next.0),
 
             // Meta
-            PREFIX => panic!("Attempted to execute the PREFIX meta-instruction!"),
-            INVALID => panic!("Attempted to execute an invalid instruction!"),
+            PREFIX => self.op_invalid(),
+            INVALID => self.op_invalid(),
             TERMINATE => self.op_terminate(),
             DEBUG_PRINT => self.op_debug_print(),
         }
