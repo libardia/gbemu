@@ -23,6 +23,7 @@ fn make_dummy_header() -> [u8; 0x150] {
 
     let mut header = [0; 0x150];
 
+    header[0x100] = 0x00;
     header[0x101] = 0xC3;
     header[0x102] = 0x50;
     header[0x103] = 0x01;
