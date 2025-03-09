@@ -143,7 +143,7 @@ pub struct BasicPPU<M: MMU> {
     viewport_y: u8,
     window_xp7: u8,
     window_y: u8,
-    interrupts: u8,
+    interrupt_requests: u8,
     // Debug
     d_px: u8,
     d_py: u8,
@@ -180,7 +180,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             d_py: 0,
             meta_palette: GAMEBOY_PALETTE,
             dots_this_frame: 0,
-            interrupts: 0,
+            interrupt_requests: 0,
         };
 
         new.reset_frame_buffer();
@@ -332,7 +332,7 @@ impl<M: MMU> BasicPPU<M> {
         self.viewport_x = b_mmu.get(REG_SCX);
         self.window_y = b_mmu.get(REG_WY);
         self.window_xp7 = b_mmu.get(REG_WX);
-        self.interrupts = b_mmu.get(REG_IF);
+        self.interrupt_requests = b_mmu.get(REG_IF);
     }
 
     fn set_io(&mut self) {
@@ -349,22 +349,24 @@ impl<M: MMU> BasicPPU<M> {
         // Set registers
         mb_mmu.set(REG_STAT, self.io_stat);
         mb_mmu.set(REG_LY, self.ds.current_line);
+        mb_mmu.set(REG_IF, self.interrupt_requests);
     }
 
     get_bit_flag!(get_enabled, io_lcdc, 7);
-    get_bit_flag!(get_window_tile_map, io_lcdc, 6);
-    get_bit_flag!(get_window_enabled, io_lcdc, 5);
-    get_bit_flag!(get_bg_window_tiles, io_lcdc, 4);
-    get_bit_flag!(get_bg_tile_map, io_lcdc, 3);
-    get_bit_flag!(get_obj_size, io_lcdc, 2);
-    get_bit_flag!(get_obj_enabled, io_lcdc, 1);
-    get_bit_flag!(get_bg_window_enabled, io_lcdc, 0);
+    // get_bit_flag!(get_window_tile_map, io_lcdc, 6);
+    // get_bit_flag!(get_window_enabled, io_lcdc, 5);
+    // get_bit_flag!(get_bg_window_tiles, io_lcdc, 4);
+    // get_bit_flag!(get_bg_tile_map, io_lcdc, 3);
+    // get_bit_flag!(get_obj_size, io_lcdc, 2);
+    // get_bit_flag!(get_obj_enabled, io_lcdc, 1);
+    // get_bit_flag!(get_bg_window_enabled, io_lcdc, 0);
 
-    get_bit_flag!(get_lyc_interrupt, io_stat, 6);
-    get_bit_flag!(get_mode_2_interrupt, io_stat, 5);
-    get_bit_flag!(get_mode_1_interrupt, io_stat, 4);
-    get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
+    // get_bit_flag!(get_lyc_interrupt, io_stat, 6);
+    // get_bit_flag!(get_mode_2_interrupt, io_stat, 5);
+    // get_bit_flag!(get_mode_1_interrupt, io_stat, 4);
+    // get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
     set_bit_flag!(set_lyc_eq_ly, io_stat, 2);
+    set_bit_flag!(set_vblank_interrupt, interrupt_requests, 0);
 
     /* #endregion */
 
@@ -446,8 +448,12 @@ impl<M: MMU> BasicPPU<M> {
                 // Otherwise do nothing.
             }
             PPUMode::VerticalBlank => {
+                // At the beginning of vblank, request the vblank interrupt.
+                if self.ds.dots_this_mode == 1 {
+                    self.set_vblank_interrupt(true);
+                }
                 // At the end of the line, and if this is the last scanline, switch back to OAM scan
-                if self.ds.dots_this_line == DOTS_PER_LINE
+                else if self.ds.dots_this_line == DOTS_PER_LINE
                     && self.ds.current_line as u16 == LINES_PER_FRAME - 1
                 {
                     self.ds.next_mode = PPUMode::OamScan;
