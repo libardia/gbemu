@@ -2,7 +2,7 @@ use std::env;
 
 use cpu_basic::BasicCPU;
 use gb::GB;
-use log::log_enabled;
+use log::{log_enabled, Level, LevelFilter};
 use mmu_basic::BasicMMU;
 use ppu_basic::BasicPPU;
 use simple_logger::SimpleLogger;
@@ -49,9 +49,15 @@ fn make_dummy_header() -> [u8; 0x150] {
 #[allow(unused)]
 fn main() {
     let args = env::args().collect::<Vec<_>>();
-    env::set_var("RUST_LOG", &args[1]);
+    if args.len() > 1 {
+        env::set_var("RUST_LOG", &args[1]);
+    }
 
-    SimpleLogger::new().env().init().unwrap();
+    SimpleLogger::new()
+        .with_level(LevelFilter::Info)
+        .env()
+        .init()
+        .unwrap();
 
     type MMU = BasicMMU;
     type CPU = BasicCPU<MMU>;
@@ -103,8 +109,8 @@ fn main() {
 
     let breakpoints = [0x100, 0x21B, 0x239];
 
-    gb.set_debug_mode(log_enabled!(log::Level::Debug));
-    gb.set_breakpoints(&breakpoints);
+    gb.set_debug_mode(log_enabled!(Level::Debug));
+    // gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(
     //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
