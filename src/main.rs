@@ -106,10 +106,10 @@ fn main() {
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0x21D, 0x2BA];
+    let breakpoints = [0x40];
 
     gb.set_debug_mode(log_enabled!(Level::Debug));
-    gb.set_breakpoints(&breakpoints);
+    // gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(
     //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",

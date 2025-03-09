@@ -7,17 +7,32 @@ use std::{
 
 use decoder::Decoder;
 use instructions::{Instruction::*, *};
-use log::{debug, warn};
+use log::{debug, log_enabled, warn, Level};
 use registers::Registers;
 
 use crate::{
     cpu::{MTime, CPU},
+    mem_region::io_regs::{REG_IE, REG_IF},
     mmu::MMU,
 };
 
 pub mod decoder;
 pub mod instructions;
 pub mod registers;
+
+const INT_VBLANK_MASK: u8 = 0b0000_0001;
+const INT_LCD_STAT_MASK: u8 = 0b0000_0010;
+const INT_TIMER_MASK: u8 = 0b0000_0100;
+const INT_SERIAL_MASK: u8 = 0b0000_1000;
+const INT_JOYPAD_MASK: u8 = 0b0001_0000;
+
+const INT_VBLANK_ADDRESS: u16 = 0x0040;
+const INT_LCD_STAT_ADDRESS: u16 = 0x0048;
+const INT_TIMER_ADDRESS: u16 = 0x0050;
+const INT_SERIAL_ADDRESS: u16 = 0x0058;
+const INT_JOYPAD_ADDRESS: u16 = 0x0060;
+
+const INTERRUPT_TIME: MTime = 5;
 
 #[derive(Debug)]
 pub struct BasicCPU<M: MMU> {
@@ -33,6 +48,9 @@ pub struct BasicCPU<M: MMU> {
     // Needed to handle the delay of the IME flag
     will_set_ime: bool,
     setting_ime: bool,
+    // Interrupt flag bytes
+    int_enabled: u8,
+    int_flags: u8,
     // Nonstandard operations
     terminate: bool,
     debug_print: bool,
@@ -65,10 +83,29 @@ impl<M: MMU> CPU<M> for BasicCPU<M> {
             current_inst_pc: 0,
             current_inst: NOP,
             current_inst_code: 0,
+            int_enabled: 0,
+            int_flags: 0,
         }
     }
 
     fn step(&mut self) -> MTime {
+        // Interrupt?
+        if self.regs.ime {
+            // Get the interrupt registers
+            self.int_enabled = self.mmu_read_byte(REG_IE);
+            self.int_flags = self.mmu_read_byte(REG_IF);
+
+            // If maybe_interrupt() returns true, an interrupt was fired
+            if self.maybe_interrupt() {
+                // Write out the interrupt flags register (IE reg is not changed)
+                self.mmu_write_byte(REG_IF, self.int_flags);
+
+                // Don't do anything else, and handing control to the handler always takes the same
+                // number of m-cycles
+                return INTERRUPT_TIME;
+            }
+        }
+
         // Decode instruction at pc
         let (inst, inst_length, code) = self.decoder.decode(&self.pc);
 
@@ -382,6 +419,60 @@ impl<M: MMU> BasicCPU<M> {
         let word = self.mmu_read_word(self.sp);
         self.sp += 2;
         word
+    }
+}
+
+// Interrupt handlers =============================================================================
+impl<M: MMU> BasicCPU<M> {
+    fn should_interrupt(&self, mask: u8) -> bool {
+        (self.int_enabled & mask) != 0 && (self.int_flags & mask) != 0
+    }
+
+    fn maybe_interrupt(&mut self) -> bool {
+        if self.should_interrupt(INT_VBLANK_MASK) {
+            self.fire_interrupt(INT_VBLANK_MASK, INT_VBLANK_ADDRESS);
+            true
+        } else if self.should_interrupt(INT_LCD_STAT_MASK) {
+            self.fire_interrupt(INT_LCD_STAT_MASK, INT_LCD_STAT_ADDRESS);
+            true
+        } else if self.should_interrupt(INT_TIMER_MASK) {
+            self.fire_interrupt(INT_TIMER_MASK, INT_TIMER_ADDRESS);
+            true
+        } else if self.should_interrupt(INT_SERIAL_MASK) {
+            self.fire_interrupt(INT_SERIAL_MASK, INT_SERIAL_ADDRESS);
+            true
+        } else if self.should_interrupt(INT_JOYPAD_MASK) {
+            self.fire_interrupt(INT_JOYPAD_MASK, INT_JOYPAD_ADDRESS);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn fire_interrupt(&mut self, mask: u8, address: u16) {
+        if log_enabled!(Level::Debug) {
+            let handler = match mask {
+                INT_VBLANK_MASK => "VBlank",
+                INT_LCD_STAT_MASK => "LCD STAT",
+                INT_TIMER_MASK => "Timer",
+                INT_SERIAL_MASK => "Serial",
+                INT_JOYPAD_MASK => "Joypad",
+                _ => unreachable!(),
+            };
+            debug!("pc 0x{:0>4X}: Firing handler: {}", self.pc, handler);
+        }
+
+        // Reset corresponding interrupt flag
+        self.int_flags &= !mask;
+
+        // Disable interrupts
+        self.regs.ime = false;
+
+        // Push current PC on the stack
+        self.push_word(self.pc);
+
+        // Jump to the handler's address
+        self.pc = address;
     }
 }
 
