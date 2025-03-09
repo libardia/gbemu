@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 use crate::{
     hex::HexU8,
     mem_region::{
-        io_regs,
+        io_regs::REG_BANK,
         regions::{BOOT_ROM_BANK, ECHO_RAM, UNUSABLE_MEM},
         MemoryRegion,
     },
@@ -62,7 +62,7 @@ impl MMU for BasicMMU {
         }
 
         if BOOT_ROM_BANK.contains(address) {
-            if self.get(io_regs::BANK) == 0 {
+            if self.get(REG_BANK) == 0 {
                 BOOT_ROM[address as usize]
             } else {
                 self.get(address)

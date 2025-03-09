@@ -2,7 +2,7 @@ use std::{cell::RefCell, fs, rc::Rc};
 
 use log::info;
 
-use crate::{cpu::CPU, hex::HexU16, mem_region::io_regs, mmu::MMU, ppu::PPU};
+use crate::{cpu::CPU, hex::HexU16, mem_region::io_regs::REG_BANK, mmu::MMU, ppu::PPU};
 
 pub const DEFAULT_FPS: f32 = 59.737156;
 
@@ -53,7 +53,7 @@ where
     /// Skip the boot ROM: Immediately unmap the boot ROM and begin execution at 0x100.
     pub fn quick_boot(&mut self) {
         info!("Performing quick boot (boot ROM is skipped, and execution begins at 0x100).");
-        self.mmu.borrow_mut().set(io_regs::BANK, 1);
+        self.mmu.borrow_mut().set(REG_BANK, 1);
         self.execute_at(0x100);
     }
 

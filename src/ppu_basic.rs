@@ -143,6 +143,7 @@ pub struct BasicPPU<M: MMU> {
     viewport_y: u8,
     window_xp7: u8,
     window_y: u8,
+    interrupts: u8,
     // Debug
     d_px: u8,
     d_py: u8,
@@ -179,6 +180,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             d_py: 0,
             meta_palette: GAMEBOY_PALETTE,
             dots_this_frame: 0,
+            interrupts: 0,
         };
 
         new.reset_frame_buffer();
@@ -320,16 +322,17 @@ impl<M: MMU> BasicPPU<M> {
         let b_mmu = self.mmu.borrow();
 
         // Load IO registers
-        self.io_lcdc = b_mmu.get(LCDC);
-        self.io_stat = b_mmu.get(STAT);
-        self.compare_line = b_mmu.get(LYC);
-        self.bg_palette = b_mmu.get(BGP).into();
-        self.obj_palette_0 = b_mmu.get(OBP0).into();
-        self.obj_palette_1 = b_mmu.get(OBP1).into();
-        self.viewport_y = b_mmu.get(SCY);
-        self.viewport_x = b_mmu.get(SCX);
-        self.window_y = b_mmu.get(WY);
-        self.window_xp7 = b_mmu.get(WX);
+        self.io_lcdc = b_mmu.get(REG_LCDC);
+        self.io_stat = b_mmu.get(REG_STAT);
+        self.compare_line = b_mmu.get(REG_LYC);
+        self.bg_palette = b_mmu.get(REG_BGP).into();
+        self.obj_palette_0 = b_mmu.get(REG_OBP0).into();
+        self.obj_palette_1 = b_mmu.get(REG_OBP1).into();
+        self.viewport_y = b_mmu.get(REG_SCY);
+        self.viewport_x = b_mmu.get(REG_SCX);
+        self.window_y = b_mmu.get(REG_WY);
+        self.window_xp7 = b_mmu.get(REG_WX);
+        self.interrupts = b_mmu.get(REG_IF);
     }
 
     fn set_io(&mut self) {
@@ -344,8 +347,8 @@ impl<M: MMU> BasicPPU<M> {
         let mut mb_mmu = self.mmu.borrow_mut();
 
         // Set registers
-        mb_mmu.set(STAT, self.io_stat);
-        mb_mmu.set(LY, self.ds.current_line);
+        mb_mmu.set(REG_STAT, self.io_stat);
+        mb_mmu.set(REG_LY, self.ds.current_line);
     }
 
     get_bit_flag!(get_enabled, io_lcdc, 7);
