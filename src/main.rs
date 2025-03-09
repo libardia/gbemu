@@ -12,6 +12,7 @@ mod mmu;
 mod mmu_basic;
 mod ppu;
 mod ppu_basic;
+mod either;
 
 fn make_dummy_header() -> [u8; 0x150] {
     const LOGO: [u8; 48] = [
@@ -91,18 +92,19 @@ fn main() {
 
     let infinite_loop = [0x20, -2i8 as u8];
 
-    let breakpoints = [0x150 + 16];
+    let breakpoints = [0, 0xC, 0x100];
 
-    gb.set_debug_mode(true);
-    // gb.set_breakpoints(&breakpoints);
+    // gb.set_debug_mode(true);
+    gb.set_breakpoints(&breakpoints);
 
     // gb.load_rom_file(
     //     r"C:\Users\libar\Projects\rust\gbemu\test-roms\blargg\cpu_instrs\cpu_instrs.gb",
     // );
+    gb.load_rom_file(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
     // gb.load_rom(0x100, &infinite_loop);
 
-    gb.load_rom(0, &make_dummy_header());
-    gb.load_rom(0x150, &binary_coded_decimal);
+    // gb.load_rom(0, &make_dummy_header());
+    // gb.load_rom(0x150, &binary_coded_decimal);
 
-    gb.execute_at(0);
+    gb.boot();
 }

@@ -1,9 +1,11 @@
-use std::{fmt::{Debug, Display}, ptr::addr_eq};
+use std::fmt::{Debug, Display};
 
 use crate::{
     hex::HexU8,
     mem_region::{
-        io_regs, regions::{BOOT_ROM_BANK, ECHO_RAM, UNUSABLE_MEM}, MemoryRegion
+        io_regs,
+        regions::{BOOT_ROM_BANK, ECHO_RAM, UNUSABLE_MEM},
+        MemoryRegion,
     },
     mmu::{BOOT_ROM, MMU},
 };

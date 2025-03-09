@@ -12,6 +12,7 @@ use minifb::{Window, WindowOptions};
 
 use crate::{
     cpu::MTime,
+    either::either,
     gb::DEFAULT_FPS,
     mem_region::{
         io_regs::*,
@@ -330,8 +331,9 @@ impl<M: MMU> BasicPPU<M> {
         // Set LYC == LY bit in IO_STAT
         self.set_lyc_eq_ly(self.ds.current_line == self.compare_line);
 
-        // Set mode in IO_STAT
-        self.io_stat = (self.io_stat & 0b1111_1100) | (self.ds.mode as u8);
+        // Set mode in IO_STAT (always report 0 when disabled)
+        let v = either(self.get_enabled(), self.ds.mode as u8, 0);
+        self.io_stat = (self.io_stat & 0b1111_1100) | v;
 
         // Convenience
         let mut mb_mmu = self.mmu.borrow_mut();

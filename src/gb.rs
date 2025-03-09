@@ -1,6 +1,6 @@
 use std::{cell::RefCell, fs, rc::Rc};
 
-use crate::{cpu::CPU, mmu::MMU, ppu::PPU};
+use crate::{cpu::CPU, mem_region::io_regs, mmu::MMU, ppu::PPU};
 
 pub const DEFAULT_FPS: f32 = 59.737156;
 
@@ -40,6 +40,17 @@ where
     /// Set breakpoints. Breakpoints only have an effect in debug mode.
     pub fn set_breakpoints(&mut self, breakpoints: &[u16]) {
         self.cpu.set_breakpoints(breakpoints);
+    }
+
+    /// Boot as normal, including the boot ROM.
+    pub fn boot(&mut self) {
+        self.execute();
+    }
+
+    /// Skip the boot ROM: Immediately unmap the boot ROM and begin execution at 0x100.
+    pub fn quick_boot(&mut self) {
+        self.mmu.borrow_mut().set(io_regs::BANK, 1);
+        self.execute_at(0x100);
     }
 
     /// Load a program into ROM.
