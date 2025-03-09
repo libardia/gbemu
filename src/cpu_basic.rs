@@ -7,6 +7,7 @@ use std::{
 
 use decoder::Decoder;
 use instructions::{Instruction::*, *};
+use log::debug;
 use registers::Registers;
 
 use crate::{
@@ -861,6 +862,7 @@ impl<M: MMU> BasicCPU<M> {
         if enable_interrupts {
             // Because this is equivalent to EI then RET, the IME flag is actually set at the end
             // of this insctruction
+            debug!("RETI: Interrupts enabled immediately.");
             self.regs.ime = true;
         }
         self.pc = self.pop_word();
@@ -977,12 +979,14 @@ impl<M: MMU> BasicCPU<M> {
 
     // DI (m: 1)
     fn op_disable_interrupts(&mut self) -> MTime {
+        debug!("DI: Interrupts disabled.");
         self.regs.ime = false;
         1
     }
 
     // EI (m: 1)
     fn op_enable_interrupts_delayed(&mut self) -> MTime {
+        debug!("EI: Interrupts enabled; effect delayed by 1 m-cycle.");
         self.will_set_ime = true;
         1
     }
