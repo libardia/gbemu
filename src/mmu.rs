@@ -25,6 +25,9 @@ pub trait MMU: Debug + Display {
     /// Read a byte from memory.
     fn read_byte(&self, address: u16) -> u8;
 
+    /// Read a byte from memory, even from a blocked range.
+    fn read_blocked_byte(&self, address: u16) -> u8;
+
     /// Read a byte from memory, interpreted as i8.
     fn read_signed_byte(&self, address: u16) -> i8 {
         self.read_byte(address) as i8
@@ -37,6 +40,14 @@ pub trait MMU: Debug + Display {
     fn read_word(&self, address: u16) -> u16 {
         let ls = self.read_byte(address);
         let ms = self.read_byte(address + 1);
+
+        ((ms as u16) << 8) | (ls as u16)
+    }
+
+    /// Read a word (u16) from memory, in little-endian order, even from a blocked range.
+    fn read_blocked_word(&self, address: u16) -> u16 {
+        let ls = self.read_blocked_byte(address);
+        let ms = self.read_blocked_byte(address + 1);
 
         ((ms as u16) << 8) | (ls as u16)
     }

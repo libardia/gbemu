@@ -322,17 +322,17 @@ impl<M: MMU> BasicPPU<M> {
         let b_mmu = self.mmu.borrow();
 
         // Load IO registers
-        self.io_lcdc = b_mmu.get(REG_LCDC);
-        self.io_stat = b_mmu.get(REG_STAT);
-        self.compare_line = b_mmu.get(REG_LYC);
-        self.bg_palette = b_mmu.get(REG_BGP).into();
-        self.obj_palette_0 = b_mmu.get(REG_OBP0).into();
-        self.obj_palette_1 = b_mmu.get(REG_OBP1).into();
-        self.viewport_y = b_mmu.get(REG_SCY);
-        self.viewport_x = b_mmu.get(REG_SCX);
-        self.window_y = b_mmu.get(REG_WY);
-        self.window_xp7 = b_mmu.get(REG_WX);
-        self.interrupt_requests = b_mmu.get(REG_IF);
+        self.io_lcdc = b_mmu.read_byte(REG_LCDC);
+        self.io_stat = b_mmu.read_byte(REG_STAT);
+        self.compare_line = b_mmu.read_byte(REG_LYC);
+        self.bg_palette = b_mmu.read_byte(REG_BGP).into();
+        self.obj_palette_0 = b_mmu.read_byte(REG_OBP0).into();
+        self.obj_palette_1 = b_mmu.read_byte(REG_OBP1).into();
+        self.viewport_y = b_mmu.read_byte(REG_SCY);
+        self.viewport_x = b_mmu.read_byte(REG_SCX);
+        self.window_y = b_mmu.read_byte(REG_WY);
+        self.window_xp7 = b_mmu.read_byte(REG_WX);
+        self.interrupt_requests = b_mmu.read_byte(REG_IF);
     }
 
     fn set_io(&mut self) {
@@ -347,9 +347,9 @@ impl<M: MMU> BasicPPU<M> {
         let mut mb_mmu = self.mmu.borrow_mut();
 
         // Set registers
-        mb_mmu.set(REG_STAT, self.io_stat);
-        mb_mmu.set(REG_LY, self.ds.current_line);
-        mb_mmu.set(REG_IF, self.interrupt_requests);
+        mb_mmu.write_byte(REG_STAT, self.io_stat);
+        mb_mmu.write_byte(REG_LY, self.ds.current_line);
+        mb_mmu.write_byte(REG_IF, self.interrupt_requests);
     }
 
     get_bit_flag!(get_enabled, io_lcdc, 7);

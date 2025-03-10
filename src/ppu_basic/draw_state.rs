@@ -18,14 +18,19 @@ pub struct DrawState {
 
 impl DrawState {
     pub fn new() -> Self {
+        let mut bg_fifo: VecDeque<Pixel> = VecDeque::new();
+        bg_fifo.reserve(16);
+        let mut obj_fifo: VecDeque<Pixel> = VecDeque::new();
+        obj_fifo.reserve(16);
+
         Self {
             mode: PPUMode::OamScan,
             next_mode: PPUMode::OamScan,
             current_line: 0,
             dots_this_line: 0,
             dots_this_mode: 0,
-            bg_fifo: VecDeque::new(),
-            obj_fifo: VecDeque::new(),
+            bg_fifo,
+            obj_fifo,
         }
     }
 }

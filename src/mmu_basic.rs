@@ -32,6 +32,30 @@ impl BasicMMU {
 
         eff_address as usize
     }
+
+    fn internal_read_byte(&self, address: u16, read_blocked: bool) -> u8 {
+        if !read_blocked {
+            for blocked in &self.blocked_regions {
+                if blocked.contains(address) {
+                    // Reads to blocked ranges return 0xFF
+                    return 0xFF;
+                }
+            }
+        }
+
+        if BOOT_ROM_BANK.contains(address) {
+            if self.get(REG_BANK) == 0 {
+                BOOT_ROM[address as usize]
+            } else {
+                self.get(address)
+            }
+        } else if UNUSABLE_MEM.contains(address) {
+            // Reads in the unusable range return 0xFF
+            0xFF
+        } else {
+            self.get(address)
+        }
+    }
 }
 
 impl MMU for BasicMMU {
@@ -54,25 +78,11 @@ impl MMU for BasicMMU {
     }
 
     fn read_byte(&self, address: u16) -> u8 {
-        for blocked in &self.blocked_regions {
-            if blocked.contains(address) {
-                // Reads to blocked ranges return 0xFF
-                return 0xFF;
-            }
-        }
+        self.internal_read_byte(address, false)
+    }
 
-        if BOOT_ROM_BANK.contains(address) {
-            if self.get(REG_BANK) == 0 {
-                BOOT_ROM[address as usize]
-            } else {
-                self.get(address)
-            }
-        } else if UNUSABLE_MEM.contains(address) {
-            // Reads in the unusable range return 0xFF
-            0xFF
-        } else {
-            self.get(address)
-        }
+    fn read_blocked_byte(&self, address: u16) -> u8 {
+        self.internal_read_byte(address, true)
     }
 
     fn write_byte(&mut self, address: u16, value: u8) {
