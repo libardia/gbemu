@@ -44,14 +44,6 @@ pub trait MMU: Debug + Display {
         ((ms as u16) << 8) | (ls as u16)
     }
 
-    /// Read a word (u16) from memory, in little-endian order, even from a blocked range.
-    fn read_blocked_word(&self, address: u16) -> u16 {
-        let ls = self.read_blocked_byte(address);
-        let ms = self.read_blocked_byte(address + 1);
-
-        ((ms as u16) << 8) | (ls as u16)
-    }
-
     /// Write a word (u16) to memory, in little-endian order.
     fn write_word(&mut self, address: u16, value: u16) {
         self.write_byte(address, (value & 0xFF) as u8);

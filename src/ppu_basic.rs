@@ -7,7 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use draw_state::DrawState;
+use draw_state::{DrawState, Object, OBJECT_BYTE_SIZE};
 use log::debug;
 use minifb::{Window, WindowOptions};
 
@@ -54,6 +54,8 @@ const GB_GREEN_3: u32 = color_from_rgb(0x0F, 0x38, 0x0F);
 
 const GRAYSCALE_PALETTE: MetaPalette = MetaPalette(WHITE, LIGHT_GRAY, DARK_GRAY, BLACK);
 const GAMEBOY_PALETTE: MetaPalette = MetaPalette(GB_GREEN_0, GB_GREEN_1, GB_GREEN_2, GB_GREEN_3);
+
+const NUM_OBJECTS: u16 = (OAM.end - OAM.begin + 1) / OBJECT_BYTE_SIZE;
 
 /* #region Types =============================================================================== */
 
@@ -224,7 +226,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             }
 
             if DRAW_ON_DOT == self.dots_this_frame {
-                self.present();
+                self.wait_and_present();
             }
 
             self.dots_this_frame = (self.dots_this_frame + 1) % DOTS_PER_FRAME;
@@ -271,6 +273,10 @@ macro_rules! getset_bit_flag {
     };
 }
 
+pub(crate) use get_bit_flag;
+pub(crate) use getset_bit_flag;
+pub(crate) use set_bit_flag;
+
 /* #endregion */
 
 impl<M: MMU> BasicPPU<M> {
@@ -295,7 +301,7 @@ impl<M: MMU> BasicPPU<M> {
         }
     }
 
-    fn present(&mut self) {
+    fn wait_and_present(&mut self) {
         // Wait for framerate
         let elapsed = self.last_frame_time.elapsed();
         let mut wait = Duration::new(0, 0);
@@ -353,18 +359,18 @@ impl<M: MMU> BasicPPU<M> {
     }
 
     get_bit_flag!(get_enabled, io_lcdc, 7);
-    // get_bit_flag!(get_window_tile_map, io_lcdc, 6);
-    // get_bit_flag!(get_window_enabled, io_lcdc, 5);
-    // get_bit_flag!(get_bg_window_tiles, io_lcdc, 4);
-    // get_bit_flag!(get_bg_tile_map, io_lcdc, 3);
-    // get_bit_flag!(get_obj_size, io_lcdc, 2);
-    // get_bit_flag!(get_obj_enabled, io_lcdc, 1);
-    // get_bit_flag!(get_bg_window_enabled, io_lcdc, 0);
+    get_bit_flag!(get_window_tile_map, io_lcdc, 6);
+    get_bit_flag!(get_window_enabled, io_lcdc, 5);
+    get_bit_flag!(get_bg_window_tiles, io_lcdc, 4);
+    get_bit_flag!(get_bg_tile_map, io_lcdc, 3);
+    get_bit_flag!(get_obj_size, io_lcdc, 2);
+    get_bit_flag!(get_obj_enabled, io_lcdc, 1);
+    get_bit_flag!(get_bg_window_enabled, io_lcdc, 0);
 
-    // get_bit_flag!(get_lyc_interrupt, io_stat, 6);
-    // get_bit_flag!(get_mode_2_interrupt, io_stat, 5);
-    // get_bit_flag!(get_mode_1_interrupt, io_stat, 4);
-    // get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
+    get_bit_flag!(get_lyc_interrupt, io_stat, 6);
+    get_bit_flag!(get_mode_2_interrupt, io_stat, 5);
+    get_bit_flag!(get_mode_1_interrupt, io_stat, 4);
+    get_bit_flag!(get_mode_0_interrupt, io_stat, 3);
     set_bit_flag!(set_lyc_eq_ly, io_stat, 2);
     set_bit_flag!(set_vblank_interrupt, interrupt_requests, 0);
 
@@ -393,10 +399,55 @@ impl<M: MMU> BasicPPU<M> {
 
         match self.ds.mode {
             PPUMode::OamScan => {
-                // At the beginning of OAM scan, block OAM.
-                self.mmu.borrow_mut().block_range(OAM);
+                // At the beginning of OAM scan, block OAM, then do the scan.
+                if self.ds.dots_this_mode == 1 {
+                    self.mmu.borrow_mut().block_range(OAM);
+                    if self.get_obj_enabled() {
+                        // Reset the selected objects
+                        self.ds.selected_objects.clear();
 
-                // TODO: OAM scan
+                        // Convenience
+                        let b_mmu = self.mmu.borrow();
+
+                        for i in 0..NUM_OBJECTS {
+                            // Prepare the addresses of the object's bytes; just here for readability
+                            let ix4 = i * 4;
+                            let addresses = (
+                                OAM.begin + ix4 + 0,
+                                OAM.begin + ix4 + 1,
+                                OAM.begin + ix4 + 2,
+                                OAM.begin + ix4 + 3,
+                            );
+                            let obj = Object {
+                                y: b_mmu.read_blocked_byte(addresses.0),
+                                x: b_mmu.read_blocked_byte(addresses.1),
+                                tile_index: b_mmu.read_blocked_byte(addresses.2),
+                                flags: b_mmu.read_blocked_byte(addresses.3),
+                            };
+
+                            // Get the upper and lower bounds for an object to be on this line
+                            let lower;
+                            let upper = obj.y;
+                            if !self.get_obj_size() {
+                                // Object size 8x8
+                                lower = upper - 8;
+                            } else {
+                                // Object size 8x16
+                                lower = upper - 16;
+                            }
+
+                            // lower <= scanline < upper
+                            if lower <= self.ds.current_line && self.ds.current_line < upper {
+                                self.ds.selected_objects.push(obj);
+                                // Maximum of 10 objects per line
+                                if self.ds.selected_objects.len() == 10 {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                // We don't do anything else in this mode, until it hits 80 dots.
 
                 // OAM scan is always 80 dots long
                 if self.ds.dots_this_line == DOTS_PER_OAM_SCAN {
