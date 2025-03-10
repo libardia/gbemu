@@ -1,12 +1,14 @@
 use std::collections::VecDeque;
 
-use super::{get_bit_flag, PPUMode};
+use super::{get_bit_flag, ColorID, PPUMode};
 
 const SELECTED_OBJS_RESERVED: usize = 10 + 5;
 const FIFO_RESERVED: usize = 16 + 8;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Pixel {}
+pub struct FIFOPixel {
+    color: ColorID
+}
 
 pub const OBJECT_BYTE_SIZE: u16 = 4;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -37,8 +39,8 @@ pub struct DrawState {
     pub dots_this_line: u16,
     pub dots_this_mode: u16,
     pub selected_objects: Vec<Object>,
-    pub bg_fifo: VecDeque<Pixel>,
-    pub obj_fifo: VecDeque<Pixel>,
+    pub bg_fifo: VecDeque<FIFOPixel>,
+    pub obj_fifo: VecDeque<FIFOPixel>,
 }
 impl DrawState {
     pub fn new() -> Self {

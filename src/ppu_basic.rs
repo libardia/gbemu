@@ -60,7 +60,7 @@ const NUM_OBJECTS: u16 = (OAM.end - OAM.begin + 1) / OBJECT_BYTE_SIZE;
 /* #region Types =============================================================================== */
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Color {
+enum ColorID {
     Color0,
     Color1,
     Color2,
@@ -69,15 +69,15 @@ enum Color {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct MetaPalette(u32, u32, u32, u32);
-impl Index<Color> for MetaPalette {
+impl Index<ColorID> for MetaPalette {
     type Output = u32;
 
-    fn index(&self, index: Color) -> &Self::Output {
+    fn index(&self, index: ColorID) -> &Self::Output {
         match index {
-            Color::Color0 => &self.0,
-            Color::Color1 => &self.1,
-            Color::Color2 => &self.2,
-            Color::Color3 => &self.3,
+            ColorID::Color0 => &self.0,
+            ColorID::Color1 => &self.1,
+            ColorID::Color2 => &self.2,
+            ColorID::Color3 => &self.3,
         }
     }
 }
@@ -90,7 +90,7 @@ impl From<u8> for Palette {
     }
 }
 impl Index<u8> for Palette {
-    type Output = Color;
+    type Output = ColorID;
 
     fn index(&self, index: u8) -> &Self::Output {
         assert!(index <= 3, "Palette only indexes values 0-3");
@@ -99,10 +99,10 @@ impl Index<u8> for Palette {
         let bits = self.0 & mask;
         let code = bits >> shift;
         match code {
-            0 => &Color::Color0,
-            1 => &Color::Color1,
-            2 => &Color::Color2,
-            3 => &Color::Color3,
+            0 => &ColorID::Color0,
+            1 => &ColorID::Color1,
+            2 => &ColorID::Color2,
+            3 => &ColorID::Color3,
             _ => unreachable!("Invalid color in palette"),
         }
     }
@@ -282,14 +282,14 @@ pub(crate) use set_bit_flag;
 impl<M: MMU> BasicPPU<M> {
     /* #region Helpers ========================================================================= */
     fn reset_frame_buffer(&mut self) {
-        self.frame_buffer = vec![self.meta_palette[Color::Color0]; self.w_width * self.w_height];
+        self.frame_buffer = vec![self.meta_palette[ColorID::Color0]; self.w_width * self.w_height];
     }
 
     fn reset_state(&mut self) {
         self.ds = DrawState::new();
     }
 
-    fn draw_scaled_pixel(&mut self, color: Color, x: u8, y: u8) {
+    fn draw_scaled_pixel(&mut self, color: ColorID, x: u8, y: u8) {
         let actual_x = x as usize * self.w_scale;
         let actual_y = y as usize * self.w_scale;
         let flattened = actual_y * self.w_width + actual_x;
@@ -467,7 +467,7 @@ impl<M: MMU> BasicPPU<M> {
                     if self.ds.current_line as u16 == LINES_PER_DRAW - 1 {
                         // let mut rng = rand::rng();
                         // let color = color_from_rgb(rng.random(), rng.random(), rng.random());
-                        self.draw_scaled_pixel(Color::Color3, self.d_px, self.d_py);
+                        self.draw_scaled_pixel(ColorID::Color3, self.d_px, self.d_py);
                         self.d_px += 1;
                         if self.d_px as usize >= BASE_WIDTH {
                             self.d_px = 0;
