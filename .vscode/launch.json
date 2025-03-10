@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'gcemu'",
+            "name": "Debug executable 'gbemu'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=gcemu",
-                    "--package=gcemu"
+                    "--bin=gbemu",
+                    "--package=gbemu"
                 ],
                 "filter": {
-                    "name": "gcemu",
+                    "name": "gbemu",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'gcemu'",
+            "name": "Debug unit tests in executable 'gbemu'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=gcemu",
-                    "--package=gcemu"
+                    "--bin=gbemu",
+                    "--package=gbemu"
                 ],
                 "filter": {
-                    "name": "gcemu",
+                    "name": "gbemu",
                     "kind": "bin"
                 }
             },

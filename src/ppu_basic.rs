@@ -8,7 +8,7 @@ use std::{
 };
 
 use draw_state::{DrawState, Object, OBJECT_BYTE_SIZE};
-use log::debug;
+use log::{debug, trace};
 use minifb::{Window, WindowOptions};
 
 use crate::{
@@ -401,6 +401,8 @@ impl<M: MMU> BasicPPU<M> {
             PPUMode::OamScan => {
                 // At the beginning of OAM scan, block OAM, then do the scan.
                 if self.ds.dots_this_mode == 1 {
+                    trace!("Beginning of OAM scan");
+
                     self.mmu.borrow_mut().block_range(OAM);
                     if self.get_obj_enabled() {
                         // Reset the selected objects
@@ -430,10 +432,10 @@ impl<M: MMU> BasicPPU<M> {
                             let upper = obj.y;
                             if !self.get_obj_size() {
                                 // Object size 8x8
-                                lower = upper - 8;
+                                lower = upper.wrapping_sub(8);
                             } else {
                                 // Object size 8x16
-                                lower = upper - 16;
+                                lower = upper.wrapping_sub(16);
                             }
 
                             // lower <= scanline < upper
@@ -445,6 +447,9 @@ impl<M: MMU> BasicPPU<M> {
                                 }
                             }
                         }
+                        trace!("OAM scan found {} objects", self.ds.selected_objects.len());
+                    } else {
+                        trace!("OAM scan skipped: objects are disabled.");
                     }
                 }
                 // We don't do anything else in this mode, until it hits 80 dots.
