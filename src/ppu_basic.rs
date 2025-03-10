@@ -1,13 +1,12 @@
 use std::{
     cell::RefCell,
     fmt::Display,
-    ops::Index,
     rc::Rc,
     thread::sleep,
     time::{Duration, Instant},
 };
 
-use draw_state::{DrawState, Object, OBJECT_BYTE_SIZE};
+use draw_state::*;
 use log::{debug, trace};
 use minifb::{Window, WindowOptions};
 
@@ -36,77 +35,6 @@ const DRAW_ON_DOT: u32 = 65664;
 const DOTS_PER_FRAME: u32 = 70224;
 
 const DOTS_PER_OAM_SCAN: u16 = 80;
-
-const fn color_from_rgb(r: u8, g: u8, b: u8) -> u32 {
-    let (r, g, b) = (r as u32, g as u32, b as u32);
-    (r << 16) | (g << 8) | b
-}
-
-const WHITE: u32 = color_from_rgb(0xFF, 0xFF, 0xFF);
-const LIGHT_GRAY: u32 = color_from_rgb(0xAA, 0xAA, 0xAA);
-const DARK_GRAY: u32 = color_from_rgb(0x55, 0x55, 0x55);
-const BLACK: u32 = color_from_rgb(0x00, 0x00, 0x00);
-
-const GB_GREEN_0: u32 = color_from_rgb(0x9B, 0xBC, 0x0F);
-const GB_GREEN_1: u32 = color_from_rgb(0x8B, 0xAC, 0x0F);
-const GB_GREEN_2: u32 = color_from_rgb(0x30, 0x62, 0x30);
-const GB_GREEN_3: u32 = color_from_rgb(0x0F, 0x38, 0x0F);
-
-const GRAYSCALE_PALETTE: MetaPalette = MetaPalette(WHITE, LIGHT_GRAY, DARK_GRAY, BLACK);
-const GAMEBOY_PALETTE: MetaPalette = MetaPalette(GB_GREEN_0, GB_GREEN_1, GB_GREEN_2, GB_GREEN_3);
-
-const NUM_OBJECTS: u16 = (OAM.end - OAM.begin + 1) / OBJECT_BYTE_SIZE;
-
-/* #region Types =============================================================================== */
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ColorID {
-    Color0,
-    Color1,
-    Color2,
-    Color3,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct MetaPalette(u32, u32, u32, u32);
-impl Index<ColorID> for MetaPalette {
-    type Output = u32;
-
-    fn index(&self, index: ColorID) -> &Self::Output {
-        match index {
-            ColorID::Color0 => &self.0,
-            ColorID::Color1 => &self.1,
-            ColorID::Color2 => &self.2,
-            ColorID::Color3 => &self.3,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Palette(u8);
-impl From<u8> for Palette {
-    fn from(value: u8) -> Self {
-        Palette(value)
-    }
-}
-impl Index<u8> for Palette {
-    type Output = ColorID;
-
-    fn index(&self, index: u8) -> &Self::Output {
-        assert!(index <= 3, "Palette only indexes values 0-3");
-        let shift = index * 2;
-        let mask = 0b11 << shift;
-        let bits = self.0 & mask;
-        let code = bits >> shift;
-        match code {
-            0 => &ColorID::Color0,
-            1 => &ColorID::Color1,
-            2 => &ColorID::Color2,
-            3 => &ColorID::Color3,
-            _ => unreachable!("Invalid color in palette"),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PPUMode {
@@ -146,9 +74,6 @@ pub struct BasicPPU<M: MMU> {
     window_xp7: u8,
     window_y: u8,
     interrupt_requests: u8,
-    // Debug
-    d_px: u8,
-    d_py: u8,
 }
 
 impl<M: MMU> PPU<M> for BasicPPU<M> {
@@ -178,8 +103,6 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             bg_palette: 0.into(),
             obj_palette_0: 0.into(),
             obj_palette_1: 0.into(),
-            d_px: 0,
-            d_py: 0,
             meta_palette: GAMEBOY_PALETTE,
             dots_this_frame: 0,
             interrupt_requests: 0,
@@ -412,19 +335,12 @@ impl<M: MMU> BasicPPU<M> {
                         let b_mmu = self.mmu.borrow();
 
                         for i in 0..NUM_OBJECTS {
-                            // Prepare the addresses of the object's bytes; just here for readability
-                            let ix4 = i * 4;
-                            let addresses = (
-                                OAM.begin + ix4 + 0,
-                                OAM.begin + ix4 + 1,
-                                OAM.begin + ix4 + 2,
-                                OAM.begin + ix4 + 3,
-                            );
+                            let a = OAM.begin + (i * 4);
                             let obj = Object {
-                                y: b_mmu.read_blocked_byte(addresses.0),
-                                x: b_mmu.read_blocked_byte(addresses.1),
-                                tile_index: b_mmu.read_blocked_byte(addresses.2),
-                                flags: b_mmu.read_blocked_byte(addresses.3),
+                                y: b_mmu.read_blocked_byte(a),
+                                x: b_mmu.read_blocked_byte(a + 1),
+                                tile_index: b_mmu.read_blocked_byte(a + 2),
+                                flags: b_mmu.read_blocked_byte(a + 3),
                             };
 
                             // Get the upper and lower bounds for an object to be on this line
@@ -460,20 +376,11 @@ impl<M: MMU> BasicPPU<M> {
                 }
             }
             PPUMode::Drawing => {
-                // At the beginning of draw, block VRAM.
+                // At the beginning of draw, block VRAM and clear FIFOs.
                 if self.ds.dots_this_mode == 1 {
                     self.mmu.borrow_mut().block_range(VRAM);
-                    // dummy, for debug
-                    if self.ds.current_line as u16 == LINES_PER_DRAW - 1 {
-                        // let mut rng = rand::rng();
-                        // let color = color_from_rgb(rng.random(), rng.random(), rng.random());
-                        self.draw_scaled_pixel(ColorID::Color3, self.d_px, self.d_py);
-                        self.d_px += 1;
-                        if self.d_px as usize >= BASE_WIDTH {
-                            self.d_px = 0;
-                            self.d_py = (self.d_py + 1) % BASE_HEIGHT as u8;
-                        }
-                    }
+                    self.ds.bg_fifo.clear();
+                    self.ds.obj_fifo.clear();
                 }
 
                 // TODO: Drawing mode
