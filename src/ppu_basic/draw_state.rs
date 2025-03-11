@@ -78,18 +78,15 @@ impl Index<u8> for Palette {
     type Output = ColorID;
 
     fn index(&self, index: u8) -> &Self::Output {
-        assert!(index <= 3, "Palette only indexes values 0-3");
+        assert!(index < 4, "Palette only indexes values 0-3");
         let shift = index * 2;
-        let mask = 0b11 << shift;
-        let bits = self.0 & mask;
-        let code = bits >> shift;
-        assert!(code < 4);
-        match code {
-            0 => &ColorID::Color0,
-            1 => &ColorID::Color1,
-            2 => &ColorID::Color2,
-            3 => &ColorID::Color3,
-            _ => unreachable!("Invalid color in palette"),
+        let m1 = 0b10 << shift;
+        let m2 = 0b1 << shift;
+        match (self.0 & m1 != 0, self.0 & m2 != 0) {
+            (false, false) => &ColorID::Color0,
+            (false, true) => &ColorID::Color1,
+            (true, false) => &ColorID::Color2,
+            (true, true) => &ColorID::Color3,
         }
     }
 }

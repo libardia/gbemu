@@ -12,7 +12,7 @@ use minifb::{Window, WindowOptions};
 
 use crate::{
     cpu::MTime,
-    either::either,
+    util::either,
     gb::DEFAULT_FPS,
     mem_region::{
         io_regs::*,

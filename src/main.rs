@@ -9,7 +9,7 @@ use simple_logger::SimpleLogger;
 
 mod cpu;
 mod cpu_basic;
-mod either;
+mod util;
 mod gb;
 mod hex;
 mod mem_region;
