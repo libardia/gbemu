@@ -61,6 +61,7 @@ pub struct BasicPPU<M: MMU> {
     // Draw state
     frame_buffer: Vec<u32>,
     ds: DrawState,
+    wait: u8,
     // Palettes
     bg_palette: Palette,
     obj_palette_0: Palette,
@@ -91,6 +92,7 @@ impl<M: MMU> PPU<M> for BasicPPU<M> {
             w_height: height,
             frame_buffer: Vec::new(),
             ds: DrawState::new(),
+            wait: 0,
             compare_line: 0,
             last_frame_time: Instant::now(),
             time_per_frame: Duration::from_micros((1e6f32 / frame_rate).round() as u64),
@@ -379,15 +381,18 @@ impl<M: MMU> BasicPPU<M> {
                 // At the beginning of draw, block VRAM and clear FIFOs.
                 if self.ds.dots_this_mode == 1 {
                     self.mmu.borrow_mut().block_range(VRAM);
+
                     self.ds.bg_fifo.clear();
                     self.ds.obj_fifo.clear();
+
+                    self.wait = 0;
                 }
-
-                // TODO: Drawing mode
-
-                // This is a dummy impl so draw mode ends
-                if self.ds.dots_this_mode == 200 {
-                    self.ds.next_mode = PPUMode::HorizontalBlank;
+                // At any other point of the draw, if wait is not zero, decrement it and do nothing
+                // else
+                else if self.wait != 0 {
+                    self.wait -= 1;
+                } else {
+                    // TODO: Drawing mode
                 }
             }
             PPUMode::HorizontalBlank => {

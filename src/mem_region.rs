@@ -9,7 +9,7 @@ impl MemoryRegion {
         Self { begin, end }
     }
 
-    pub fn contains(&self, address: u16) -> bool {
+    pub const fn contains(&self, address: u16) -> bool {
         address >= self.begin && address < self.end
     }
 
@@ -29,15 +29,25 @@ pub mod regions {
     use super::*;
 
     pub const BOOT_ROM_BANK: MemoryRegion = MemoryRegion::new(0x0000, 0x0100);
+
     pub const ROM_BANK_0: MemoryRegion = MemoryRegion::new(0x0000, 0x4000);
     pub const ROM_BANK_N: MemoryRegion = MemoryRegion::new(0x4000, 0x8000);
+
     pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0xA000);
+    pub const TILE_MAP_0: MemoryRegion = MemoryRegion::new(0x9800, 0x9C00);
+    pub const TILE_MAP_1: MemoryRegion = MemoryRegion::new(0x9C00, 0xA000);
+
     pub const EXTERNAL_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xC000);
+
     pub const WORK_RAM: MemoryRegion = MemoryRegion::new(0xC000, 0xE000);
     pub const ECHO_RAM: MemoryRegion = MemoryRegion::new(0xE000, 0xFE00);
+
     pub const OAM: MemoryRegion = MemoryRegion::new(0xFE00, 0xFEA0);
+
     pub const UNUSABLE_MEM: MemoryRegion = MemoryRegion::new(0xFEA0, 0xFF00);
+
     pub const IO_REGS: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF80);
+
     pub const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF80, 0xFFFF);
     // NOTE: The address 0xFFFF itself is not covered here, because it is special.
 }
