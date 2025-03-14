@@ -74,7 +74,7 @@ impl CPU {
     pub(super) fn op_ret(&mut self, enable_interrupts: bool) -> MTime {
         if enable_interrupts {
             debug!(
-                "[PC 0x{:0>4X}] RETI: Interrupts enabled immediately.",
+                "[PC {:?}] RETI: Interrupts enabled immediately.",
                 self.this_instruction_pc
             );
             // Because this is equivalent to EI then RET, the IME flag is actually set at the end

@@ -8,13 +8,13 @@ impl CPU {
     pub(super) fn op_invalid(&mut self) -> MTime {
         if self.debug_mode {
             warn!(
-                "[PC 0x{:0>4X}] Ignoring an invalid instruction: 0x{:0>2X} -> {:?}",
+                "[PC {:?}] Ignoring an invalid instruction: {:?} -> {:?}",
                 self.this_instruction_pc, self.this_instruction_code, self.this_instruction
             );
             self.op_nop()
         } else {
             panic!(
-                "[PC 0x{:0>4X}] Attempted to execute an invalid instruction: 0x{:0>2X} -> {:?}",
+                "[PC {:?}] Attempted to execute an invalid instruction: {:?} -> {:?}",
                 self.this_instruction_pc, self.this_instruction_code, self.this_instruction
             );
         }

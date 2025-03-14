@@ -6,7 +6,7 @@ impl CPU {
     // DI (m: 1)
     pub(super) fn op_di(&mut self) -> MTime {
         debug!(
-            "[PC 0x{:0>4X}] DI: Interrupts disabled.",
+            "[PC {:?}] DI: Interrupts disabled.",
             self.this_instruction_pc
         );
         self.ime = false;
@@ -16,7 +16,7 @@ impl CPU {
     // EI (m: 1)
     pub(super) fn op_ei(&mut self) -> MTime {
         debug!(
-            "[PC 0x{:0>4X}] EI: Interrupts enabled; effect delayed by 1 m-cycle.",
+            "[PC {:?}] EI: Interrupts enabled; effect delayed by 1 m-cycle.",
             self.this_instruction_pc
         );
         self.will_set_ime = true;

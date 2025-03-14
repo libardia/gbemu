@@ -33,8 +33,8 @@ impl CPU {
         for (i, (mask, address)) in m_iter.zip(a_iter).enumerate() {
             if self.should_interrupt(*mask) {
                 debug!(
-                    "[PC 0x{:0>4X}] Firing interrupt handler: {}",
-                    self.pc, INT_NAMES[i]
+                    "[PC {:?}] Firing interrupt handler: {}",
+                    self.hpc(), INT_NAMES[i]
                 );
 
                 self.fire_interrupt(*mask, *address);

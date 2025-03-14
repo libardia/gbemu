@@ -226,7 +226,7 @@ impl CPU {
 
     fn panic_no_const(&self) -> ! {
         error!(
-            "[PC 0x{:0>4X}] Constant value not allowed here! {:?}",
+            "[PC {:?}] Constant value not allowed here! {:?}",
             self.this_instruction_pc, self.this_instruction
         );
         panic!("Constant value not allowed here");
@@ -234,7 +234,7 @@ impl CPU {
 
     fn panic_impossible_arguments(&self) -> ! {
         error!(
-            "[PC 0x{:0>4X}] Impossible arguments for instruction! {:?}",
+            "[PC {:?}] Impossible arguments for instruction! {:?}",
             self.this_instruction_pc, self.this_instruction
         );
         panic!("Impossible arguments for instruction");

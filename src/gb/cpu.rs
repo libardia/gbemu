@@ -1,7 +1,7 @@
 use instructions::Instruction;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::util::{bit_flag, either, new};
+use crate::util::{bit_flag, either, new, Hex16, Hex8};
 
 use super::{mmu::MMU, time_types::MTime};
 
@@ -31,8 +31,8 @@ pub struct CPU {
     will_set_ime: bool,
     setting_ime: bool,
     // For logging
-    this_instruction_pc: u16,
-    this_instruction_code: u8,
+    this_instruction_pc: Hex16,
+    this_instruction_code: Hex8,
     this_instruction: Instruction,
     // For debugging
     pub debug_mode: bool,
@@ -47,8 +47,8 @@ impl CPU {
         const INTERRUPT_TIME: MTime = MTime::make(5);
 
         // Record current PC (for logging)
-        self.this_instruction_pc = self.pc;
-        self.this_instruction_code = self.mmu_read_byte(self.pc);
+        self.this_instruction_pc = self.pc.into();
+        self.this_instruction_code = self.mmu_read_byte(self.pc).into();
 
         if self.ime {
             // Check for interrupt
@@ -67,19 +67,28 @@ impl CPU {
         // Record current instruction (for logging)
         self.this_instruction = instruction;
 
-        // println!(
-        //     "[PC 0x{:0>4X}] {:?}",
-        //     self.this_instruction_pc, self.this_instruction
-        // );
-        // self.pretty_print();
-        // input("");
-
         // Execute the instruction
         let cycles_elapsed = self.execute(instruction);
 
         // Return how many cycles the instruction took
         cycles_elapsed
     }
+
+    /* #region Registers as hex ================================================================ */
+
+    get_as_hex!(hpc, pc, Hex16);
+    get_as_hex!(hsp, sp, Hex16);
+
+    get_as_hex!(ha, a, Hex8);
+    get_as_hex!(hf, f, Hex8);
+    get_as_hex!(hb, b, Hex8);
+    get_as_hex!(hc, c, Hex8);
+    get_as_hex!(hd, d, Hex8);
+    get_as_hex!(he, e, Hex8);
+    get_as_hex!(hh, h, Hex8);
+    get_as_hex!(hl, l, Hex8);
+
+    /* #endregion */
 
     /* #region MMU convenience ================================================================= */
 
@@ -147,18 +156,36 @@ impl CPU {
         word
     }
 
-    #[rustfmt::skip]
-    pub fn pretty_print(&self) {
-        println!("+--------------------------+");
-        println!("| PC: 0x{:0>4X}    SP: 0x{:0>4X} | IME: {}", self.pc, self.sp, self.ime);
-        println!("| A:  0x{:0>2X}      F:  {:0>4b}   |", self.a, self.f >> 4);
-        println!("| B:  0x{:0>2X}      C:  0x{:0>2X}   |", self.b, self.c);
-        println!("| D:  0x{:0>2X}      E:  0x{:0>2X}   |", self.d, self.e);
-        println!("| H:  0x{:0>2X}      L:  0x{:0>2X}   |", self.h, self.l);
-        println!("+--------------------------+");
+    /* #endregion */
+
+    /* #region Debugging ======================================================================= */
+
+    fn debug_break() {}
+
+    fn debug_print(&self) {
+        println!(
+            "[PC {:?}]: {:?} {:?}\n{}",
+            self.this_instruction_pc,
+            self.this_instruction_code,
+            self.this_instruction,
+            self
+        );
     }
 
     /* #endregion */
+}
+
+#[rustfmt::skip]
+impl Display for CPU {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "+--------------------------+")?;
+        write!(f, "| PC: {:?}    SP: {:?} | IME: {}", self.hpc(), self.hsp(), self.ime)?;
+        write!(f, "| A:  {:?}      F:  {:0>4b}   |", self.ha(), self.f >> 4)?;
+        write!(f, "| B:  {:?}      C:  {:?}   |", self.hb(), self.hc())?;
+        write!(f, "| D:  {:?}      E:  {:?}   |", self.hd(), self.he())?;
+        write!(f, "| H:  {:?}      L:  {:?}   |", self.hh(), self.hl())?;
+        write!(f, "+--------------------------+")
+    }
 }
 
 macro_rules! getset_r16 {
@@ -176,6 +203,20 @@ macro_rules! getset_r16 {
     };
 }
 pub(self) use getset_r16;
+
+macro_rules! get_as_hex {
+    ($fn_name:ident, $field:ident, Hex8) => {
+        pub fn $fn_name(&self) -> Hex8 {
+            Hex8::make(self.$field)
+        }
+    };
+    ($fn_name:ident, $field:ident, Hex16) => {
+        pub fn $fn_name(&self) -> Hex16 {
+            Hex16::make(self.$field)
+        }
+    };
+}
+pub(self) use get_as_hex;
 
 mod cpu_decode;
 mod cpu_execute;
