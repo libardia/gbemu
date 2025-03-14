@@ -1,8 +1,7 @@
 use instructions::Instruction;
-use log::{debug, trace};
 use std::{cell::RefCell, rc::Rc};
 
-use crate::util::{bit_flag, either, input, new};
+use crate::util::{bit_flag, either, new};
 
 use super::{mmu::MMU, time_types::MTime};
 

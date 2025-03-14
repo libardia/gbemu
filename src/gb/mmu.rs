@@ -13,7 +13,7 @@ use crate::{
 };
 
 use boot_rom::BOOT_ROM;
-use log::{error, trace, warn};
+use log::{error, warn};
 use mapped_region::MappedRegion;
 
 use super::{gpu::tile::Tile, mbc::MBC};

@@ -4,11 +4,6 @@ use draw_state::DrawState;
 use log::debug;
 use palette::Palette;
 
-use crate::{
-    mem_region::regions::{OAM, TILE_DATA},
-    util::bit_flag,
-};
-
 use super::{
     mmu::MMU,
     time_types::{MTime, TTime},
