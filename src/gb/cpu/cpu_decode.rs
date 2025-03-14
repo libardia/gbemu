@@ -87,6 +87,15 @@ impl CPU {
                 LD_a_mr16(ArgR16MEM::CONST(_)) => LD_a_mr16(ArgR16MEM::CONST(self.next_hex16())),
                 CP_a_r8(ArgR8::CONST(_)) => CP_a_r8(ArgR8::CONST(self.next_hex8())),
 
+                // Nonstandard instructions (in non-debug mode, these are invalid)
+                DEBUG_PRINT | TERMINATE => {
+                    if self.debug_mode {
+                        instruction
+                    } else {
+                        INVALID
+                    }
+                }
+
                 // Everything else
                 _ => instruction,
             };

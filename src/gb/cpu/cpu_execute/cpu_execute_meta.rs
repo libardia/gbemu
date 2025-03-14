@@ -1,4 +1,4 @@
-use log::warn;
+use log::{error, warn};
 
 use crate::gb::cpu::{MTime, CPU};
 
@@ -8,15 +8,17 @@ impl CPU {
     pub(super) fn op_invalid(&mut self) -> MTime {
         if self.debug_mode {
             warn!(
-                "[PC {:?}] Ignoring an invalid instruction: {:?} -> {:?}",
-                self.this_instruction_pc, self.this_instruction_code, self.this_instruction
+                "[PC {:?}] Ignoring an invalid instruction: {:?}",
+                self.this_instruction_pc, self.this_instruction_code
             );
             self.op_nop()
         } else {
-            panic!(
-                "[PC {:?}] Attempted to execute an invalid instruction: {:?} -> {:?}",
-                self.this_instruction_pc, self.this_instruction_code, self.this_instruction
+            let msg = format!(
+                "[PC {:?}] Attempted to execute an invalid instruction: {:?}",
+                self.this_instruction_pc, self.this_instruction_code
             );
+            error!("{}", msg);
+            panic!("{}", msg);
         }
     }
 
@@ -26,6 +28,8 @@ impl CPU {
             self.terminate = true;
             0.into()
         } else {
+            // The decoder should return an invalid instruction when not in debug mode, so this
+            // should be unreachable.
             self.op_invalid()
         }
     }
@@ -33,9 +37,11 @@ impl CPU {
     // DEBUG_PRINT (m: 0)
     pub(super) fn op_debug_print(&mut self) -> MTime {
         if self.debug_mode {
-            self.debug_print = true;
+            self.debug_print();
             0.into()
         } else {
+            // The decoder should return an invalid instruction when not in debug mode, so this
+            // should be unreachable.
             self.op_invalid()
         }
     }

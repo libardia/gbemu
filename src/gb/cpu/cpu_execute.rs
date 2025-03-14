@@ -225,19 +225,21 @@ impl CPU {
     /* #region Predefined panics =============================================================== */
 
     fn panic_no_const(&self) -> ! {
-        error!(
+        let msg = format!(
             "[PC {:?}] Constant value not allowed here! {:?}",
             self.this_instruction_pc, self.this_instruction
         );
-        panic!("Constant value not allowed here");
+        error!("{}", msg);
+        panic!("{}", msg);
     }
 
     fn panic_impossible_arguments(&self) -> ! {
-        error!(
+        let msg = format!(
             "[PC {:?}] Impossible arguments for instruction! {:?}",
             self.this_instruction_pc, self.this_instruction
         );
-        panic!("Impossible arguments for instruction");
+        error!("{}", msg);
+        panic!("{}", msg);
     }
 
     /* #endregion */

@@ -3,7 +3,7 @@ use std::fs;
 use log::debug;
 
 use crate::{
-    gb::{mbc::MBC, mmu::nombc::NoMBC},
+    gb::{mbc::MBC, mmu::mbc_rom_only::RomOnlyMBC},
     mem_region::header_data::CART_TYPE,
 };
 
@@ -79,28 +79,28 @@ impl From<u8> for CartType {
 }
 
 impl MMU {
-    pub fn set_mbc_from_file(&mut self, path: &str) {
+    pub fn load_from_file(&mut self, path: &str) {
         let bytes = fs::read(path).expect(format!("Failed to read file {}", path).as_str());
-        self.set_mbc_from_arr(&bytes);
+        self.load_from_bytes(&bytes);
     }
 
-    pub fn set_mbc_from_arr(&mut self, rom: &[u8]) {
+    pub fn load_from_bytes(&mut self, bytes: &[u8]) {
         use CartType::*;
 
         // Get cartridge type byte as enum
-        let cart_type: CartType = rom[CART_TYPE as usize].into();
+        let cart_type: CartType = bytes[CART_TYPE as usize].into();
 
         debug!("Cart type: {:?}", cart_type);
 
         // Make the appropriate MBC
         let mbc: Box<dyn MBC> = Box::new(match cart_type {
-            ROM_ONLY => NoMBC::from_arr(rom, false),
+            ROM_ONLY => RomOnlyMBC::from_arr(bytes, false),
             MBC1 => todo!("Cart type {:?}", cart_type),
             MBC1_RAM => todo!("Cart type {:?}", cart_type),
             MBC1_RAM_BATTERY => todo!("Cart type {:?}", cart_type),
             MBC2 => todo!("Cart type {:?}", cart_type),
             MBC2_BATTERY => todo!("Cart type {:?}", cart_type),
-            ROM_RAM => NoMBC::from_arr(rom, true),
+            ROM_RAM => RomOnlyMBC::from_arr(bytes, true),
             ROM_RAM_BATTERY => todo!("Cart type {:?}", cart_type),
             MMM01 => todo!("Cart type {:?}", cart_type),
             MMM01_RAM => todo!("Cart type {:?}", cart_type),

@@ -59,6 +59,7 @@ pub mod regions {
     pub const BOOT_ROM_BANK: MemoryRegion = MemoryRegion::new(0x0000, 0x00FF);
     pub const CART_HEADER: MemoryRegion = MemoryRegion::new(0x0100, 0x014F);
 
+    pub const ROM_SPACE: MemoryRegion = MemoryRegion::new(0x0000, 0x7FFF);
     pub const ROM_BANK_0: MemoryRegion = MemoryRegion::new(0x0000, 0x3FFF);
     pub const ROM_BANK_N: MemoryRegion = MemoryRegion::new(0x4000, 0x7FFF);
 

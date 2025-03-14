@@ -1,35 +1,32 @@
 use crate::{
     gb::{mbc::MBC, mmu::warn_read_open_bus},
-    mem_region::regions::{EXTERNAL_RAM, ROM_BANK_0, ROM_BANK_N},
+    mem_region::regions::{EXTERNAL_RAM, ROM_SPACE},
     util::{either, min},
 };
 
 use super::{warn_write_open_bus, warn_write_rom};
 
-const ROM_SIZE: usize = ROM_BANK_0.usize() + ROM_BANK_N.usize();
-const RAM_SIZE: usize = EXTERNAL_RAM.usize();
-
 #[derive(Debug)]
-pub struct NoMBC {
-    rom: [u8; ROM_SIZE],
-    ram: Option<[u8; RAM_SIZE]>,
+pub struct RomOnlyMBC {
+    rom: [u8; ROM_SPACE.usize()],
+    ram: Option<[u8; EXTERNAL_RAM.usize()]>,
 }
-impl NoMBC {
+impl RomOnlyMBC {
     pub fn from_arr(rom: &[u8], ram_present: bool) -> Self {
         let mut s = Self {
-            rom: [0; ROM_SIZE],
-            ram: either!(ram_present => Some([0; RAM_SIZE]); None),
+            rom: [0; ROM_SPACE.usize()],
+            ram: either!(ram_present => Some([0; EXTERNAL_RAM.usize()]); None),
         };
-        for i in 0..min!(ROM_SIZE, rom.len()) {
+        for i in 0..min!(ROM_SPACE.usize(), rom.len()) {
             s.rom[i] = rom[i];
         }
         s
     }
 }
 
-impl MBC for NoMBC {
+impl MBC for RomOnlyMBC {
     fn read_byte(&self, address: u16) -> u8 {
-        if address < ROM_BANK_N.end() {
+        if ROM_SPACE.contains(address) {
             self.rom[address as usize]
         } else if EXTERNAL_RAM.contains(address) {
             match self.ram.as_ref() {

@@ -1,7 +1,7 @@
 use instructions::Instruction;
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::util::{bit_flag, either, new, Hex16, Hex8};
+use crate::util::{bit_flag, either, input, new, Hex16, Hex8};
 
 use super::{mmu::MMU, time_types::MTime};
 
@@ -35,9 +35,10 @@ pub struct CPU {
     this_instruction_code: Hex8,
     this_instruction: Instruction,
     // For debugging
+    pub breakpoints: Vec<u16>,
     pub debug_mode: bool,
+    pub break_mode: bool,
     pub terminate: bool,
-    pub debug_print: bool,
 }
 
 impl CPU {
@@ -45,6 +46,11 @@ impl CPU {
 
     pub fn step(&mut self) -> MTime {
         const INTERRUPT_TIME: MTime = MTime::make(5);
+
+        // Breakpoint?
+        if self.debug_mode && self.breakpoints.contains(&self.pc) {
+            self.break_mode = true;
+        }
 
         // Record current PC (for logging)
         self.this_instruction_pc = self.pc.into();
@@ -66,6 +72,11 @@ impl CPU {
 
         // Record current instruction (for logging)
         self.this_instruction = instruction;
+
+        // Break, if we're in debug mode and breakpoint mode
+        if self.debug_mode && self.break_mode {
+            self.debug_break();
+        }
 
         // Execute the instruction
         let cycles_elapsed = self.execute(instruction);
@@ -160,15 +171,25 @@ impl CPU {
 
     /* #region Debugging ======================================================================= */
 
-    fn debug_break() {}
+    fn debug_break(&mut self) {
+        println!("BEFORE INSTRUCTION:");
+        self.debug_print();
+        let mut invalid_input = true;
+        while invalid_input {
+            let msg = input("c - continue one step, x - exit break mode [Cx]: ");
+            invalid_input = false;
+            match msg.trim() {
+                "x" => self.break_mode = false,
+                "c" | "" => (),
+                _ => invalid_input = true,
+            }
+        }
+    }
 
     fn debug_print(&self) {
         println!(
-            "[PC {:?}]: {:?} {:?}\n{}",
-            self.this_instruction_pc,
-            self.this_instruction_code,
-            self.this_instruction,
-            self
+            "[PC {:?}]: {:?}\n{}\n",
+            self.this_instruction_pc, self.this_instruction, self
         );
     }
 
@@ -178,12 +199,12 @@ impl CPU {
 #[rustfmt::skip]
 impl Display for CPU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "+--------------------------+")?;
-        write!(f, "| PC: {:?}    SP: {:?} | IME: {}", self.hpc(), self.hsp(), self.ime)?;
-        write!(f, "| A:  {:?}      F:  {:0>4b}   |", self.ha(), self.f >> 4)?;
-        write!(f, "| B:  {:?}      C:  {:?}   |", self.hb(), self.hc())?;
-        write!(f, "| D:  {:?}      E:  {:?}   |", self.hd(), self.he())?;
-        write!(f, "| H:  {:?}      L:  {:?}   |", self.hh(), self.hl())?;
+        write!(f, "+--------------------------+\n")?;
+        write!(f, "| PC: {:?}    SP: {:?} | IME: {}\n", self.hpc(), self.hsp(), self.ime)?;
+        write!(f, "| A:  {:?}      F:  {:0>4b}   |\n", self.ha(), self.f >> 4)?;
+        write!(f, "| B:  {:?}      C:  {:?}   |\n", self.hb(), self.hc())?;
+        write!(f, "| D:  {:?}      E:  {:?}   |\n", self.hd(), self.he())?;
+        write!(f, "| H:  {:?}      L:  {:?}   |\n", self.hh(), self.hl())?;
         write!(f, "+--------------------------+")
     }
 }

@@ -5,8 +5,8 @@ use crate::{
     mem_region::{
         io_regs::REG_BANK,
         regions::{
-            BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_BANK_N, TILE_DATA, TILE_MAPS,
-            UNUSABLE_MEM, WORK_RAM,
+            BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_SPACE, TILE_DATA,
+            TILE_MAPS, UNUSABLE_MEM, WORK_RAM,
         },
     },
     util::new,
@@ -20,7 +20,8 @@ use super::{gpu::tile::Tile, mbc::MBC};
 
 pub mod boot_rom;
 pub mod mapped_region;
-pub mod nombc;
+pub mod nintendo_logo;
+pub mod mbc_rom_only;
 
 const NUM_TILES: usize = TILE_DATA.usize() / 16;
 const ECHO_RAM_OFFSET: u16 = 0x2000;
@@ -67,7 +68,7 @@ impl MMU {
         }
 
         // MBC-controlled ranges
-        if address <= ROM_BANK_N.end() || EXTERNAL_RAM.contains(address) {
+        if ROM_SPACE.contains(address) || EXTERNAL_RAM.contains(address) {
             return match self.mbc.as_ref() {
                 Some(mbc) => mbc.read_byte(address),
                 None => warn_read_open_bus!(address, "No MBC present."),
@@ -116,7 +117,7 @@ impl MMU {
         }
 
         // MBC-controlled ranges
-        if address <= ROM_BANK_N.end() || EXTERNAL_RAM.contains(address) {
+        if ROM_SPACE.contains(address) || EXTERNAL_RAM.contains(address) {
             match self.mbc.as_mut() {
                 Some(mbc) => mbc.write_byte(address, value),
                 None => warn_write_rom!(address, "No MBC present."),
@@ -257,4 +258,4 @@ macro_rules! set_or_continue {
 }
 pub(self) use set_or_continue;
 
-mod mmu_set_mbc;
+mod mmu_load;

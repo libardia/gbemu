@@ -4,7 +4,6 @@ use std::env;
 
 use gb::GB;
 use log::LevelFilter;
-use mem_region::{header_data::CART_TYPE, regions::ROM_BANK_N};
 use simple_logger::SimpleLogger;
 
 mod gb;
@@ -19,19 +18,15 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 
     SimpleLogger::new()
-        .with_level(LevelFilter::Info)
+        .with_level(LevelFilter::Trace)
         .env()
         .init()
         .unwrap();
 
     let mut gb = GB::new();
 
-    let mut rom = [0; ROM_BANK_N.uend() + 1];
-    rom[CART_TYPE as usize] = 0x08;
-    // gb.mmu.borrow_mut().set_mbc_from_arr(&rom);
-    gb.mmu
-        .borrow_mut()
-        .set_mbc_from_file(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
+    gb.load_prog(&[0xED, 0xEC]);
+    // gb.set_debug_mode(true);
 
     gb.boot();
 }
