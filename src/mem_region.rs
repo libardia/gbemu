@@ -52,7 +52,6 @@ impl MemoryRegion {
 //     }
 // }
 
-#[allow(dead_code)]
 pub mod regions {
     use super::*;
 
@@ -80,7 +79,6 @@ pub mod regions {
     pub const IO_REGS: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF7F);
 }
 
-#[allow(dead_code)]
 pub mod io_regs {
     use super::MemoryRegion;
 
@@ -130,7 +128,6 @@ pub mod io_regs {
     pub const REG_IE: u16 = 0xFFFF;
 }
 
-#[allow(dead_code)]
 pub mod header_data {
     // These are the only parts relevant to emulation
     pub const CART_TYPE: u16 = 0x0147;

@@ -39,7 +39,6 @@ macro_rules! make_number_type {
         #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         pub struct $type($internal_type);
 
-        #[allow(dead_code)]
         impl std::ops::Add for $type {
             type Output = $type;
 
@@ -48,14 +47,12 @@ macro_rules! make_number_type {
             }
         }
 
-        #[allow(dead_code)]
         impl std::ops::AddAssign for $type {
             fn add_assign(&mut self, rhs: Self) {
                 self.0 += rhs.0;
             }
         }
 
-        #[allow(dead_code)]
         impl std::ops::Sub for $type {
             type Output = $type;
 
@@ -64,14 +61,12 @@ macro_rules! make_number_type {
             }
         }
 
-        #[allow(dead_code)]
         impl std::ops::SubAssign for $type {
             fn sub_assign(&mut self, rhs: Self) {
                 self.0 -= rhs.0;
             }
         }
 
-        #[allow(dead_code)]
         impl std::ops::Rem for $type {
             type Output = $type;
 
@@ -80,7 +75,6 @@ macro_rules! make_number_type {
             }
         }
 
-        #[allow(dead_code)]
         impl std::ops::RemAssign for $type {
             fn rem_assign(&mut self, rhs: Self) {
                 self.0 %= rhs.0;
@@ -98,14 +92,12 @@ macro_rules! make_number_type {
             }
         }
 
-        #[allow(dead_code)]
         impl From<$internal_type> for $type {
             fn from(value: $internal_type) -> Self {
                 Self(value)
             }
         }
 
-        #[allow(dead_code)]
         impl Into<$internal_type> for $type {
             fn into(self) -> $internal_type {
                 self.0
