@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MemoryRegion {
-    pub begin: u16,
-    pub end: u16,
+    begin: u16,
+    end: u16,
 }
 
 impl MemoryRegion {
@@ -10,46 +10,73 @@ impl MemoryRegion {
     }
 
     pub const fn contains(&self, address: u16) -> bool {
-        address >= self.begin && address < self.end
+        address >= self.begin && address <= self.end
+    }
+
+    pub const fn begin(&self) -> u16 {
+        self.begin
+    }
+
+    pub const fn end(&self) -> u16 {
+        self.end
     }
 
     pub const fn size(&self) -> u16 {
-        self.end - self.begin
+        self.end - self.begin + 1
+    }
+
+    pub const fn offset(&self, address: u16) -> u16 {
+        address - self.begin
+    }
+
+    pub const fn ubegin(&self) -> usize {
+        self.begin as usize
+    }
+
+    pub const fn uend(&self) -> usize {
+        self.end as usize
+    }
+
+    pub const fn usize(&self) -> usize {
+        self.size() as usize
+    }
+
+    pub const fn uoffset(&self, address: u16) -> usize {
+        self.offset(address) as usize
     }
 }
 
-impl From<(u16, u16)> for MemoryRegion {
-    fn from(value: (u16, u16)) -> Self {
-        MemoryRegion::new(value.0, value.0)
-    }
-}
+// impl From<(u16, u16)> for MemoryRegion {
+//     fn from(value: (u16, u16)) -> Self {
+//         MemoryRegion::new(value.0, value.1)
+//     }
+// }
 
 #[allow(dead_code)]
 pub mod regions {
     use super::*;
 
-    pub const BOOT_ROM_BANK: MemoryRegion = MemoryRegion::new(0x0000, 0x0100);
+    pub const BOOT_ROM_BANK: MemoryRegion = MemoryRegion::new(0x0000, 0x00FF);
+    pub const CART_HEADER: MemoryRegion = MemoryRegion::new(0x0100, 0x014F);
 
-    pub const ROM_BANK_0: MemoryRegion = MemoryRegion::new(0x0000, 0x4000);
-    pub const ROM_BANK_N: MemoryRegion = MemoryRegion::new(0x4000, 0x8000);
+    pub const ROM_BANK_0: MemoryRegion = MemoryRegion::new(0x0000, 0x3FFF);
+    pub const ROM_BANK_N: MemoryRegion = MemoryRegion::new(0x4000, 0x7FFF);
 
-    pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0xA000);
-    pub const TILE_MAP_0: MemoryRegion = MemoryRegion::new(0x9800, 0x9C00);
-    pub const TILE_MAP_1: MemoryRegion = MemoryRegion::new(0x9C00, 0xA000);
+    pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0x9FFF);
+    pub const TILE_DATA: MemoryRegion = MemoryRegion::new(0x8000, 0x97FF);
+    pub const TILE_MAPS: MemoryRegion = MemoryRegion::new(0x9800, 0x9FFF);
 
-    pub const EXTERNAL_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xC000);
+    pub const EXTERNAL_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xBFFF);
 
-    pub const WORK_RAM: MemoryRegion = MemoryRegion::new(0xC000, 0xE000);
-    pub const ECHO_RAM: MemoryRegion = MemoryRegion::new(0xE000, 0xFE00);
+    pub const WORK_RAM: MemoryRegion = MemoryRegion::new(0xC000, 0xDFFF);
+    pub const ECHO_RAM: MemoryRegion = MemoryRegion::new(0xE000, 0xFDFF);
 
-    pub const OAM: MemoryRegion = MemoryRegion::new(0xFE00, 0xFEA0);
+    pub const OAM: MemoryRegion = MemoryRegion::new(0xFE00, 0xFE9F);
 
-    pub const UNUSABLE_MEM: MemoryRegion = MemoryRegion::new(0xFEA0, 0xFF00);
+    pub const UNUSABLE_MEM: MemoryRegion = MemoryRegion::new(0xFEA0, 0xFEFF);
 
-    pub const IO_REGS: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF80);
-
-    pub const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF80, 0xFFFF);
-    // NOTE: The address 0xFFFF itself is not covered here, because it is special.
+    pub const HIGH_RAM: MemoryRegion = MemoryRegion::new(0xFF00, 0xFFFF);
+    pub const IO_REGS: MemoryRegion = MemoryRegion::new(0xFF00, 0xFF7F);
 }
 
 #[allow(dead_code)]
@@ -100,4 +127,12 @@ pub mod io_regs {
     pub const REG_WY: u16 = 0xFF4A;
     pub const REG_WX: u16 = 0xFF4B;
     pub const REG_IE: u16 = 0xFFFF;
+}
+
+#[allow(dead_code)]
+pub mod header_data {
+    // These are the only parts relevant to emulation
+    pub const CART_TYPE: u16 = 0x0147;
+    pub const ROM_SIZE: u16 = 0x0148;
+    pub const RAM_SIZE: u16 = 0x0149;
 }

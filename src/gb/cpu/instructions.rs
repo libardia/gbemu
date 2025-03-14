@@ -2,19 +2,21 @@
 // and
 // https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
 
-use crate::hex::*;
+use crate::util::{Hex16, Hex8};
+
+/* #region Instructions ======================================================================== */
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     // Load (LD_dest_source)
     LD_r8_r8(ArgR8, ArgR8),
-    LD_r16_n16(ArgR16, HexU16),
+    LD_r16_n16(ArgR16, Hex16),
     LD_mr16_a(ArgR16MEM),
-    LDH_mn16_a(HexU8),
+    LDH_mn16_a(Hex8),
     LDH_mc_a,
     LD_a_mr16(ArgR16MEM),
-    LDH_a_mn16(HexU8),
+    LDH_a_mn16(Hex8),
     LDH_a_mc,
 
     // 8-bit arithmetic
@@ -57,11 +59,11 @@ pub enum Instruction {
     SWAP_r8(ArgR8),
 
     // Jumps and subroutines
-    CALL_n16(HexU16),
-    CALL_cc_n16(ArgCOND, HexU16),
+    CALL_n16(Hex16),
+    CALL_cc_n16(ArgCOND, Hex16),
     JP_hl,
-    JP_n16(HexU16),
-    JP_cc_n16(ArgCOND, HexU16),
+    JP_n16(Hex16),
+    JP_cc_n16(ArgCOND, Hex16),
     JR_e8(i8),
     JR_cc_e8(ArgCOND, i8),
     RET_cc(ArgCOND),
@@ -78,8 +80,8 @@ pub enum Instruction {
     ADD_sp_e8(i8),
     DEC_sp,
     INC_sp,
-    LD_sp_n16(HexU16),
-    LD_mn16_sp(HexU16),
+    LD_sp_n16(Hex16),
+    LD_mn16_sp(Hex16),
     LD_hl_sp_plus_e8(i8),
     LD_sp_hl,
     POP_r16(ArgR16STK),
@@ -92,8 +94,9 @@ pub enum Instruction {
 
     // Miscellaneous
     DAA,
+    #[default]
     NOP,
-    STOP(HexU8),
+    STOP(Hex8),
 
     // Meta
     PREFIX,
@@ -102,6 +105,11 @@ pub enum Instruction {
     DEBUG_PRINT,
 }
 
+/* #endregion */
+
+/* #region Argument types ====================================================================== */
+
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR8 {
     B,
@@ -113,9 +121,10 @@ pub enum ArgR8 {
     MHL,
     A,
 
-    CONST(HexU8),
+    CONST(Hex8),
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16 {
     BC,
@@ -124,6 +133,7 @@ pub enum ArgR16 {
     SP,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16STK {
     BC,
@@ -132,6 +142,7 @@ pub enum ArgR16STK {
     AF,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgR16MEM {
     BC,
@@ -139,9 +150,10 @@ pub enum ArgR16MEM {
     HLI,
     HLD,
 
-    CONST(HexU16),
+    CONST(Hex16),
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgU3 {
     Bit0 = 0b0000_0001,
@@ -154,6 +166,7 @@ pub enum ArgU3 {
     Bit7 = 0b1000_0000,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgVEC {
     Vec0x00 = 0x00,
@@ -166,6 +179,7 @@ pub enum ArgVEC {
     Vec0x38 = 0x38,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgCOND {
     NZ,
@@ -174,3 +188,5 @@ pub enum ArgCOND {
     C,
     ALWAYS,
 }
+
+/* #endregion */
