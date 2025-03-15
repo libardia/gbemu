@@ -26,7 +26,9 @@ fn main() {
     let mut gb = GB::new();
 
     gb.load_prog(&[0xED, 0xEC]);
-    // gb.set_debug_mode(true);
+    // gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
+
+    gb.set_debug_mode(true);
 
     gb.boot();
 }

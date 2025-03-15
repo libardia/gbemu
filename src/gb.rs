@@ -89,9 +89,6 @@ impl GB {
         // Old licensee code = Nintendo
         cart[0x14B] = 0x01;
 
-        // Mask ROM version number (arbitrary value)
-        cart[0x14C] = 105;
-
         // Calculate checksum
         let mut checksum = 0u8;
         for a in 0x134..=0x14C {
