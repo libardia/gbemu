@@ -1,6 +1,9 @@
-use log::{error, warn};
+use log::warn;
 
-use crate::gb::cpu::{MTime, CPU};
+use crate::{
+    gb::cpu::{MTime, CPU},
+    util::error_and_panic,
+};
 
 impl CPU {
     // INVALID (m: 1)
@@ -13,12 +16,11 @@ impl CPU {
             );
             self.op_nop()
         } else {
-            let msg = format!(
+            error_and_panic!(
                 "[PC {:?}] Attempted to execute an invalid instruction: {:?}",
-                self.this_instruction_pc, self.this_instruction_code
+                self.this_instruction_pc,
+                self.this_instruction_code
             );
-            error!("{}", msg);
-            panic!("{}", msg);
         }
     }
 

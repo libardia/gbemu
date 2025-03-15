@@ -35,6 +35,8 @@ const FRAME_TIME: TTime = TTime::make(70224);
 const LINES_PER_DRAW: u8 = 144;
 const LINES_PER_FRAME: u8 = 154;
 
+pub const OBJECTS_PER_LINE: usize = 10;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RenderMode {
     OamScan = 2,

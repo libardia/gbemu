@@ -120,6 +120,15 @@ pub fn input(prompt: &str) -> String {
     input
 }
 
+macro_rules! error_and_panic {
+    ($($format_arg:expr),+) => {
+        let msg = format!($($format_arg),+);
+        log::error!("{msg}");
+        panic!("{msg}");
+    };
+}
+pub(crate) use error_and_panic;
+
 macro_rules! either {
     ($condition:expr => $when_true:expr; $when_false:expr) => {
         if $condition {

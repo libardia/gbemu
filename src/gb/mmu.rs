@@ -5,23 +5,23 @@ use crate::{
     mem_region::{
         io_regs::REG_BANK,
         regions::{
-            BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_SPACE, TILE_DATA,
-            TILE_MAPS, UNUSABLE_MEM, WORK_RAM,
+            BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_SPACE, TILE_DATA, TILE_MAPS,
+            UNUSABLE_MEM, WORK_RAM,
         },
     },
-    util::new,
+    util::{error_and_panic, new},
 };
 
 use boot_rom::BOOT_ROM;
-use log::{error, warn};
+use log::warn;
 use mapped_region::MappedRegion;
 
 use super::{gpu::tile::Tile, mbc::MBC};
 
 pub mod boot_rom;
 pub mod mapped_region;
-pub mod nintendo_logo;
 pub mod mbc_rom_only;
+pub mod nintendo_logo;
 
 const NUM_TILES: usize = TILE_DATA.usize() / 16;
 const ECHO_RAM_OFFSET: u16 = 0x2000;
@@ -106,8 +106,10 @@ impl MMU {
         // In boot mode, the boot ROM "overrides" this address range
         if self.boot_mode {
             if BOOT_ROM_BANK.contains(address) {
-                error!("Tried to write to read-only boot ROM in boot mode at address 0x{address:0>4X}! Something has gone very wrong.");
-                return;
+                // The boot ROM shouldn't ever try to write to this area, and by the time the main
+                // program gets control, boot mode should be disabled. So if something tries to
+                // write here, something has broken somewhere.
+                error_and_panic!("Tried to write to read-only boot ROM in boot mode at address 0x{address:0>4X}! Something has gone very wrong.");
             } else if address == REG_BANK {
                 // If the value is anything other than 0, disable boot mode
                 self.boot_mode = value == 0;
@@ -125,7 +127,7 @@ impl MMU {
             return;
         }
 
-        // Special handling for vram tiles
+        // VRAM tiles
         if self.vram_tile_raw.contains(address) {
             self.vram_tile_raw.set(address, value);
             self.update_tile(address);

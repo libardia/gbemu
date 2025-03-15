@@ -1,4 +1,4 @@
-use log::error;
+use crate::util::error_and_panic;
 
 use super::{
     instructions::{
@@ -225,21 +225,19 @@ impl CPU {
     /* #region Predefined panics =============================================================== */
 
     fn panic_no_const(&self) -> ! {
-        let msg = format!(
+        error_and_panic!(
             "[PC {:?}] Constant value not allowed here! {:?}",
-            self.this_instruction_pc, self.this_instruction
+            self.this_instruction_pc,
+            self.this_instruction
         );
-        error!("{}", msg);
-        panic!("{}", msg);
     }
 
     fn panic_impossible_arguments(&self) -> ! {
-        let msg = format!(
+        error_and_panic!(
             "[PC {:?}] Impossible arguments for instruction! {:?}",
-            self.this_instruction_pc, self.this_instruction
+            self.this_instruction_pc,
+            self.this_instruction
         );
-        error!("{}", msg);
-        panic!("{}", msg);
     }
 
     /* #endregion */

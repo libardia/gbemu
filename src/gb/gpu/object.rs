@@ -1,7 +1,7 @@
 use crate::util::bit_flag;
 
 pub const OBJECT_BYTE_SIZE: u16 = 4;
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Object {
     pub y: u8,
     pub x: u8,
@@ -11,7 +11,7 @@ pub struct Object {
 impl Object {
     pub fn get_8x16_tile_indexes(&self) -> (u8, u8) {
         let tile1 = self.tile_index & 0xFE;
-        let tile2 = self.tile_index & 0x01;
+        let tile2 = self.tile_index | 0x01;
         (tile1, tile2)
     }
 

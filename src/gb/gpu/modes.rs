@@ -1,4 +1,12 @@
-use super::{RenderMode::*, GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, SCANLINE_TIME};
+use crate::mem_region::regions::OAM;
+
+use super::{
+    object::{Object, OBJECT_BYTE_SIZE},
+    RenderMode::*,
+    GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, SCANLINE_TIME,
+};
+
+pub const NUM_OBJECTS: u16 = OAM.size() / OBJECT_BYTE_SIZE;
 
 impl GPU {
     /* #region Mode execute methods ============================================================ */
@@ -12,6 +20,21 @@ impl GPU {
             self.set_stat_interrupt(true);
         }
 
+        for i in 0..NUM_OBJECTS {
+            let a = OAM.begin() + i * OBJECT_BYTE_SIZE;
+            let y = self.mmu_read_byte(a);
+            if y == self.ds.current_line {
+                let x = self.mmu_read_byte(a + 1);
+                let tile_index = self.mmu_read_byte(a + 2);
+                let flags = self.mmu_read_byte(a + 3);
+                self.ds.selected_objects.push(Object {
+                    y,
+                    x,
+                    tile_index,
+                    flags,
+                });
+            }
+        }
         // TODO: OAM scan
     }
 
@@ -30,7 +53,8 @@ impl GPU {
             self.set_stat_interrupt(true);
         }
 
-        // Nothing happens during hblank
+        // Clear the selected objects for the line, but otherwise nothing happens in hblank
+        self.ds.selected_objects.clear();
     }
 
     pub(super) fn vblank(&mut self) {

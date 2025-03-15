@@ -1,13 +1,6 @@
-use crate::{gb::time_types::TTime, mem_region::regions::OAM};
+use crate::gb::time_types::TTime;
 
-use super::{
-    object::{Object, OBJECT_BYTE_SIZE},
-    RenderMode,
-};
-
-const SELECTED_OBJS_RESERVED: usize = 10 + 5;
-const FIFO_RESERVED: usize = 16 + 8;
-pub const NUM_OBJECTS: u16 = OAM.size() / OBJECT_BYTE_SIZE;
+use super::{object::Object, RenderMode, OBJECTS_PER_LINE};
 
 #[derive(Debug)]
 pub struct DrawState {
@@ -20,16 +13,13 @@ pub struct DrawState {
 }
 impl DrawState {
     pub fn new() -> Self {
-        let mut selected_objects = Vec::new();
-        selected_objects.reserve(SELECTED_OBJS_RESERVED);
-
         Self {
             mode: RenderMode::OamScan,
             last_executed_mode: RenderMode::OamScan,
             current_line: 0,
             time_this_line: 0.into(),
             end_mode_time: 0.into(),
-            selected_objects,
+            selected_objects: Vec::with_capacity(OBJECTS_PER_LINE),
         }
     }
 }
