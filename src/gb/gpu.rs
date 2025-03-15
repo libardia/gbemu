@@ -139,6 +139,7 @@ impl GPU {
 
         // If LCD is disabled...
         if !self.get_enabled() {
+            // Advance time
             self.disabled_frame_time += dt.into();
             if self.disabled_frame_time >= FRAME_TIME {
                 self.disabled_frame_time %= FRAME_TIME;
