@@ -7,11 +7,11 @@ use mmu::{nintendo_logo::NINTENDO_LOGO, MMU};
 
 use crate::{mem_region::regions::ROM_SPACE, util::new};
 
-mod cpu;
-mod gpu;
-mod mbc;
-mod mmu;
-mod time_types;
+pub mod cpu;
+pub mod gpu;
+pub mod mbc;
+pub mod mmu;
+pub mod time_types;
 
 #[derive(Debug)]
 pub struct GB {
@@ -20,12 +20,12 @@ pub struct GB {
     mmu: Rc<RefCell<MMU>>,
 }
 impl GB {
-    new!({
+    new!(fps: f32, window_scale: usize; {
         let mmu = Rc::new(RefCell::new(MMU::new()));
 
         Self {
             cpu: CPU::new(mmu.clone()),
-            gpu: GPU::new(mmu.clone()),
+            gpu: GPU::new(mmu.clone(), fps, window_scale),
             mmu,
         }
     });
@@ -51,7 +51,7 @@ impl GB {
     }
 
     pub fn boot(&mut self) {
-        while !self.cpu.terminate {
+        while !self.cpu.terminate && !self.gpu.terminate {
             let dt = self.cpu.step();
             self.gpu.step(dt);
         }

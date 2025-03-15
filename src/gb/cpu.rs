@@ -34,11 +34,12 @@ pub struct CPU {
     this_instruction_pc: Hex16,
     this_instruction_code: Hex8,
     this_instruction: Instruction,
+    // Control
+    pub terminate: bool,
     // For debugging
     pub breakpoints: Vec<u16>,
     pub debug_mode: bool,
     pub break_mode: bool,
-    pub terminate: bool,
 }
 
 impl CPU {
