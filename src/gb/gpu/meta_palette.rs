@@ -17,8 +17,8 @@ const GB_GREEN_1: u32 = color_from_rgb(0x8B, 0xAC, 0x0F);
 const GB_GREEN_2: u32 = color_from_rgb(0x30, 0x62, 0x30);
 const GB_GREEN_3: u32 = color_from_rgb(0x0F, 0x38, 0x0F);
 
-pub const GRAYSCALE_PALETTE: MetaPalette = MetaPalette([WHITE, LIGHT_GRAY, DARK_GRAY, BLACK]);
-pub const GAMEBOY_PALETTE: MetaPalette =
+pub const GRAYSCALE_MPALETTE: MetaPalette = MetaPalette([WHITE, LIGHT_GRAY, DARK_GRAY, BLACK]);
+pub const GAMEBOY_MPALETTE: MetaPalette =
     MetaPalette([GB_GREEN_0, GB_GREEN_1, GB_GREEN_2, GB_GREEN_3]);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

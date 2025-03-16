@@ -1,9 +1,11 @@
 use crate::{mem_region::regions::OAM, util::either};
 
 use super::{
+    color_id::ColorID,
     object::{Object, OBJECT_BYTE_SIZE},
     RenderMode::*,
-    GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, OBJECTS_PER_LINE, SCANLINE_TIME,
+    BASE_SCREEN_WIDTH, GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, OBJECTS_PER_LINE,
+    SCANLINE_TIME,
 };
 
 pub const NUM_OBJECTS: u16 = OAM.size() / OBJECT_BYTE_SIZE;
@@ -42,10 +44,43 @@ impl GPU {
     }
 
     pub(super) fn draw(&mut self) {
-        // TODO: Drawing
+        if self.get_bg_window_enabled() {
+            // TODO: draw background pixels
+
+            if self.get_window_enabled() {
+                // TODO: draw window pixels
+            }
+        } else {
+            // Treat the background and window as if it were all white
+            for x in 0..BASE_SCREEN_WIDTH {
+                self.draw_scaled_pixel(x, ColorID::Color0);
+            }
+        }
+
+        if self.get_obj_enabled() {
+            for obj in &self.ds.selected_objects {
+                // TODO: draw pixels of objects
+            }
+        }
 
         // TODO: Calculate actual draw mode length
         self.ds.end_mode_time += 200.into();
+    }
+
+    fn draw_scaled_pixel(&mut self, x: usize, color_id: ColorID) {
+        let x1 = x;
+        let x2 = x1 + self.scale;
+
+        let y1 = self.ds.current_line as usize;
+        let y2 = y1 + self.scale;
+
+        let c = self.meta_palette[color_id];
+
+        for iy in y1..y2 {
+            for ix in x1..x2 {
+                self.frame_buffer[iy * self.scr_height + ix] = c;
+            }
+        }
     }
 
     pub(super) fn hblank(&mut self) {

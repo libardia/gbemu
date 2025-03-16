@@ -5,8 +5,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+use color_id::ColorID;
 use draw_state::DrawState;
 use log::debug;
+use meta_palette::{MetaPalette, GAMEBOY_MPALETTE};
 use minifb::{Window, WindowOptions};
 use palette::Palette;
 use RenderMode::*;
@@ -63,6 +65,7 @@ pub struct GPU {
     ds: DrawState,
     disabled_frame_time: TTime,
     // Palettes
+    meta_palette: MetaPalette,
     bg_palette: Palette,
     obj_palette_0: Palette,
     obj_palette_1: Palette,
@@ -90,7 +93,7 @@ impl GPU {
         )
         .expect("Failed to create window");
 
-        Self {
+        let mut this = Self {
             // MMU ref
             mmu,
             // Window stuff
@@ -107,6 +110,7 @@ impl GPU {
             ds: DrawState::new(),
             disabled_frame_time: 0.into(),
             // Palettes
+            meta_palette: GAMEBOY_MPALETTE,
             bg_palette: 0.into(),
             obj_palette_0: 0.into(),
             obj_palette_1: 0.into(),
@@ -121,7 +125,10 @@ impl GPU {
             interrupt_requests: 0,
             // Control
             terminate: false,
-        }
+        };
+
+        this.reset_frame_buffer();
+        this
     }
 
     pub fn step(&mut self, dt: MTime) {
@@ -132,7 +139,7 @@ impl GPU {
         if last_enabled && !self.get_enabled() {
             debug!("LCD was just disabled.");
             self.ds = DrawState::new();
-            self.frame_buffer = vec![0; self.scr_width * self.scr_height];
+            self.reset_frame_buffer();
             // TODO: Unblock memory
         } else if !last_enabled && self.get_enabled() {
             debug!("LCD was just enabled.");
@@ -209,6 +216,13 @@ impl GPU {
         self.win
             .update_with_buffer(&self.frame_buffer, self.scr_width, self.scr_height)
             .expect("Failed to update frame buffer!");
+    }
+
+    fn reset_frame_buffer(&mut self) {
+        let c = self.meta_palette[ColorID::Color0];
+        for i in 0..self.frame_buffer.len() {
+            self.frame_buffer[i] = c;
+        }
     }
 
     /* #region MMU convenience ================================================================= */
