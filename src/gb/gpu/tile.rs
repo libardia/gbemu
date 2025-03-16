@@ -1,4 +1,7 @@
-use crate::{gb::gpu::color_id::ColorID, util::new};
+use crate::{
+    gb::gpu::color_id::ColorID,
+    util::{error_and_panic, new},
+};
 
 #[derive(Debug)]
 pub struct Tile {
@@ -12,4 +15,12 @@ impl Tile {
             pixels: [ColorID::Color0; 8 * 8],
         }
     });
+
+    pub fn pix_at(&self, x: usize, y: usize) -> ColorID {
+        if x > 7 || y > 7 {
+            error_and_panic!("Tried to get out of bounds pixel in tile: ({x}, {y})");
+        }
+
+        self.pixels[y * 8 + x]
+    }
 }

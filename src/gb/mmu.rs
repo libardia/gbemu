@@ -6,8 +6,9 @@ use crate::{
         io_regs::REG_BANK,
         regions::{
             BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_SPACE, TILE_DATA, TILE_MAPS,
-            UNUSABLE_MEM, WORK_RAM,
+            TILE_MAP_0, TILE_MAP_1, UNUSABLE_MEM, WORK_RAM,
         },
+        MemoryRegion,
     },
     util::{error_and_panic, new},
 };
@@ -36,6 +37,7 @@ pub struct MMU {
     oam: MappedRegion,
     hram: MappedRegion,
     boot_mode: bool,
+    blocked_ranges: Vec<MemoryRegion>,
 }
 impl Default for MMU {
     fn default() -> Self {
@@ -51,6 +53,7 @@ impl Default for MMU {
             oam: MappedRegion::new(OAM),
             hram: MappedRegion::new(HIGH_RAM),
             boot_mode: true,
+            blocked_ranges: Vec::new(),
         }
     }
 }
@@ -58,6 +61,14 @@ impl MMU {
     new!();
 
     /* #region Public ========================================================================== */
+
+    pub fn block_region(&mut self, region: MemoryRegion) {
+        self.blocked_ranges.push(region);
+    }
+
+    pub fn unblock_region(&mut self, region: MemoryRegion) {
+        self.blocked_ranges.retain(|e| *e != region);
+    }
 
     pub fn get(&self, address: u16) -> u8 {
         // In boot mode, the boot ROM "overrides" this address range
@@ -100,6 +111,24 @@ impl MMU {
 
         // High RAM is the only address space left
         self.hram.get(address)
+    }
+
+    pub fn get_tile_index_at(&self, map: bool, tile_x: usize, tile_y: usize) -> u8 {
+        let index = tile_y * 32 + tile_x;
+        if !map {
+            self.get(TILE_MAP_0.begin() + index as u16)
+        } else {
+            self.get(TILE_MAP_1.begin() + index as u16)
+        }
+    }
+
+    pub fn get_tile(&self, method: bool, tile_index: u8) -> &Tile {
+        match (tile_index, method) {
+            // Tile index is in range 128-255 OR we're using unsigned addressing
+            (128..=255, _) | (_, true) => &self.vram_tiles[tile_index as usize],
+            // Tile index is in range 0-127 AND we're using signed addressing
+            _ => &self.vram_tiles[0x100 + tile_index as usize],
+        }
     }
 
     pub fn set(&mut self, address: u16, value: u8) {
@@ -161,10 +190,23 @@ impl MMU {
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
+        for blocked in self.blocked_ranges.iter() {
+            if blocked.contains(address) {
+                return warn_read_open_bus!(address, "Address is blocked.");
+            }
+        }
+
         self.get(address)
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
+        for blocked in self.blocked_ranges.iter() {
+            if blocked.contains(address) {
+                warn_write_open_bus!(address, "Address is blocked.");
+                return;
+            }
+        }
+
         self.set(address, value);
     }
 

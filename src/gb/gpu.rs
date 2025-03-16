@@ -8,10 +8,12 @@ use std::{
 use color_id::ColorID;
 use draw_state::DrawState;
 use log::debug;
-use meta_palette::{MetaPalette, GAMEBOY_MPALETTE};
+use meta_palette::*;
 use minifb::{Window, WindowOptions};
 use palette::Palette;
 use RenderMode::*;
+
+use crate::mem_region::regions::{OAM, VRAM};
 
 use super::{
     mmu::MMU,
@@ -73,8 +75,8 @@ pub struct GPU {
     io_lcdc: u8,
     io_stat: u8,
     compare_line: u8,
-    viewport_x: u8,
-    viewport_y: u8,
+    scroll_x: u8,
+    scroll_y: u8,
     window_xp7: u8,
     window_y: u8,
     interrupt_requests: u8,
@@ -118,8 +120,8 @@ impl GPU {
             io_lcdc: 0,
             io_stat: 0,
             compare_line: 0,
-            viewport_x: 0,
-            viewport_y: 0,
+            scroll_x: 0,
+            scroll_y: 0,
             window_xp7: 0,
             window_y: 0,
             interrupt_requests: 0,
@@ -138,9 +140,13 @@ impl GPU {
 
         if last_enabled && !self.get_enabled() {
             debug!("LCD was just disabled.");
+
             self.ds = DrawState::new();
             self.reset_frame_buffer();
-            // TODO: Unblock memory
+
+            // Make sure memory is unblocked
+            self.mmu.borrow_mut().unblock_region(OAM);
+            self.mmu.borrow_mut().unblock_region(VRAM);
         } else if !last_enabled && self.get_enabled() {
             debug!("LCD was just enabled.");
             self.disabled_frame_time = 0.into();
@@ -227,20 +233,12 @@ impl GPU {
 
     /* #region MMU convenience ================================================================= */
 
-    fn mmu_read_byte(&self, address: u16) -> u8 {
-        self.mmu.borrow().read_byte(address)
+    fn mmu_get(&self, address: u16) -> u8 {
+        self.mmu.borrow().get(address)
     }
 
-    fn mmu_write_byte(&self, address: u16, value: u8) {
-        self.mmu.borrow_mut().write_byte(address, value);
-    }
-
-    fn mmu_read_word(&self, address: u16) -> u16 {
-        self.mmu.borrow().read_word(address)
-    }
-
-    fn mmu_write_word(&self, address: u16, value: u16) {
-        self.mmu.borrow_mut().write_word(address, value);
+    fn mmu_set(&self, address: u16, value: u8) {
+        self.mmu.borrow_mut().set(address, value);
     }
 
     /* #endregion */

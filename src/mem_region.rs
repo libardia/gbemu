@@ -65,6 +65,8 @@ pub mod regions {
     pub const VRAM: MemoryRegion = MemoryRegion::new(0x8000, 0x9FFF);
     pub const TILE_DATA: MemoryRegion = MemoryRegion::new(0x8000, 0x97FF);
     pub const TILE_MAPS: MemoryRegion = MemoryRegion::new(0x9800, 0x9FFF);
+    pub const TILE_MAP_0: MemoryRegion = MemoryRegion::new(0x9800, 0x9BFF);
+    pub const TILE_MAP_1: MemoryRegion = MemoryRegion::new(0x9C00, 0x9FFF);
 
     pub const EXTERNAL_RAM: MemoryRegion = MemoryRegion::new(0xA000, 0xBFFF);
 

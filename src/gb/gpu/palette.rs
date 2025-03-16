@@ -27,10 +27,10 @@ impl From<u8> for Palette {
         Self(colors)
     }
 }
-impl Index<usize> for Palette {
+impl Index<ColorID> for Palette {
     type Output = ColorID;
 
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
+    fn index(&self, id: ColorID) -> &Self::Output {
+        &self.0[id as usize]
     }
 }
