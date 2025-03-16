@@ -1,7 +1,4 @@
-use crate::{
-    mem_region::regions::OAM,
-    util::{either, error_and_panic},
-};
+use crate::{mem_region::regions::OAM, util::either};
 
 use super::{
     object::{Object, OBJECT_BYTE_SIZE},
@@ -45,10 +42,10 @@ impl GPU {
     }
 
     pub(super) fn draw(&mut self) {
-        // Temporary; just so the draw mode ends
-        self.ds.end_mode_time += 200.into();
-
         // TODO: Drawing
+
+        // TODO: Calculate actual draw mode length
+        self.ds.end_mode_time += 200.into();
     }
 
     pub(super) fn hblank(&mut self) {
