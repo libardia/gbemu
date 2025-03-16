@@ -3,8 +3,8 @@ use crate::util::bit_flag;
 pub const OBJECT_BYTE_SIZE: u16 = 4;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Object {
-    pub y: u8,
-    pub x: u8,
+    pub y: i16,
+    pub x: i16,
     pub tile_index: u8,
     pub flags: u8,
 }

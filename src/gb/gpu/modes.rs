@@ -1,9 +1,12 @@
-use crate::mem_region::regions::OAM;
+use crate::{
+    mem_region::regions::OAM,
+    util::{either, error_and_panic},
+};
 
 use super::{
     object::{Object, OBJECT_BYTE_SIZE},
     RenderMode::*,
-    GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, SCANLINE_TIME,
+    GPU, LINES_PER_DRAW, LINES_PER_FRAME, OAM_TIME, OBJECTS_PER_LINE, SCANLINE_TIME,
 };
 
 pub const NUM_OBJECTS: u16 = OAM.size() / OBJECT_BYTE_SIZE;
@@ -20,22 +23,25 @@ impl GPU {
             self.set_stat_interrupt(true);
         }
 
+        // Scan for objects that intersect this line
         for i in 0..NUM_OBJECTS {
             let a = OAM.begin() + i * OBJECT_BYTE_SIZE;
-            let y = self.mmu_read_byte(a);
-            if y == self.ds.current_line {
-                let x = self.mmu_read_byte(a + 1);
-                let tile_index = self.mmu_read_byte(a + 2);
-                let flags = self.mmu_read_byte(a + 3);
+            let obj_y = (self.mmu_read_byte(a) as i16) - 16;
+            let obj_height = obj_y + either!(self.get_obj_size() => 16; 8);
+            let line = self.ds.current_line as i16;
+            if obj_y <= line && line < (obj_y + obj_height) {
                 self.ds.selected_objects.push(Object {
-                    y,
-                    x,
-                    tile_index,
-                    flags,
+                    y: obj_y,
+                    x: self.mmu_read_byte(a + 1) as i16 - 8,
+                    tile_index: self.mmu_read_byte(a + 2),
+                    flags: self.mmu_read_byte(a + 3),
                 });
+                if self.ds.selected_objects.len() >= OBJECTS_PER_LINE {
+                    // Stop scanning for more objects; only 10 per line
+                    break;
+                }
             }
         }
-        // TODO: OAM scan
     }
 
     pub(super) fn draw(&mut self) {
