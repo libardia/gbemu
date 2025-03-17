@@ -63,9 +63,9 @@ impl GPU {
         let bg_tile_y = bg_map_y / TILE_SIZE;
         let bg_intile_y = bg_map_y % TILE_SIZE;
 
-        let window_map_y = self.ds.window_y_counter as usize;
-        let window_tile_y = window_map_y / TILE_SIZE;
-        let window_intile_y = window_tile_y % TILE_SIZE;
+        let win_map_y = self.ds.win_y_counter;
+        let win_tile_y = win_map_y / TILE_SIZE;
+        let win_intile_y = win_tile_y % TILE_SIZE;
 
         for x in 0..BASE_SCREEN_WIDTH {
             let mut pix_color = ColorID::Color0;
@@ -87,8 +87,26 @@ impl GPU {
                 pix_color = self.bg_palette[tile_color];
 
                 if self.get_win_enabled() {
-                    // TODO: draw window pixel
-                    let window_map_x = x as isize - self.window_xp7 as isize - 7;
+                    if y >= self.win_y as usize {
+                        let win_map_x = x as isize - (self.win_xp7 as isize - 7);
+                        if win_map_x >= 0 {
+                            let win_tile_x = win_map_x as usize / TILE_SIZE;
+                            let win_intile_x = win_map_x as usize % TILE_SIZE;
+                            let win_tile_index = self.mmu.borrow().get_tile_index_at(
+                                self.get_win_tile_map(),
+                                win_tile_x,
+                                win_tile_y,
+                            );
+                            let tile_color = self
+                                .mmu
+                                .borrow()
+                                .get_tile(self.get_bg_win_tile_data(), win_tile_index)
+                                .pix_at(win_intile_x, win_intile_y);
+                            pix_color = self.bg_palette[tile_color];
+
+                            self.ds.win_y_counter += 1;
+                        }
+                    }
                 }
             }
 
@@ -151,7 +169,7 @@ impl GPU {
         }
 
         // Reset window y counter
-        self.ds.window_y_counter = 0;
+        self.ds.win_y_counter = 0;
 
         // Present the frame and wait if necessary
         self.frame();

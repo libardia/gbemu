@@ -77,8 +77,8 @@ pub struct GPU {
     compare_line: u8,
     scroll_x: u8,
     scroll_y: u8,
-    window_xp7: u8,
-    window_y: u8,
+    win_xp7: u8,
+    win_y: u8,
     interrupt_requests: u8,
     // Control
     terminate: bool,
@@ -122,8 +122,8 @@ impl GPU {
             compare_line: 0,
             scroll_x: 0,
             scroll_y: 0,
-            window_xp7: 0,
-            window_y: 0,
+            win_xp7: 0,
+            win_y: 0,
             interrupt_requests: 0,
             // Control
             terminate: false,
@@ -143,7 +143,7 @@ impl GPU {
         self.load_regs();
 
         if last_enabled && !self.get_enabled() {
-            debug!("LCD was just disabled.");
+            debug!("LCD disabled.");
 
             self.ds = DrawState::new();
             self.reset_frame_buffer();
@@ -152,7 +152,7 @@ impl GPU {
             self.mmu.borrow_mut().unblock_region(OAM);
             self.mmu.borrow_mut().unblock_region(VRAM);
         } else if !last_enabled && self.get_enabled() {
-            debug!("LCD was just enabled.");
+            debug!("LCD enabled.");
             self.disabled_frame_time = 0.into();
         }
 
@@ -212,7 +212,7 @@ impl GPU {
         if self.get_enabled() {
             let fps = 1.0 / (dt + wait_dur).as_secs_f32();
             self.win.set_title(&format!(
-                "{WINDOW_TITLE} | {fps:0.02} FPS | {:0.02}%",
+                "{WINDOW_TITLE} | {fps:0.02} FPS | {:0>6.02}%",
                 100.0 * fps / REAL_GB_FPS
             ));
         } else {

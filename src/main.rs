@@ -24,6 +24,7 @@ fn main() {
         .unwrap();
 
     let mut gb = GB::new(REAL_GB_FPS, 5);
+    // let mut gb = GB::new(30.0, 5);
     // let mut gb = GB::new(9999999.0, 5);
 
     gb.load_prog(&[0xED, 0xEC]);

@@ -37,8 +37,8 @@ impl GPU {
         self.obj_palette_1 = self.mmu_get(REG_OBP1).into();
         self.scroll_y = self.mmu_get(REG_SCY);
         self.scroll_x = self.mmu_get(REG_SCX);
-        self.window_y = self.mmu_get(REG_WY);
-        self.window_xp7 = self.mmu_get(REG_WX);
+        self.win_y = self.mmu_get(REG_WY);
+        self.win_xp7 = self.mmu_get(REG_WX);
         self.interrupt_requests = self.mmu_get(REG_IF);
     }
 
