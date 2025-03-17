@@ -112,7 +112,7 @@ impl GPU {
             ds: DrawState::new(),
             disabled_frame_time: 0.into(),
             // Palettes
-            meta_palette: GAMEBOY_MPALETTE,
+            meta_palette: GRAYSCALE_MPALETTE,
             bg_palette: 0.into(),
             obj_palette_0: 0.into(),
             obj_palette_1: 0.into(),

@@ -1,5 +1,3 @@
-use log::debug;
-
 use crate::{
     mem_region::regions::{OAM, VRAM},
     util::either,

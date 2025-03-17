@@ -23,13 +23,14 @@ fn main() {
         .init()
         .unwrap();
 
-    let mut gb = GB::new(REAL_GB_FPS, 3);
+    let mut gb = GB::new(REAL_GB_FPS, 5);
+    // let mut gb = GB::new(9999999.0, 5);
 
     gb.load_prog(&[0xED, 0xEC]);
     // gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
 
     gb.set_debug_mode(true);
-    // gb.set_breakpoints(&[0xC]);
+    // gb.set_breakpoints(&[0x150]);
 
     gb.boot();
 }
