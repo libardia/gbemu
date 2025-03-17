@@ -9,7 +9,7 @@ use color_id::ColorID;
 use draw_state::DrawState;
 use log::debug;
 use meta_palette::*;
-use minifb::{Window, WindowOptions};
+use minifb::{Key, KeyRepeat, Window, WindowOptions};
 use palette::Palette;
 use RenderMode::*;
 
@@ -81,7 +81,7 @@ pub struct GPU {
     window_y: u8,
     interrupt_requests: u8,
     // Control
-    pub terminate: bool,
+    terminate: bool,
 }
 impl GPU {
     pub fn new(mmu: Rc<RefCell<MMU>>, fps: f32, window_scale: usize) -> Self {
@@ -112,7 +112,7 @@ impl GPU {
             ds: DrawState::new(),
             disabled_frame_time: 0.into(),
             // Palettes
-            meta_palette: GRAYSCALE_MPALETTE,
+            meta_palette: GAMEBOY_MPALETTE,
             bg_palette: 0.into(),
             obj_palette_0: 0.into(),
             obj_palette_1: 0.into(),
@@ -131,6 +131,10 @@ impl GPU {
 
         this.reset_frame_buffer();
         this
+    }
+
+    pub fn should_terminate(&self) -> bool {
+        !self.win.is_open() || self.win.is_key_pressed(Key::Escape, KeyRepeat::No)
     }
 
     pub fn step(&mut self, dt: MTime) {
@@ -196,9 +200,6 @@ impl GPU {
 
         // Write out hardware registers
         self.set_regs();
-
-        // Ask to terminate if the window is closed
-        self.terminate = !self.win.is_open();
     }
 
     fn frame(&mut self) {

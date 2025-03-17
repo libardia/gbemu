@@ -51,7 +51,7 @@ impl GB {
     }
 
     pub fn boot(&mut self) {
-        while !self.cpu.terminate && !self.gpu.terminate {
+        while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
             let dt = self.cpu.step();
             self.gpu.step(dt);
         }

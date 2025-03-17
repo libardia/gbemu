@@ -35,7 +35,7 @@ pub struct CPU {
     this_instruction_code: Hex8,
     this_instruction: Instruction,
     // Control
-    pub terminate: bool,
+    terminate: bool,
     // For debugging
     pub breakpoints: Vec<u16>,
     pub debug_mode: bool,
@@ -44,6 +44,10 @@ pub struct CPU {
 
 impl CPU {
     new!(mmu: Rc<RefCell<MMU>>);
+
+    pub fn should_terminate(&self) -> bool {
+        self.terminate
+    }
 
     pub fn step(&mut self) -> MTime {
         const INTERRUPT_TIME: MTime = MTime::make(5);
