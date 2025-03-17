@@ -232,7 +232,7 @@ impl GPU {
         }
     }
 
-    /* #region MMU convenience ================================================================= */
+    /* #region MMU convenience ================================================================== */
 
     fn mmu_get(&self, address: u16) -> u8 {
         self.mmu.borrow().get(address)

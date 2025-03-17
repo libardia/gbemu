@@ -122,8 +122,8 @@ impl MMU {
         }
     }
 
-    pub fn get_tile(&self, method: bool, tile_index: u8) -> &Tile {
-        match (tile_index, method) {
+    pub fn get_tile(&self, unsigned: bool, tile_index: u8) -> &Tile {
+        match (tile_index, unsigned) {
             // Tile index is in range 128-255 OR we're using unsigned addressing
             (128..=255, _) | (_, true) => &self.vram_tiles[tile_index as usize],
             // Tile index is in range 0-127 AND we're using signed addressing
