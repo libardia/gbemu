@@ -104,7 +104,6 @@ impl MMU {
     }
 
     pub(super) fn high_ram_set(&mut self, address: u16, value: u8) {
-        // TODO: high ram set
         macro_rules! set_bits {
             ($mask:expr) => {{
                 let bits_to_write = value & $mask;
@@ -117,38 +116,52 @@ impl MMU {
             REG_JOYP => set_bits!(0b0011_0000),
             // FF01 = REG_SB:           XXXX XXXX
             // FF02 = REG_SC:           X... ..XX
+            REG_SC => set_bits!(0b1000_0011),
             // FF03
             // FF04 = REG_DIV:          XXXX XXXX*
+            // TODO: Setting div is special
+            REG_DIV => todo!("DIV"),
             // FF05 = REG_TIMA:         XXXX XXXX
             // FF06 = REG_TMA:          XXXX XXXX
             // FF07 = REG_TAC:          .... .XXX
+            REG_TAC => set_bits!(0b0000_0111),
             // FF08
             // ...
             // FF0E
             // FF0F = REG_IF:           ...X XXXX
+            REG_IF => set_bits!(0b0001_1111),
             // FF10 = REG_NR10:         .XXX XXXX
+            REG_NR10 => set_bits!(0b0111_1111),
             // FF11 = REG_NR11:         XXWW WWWW
             // FF12 = REG_NR12:         XXXX XXXX
             // FF13 = REG_NR13:         WWWW WWWW
             // FF14 = REG_NR14:         WX.. .WWW
+            REG_NR14 => set_bits!(0b1100_0111),
             // FF15
             // FF16 = REG_NR21:         XXWW WWWW
             // FF17 = REG_NR22:         XXXX XXXX
             // FF18 = REG_NR23:         WWWW WWWW
             // FF19 = REG_NR24:         WX.. .WWW
+            REG_NR24 => set_bits!(0b1100_0111),
             // FF1A = REG_NR30:         X... ....
+            REG_NR30 => set_bits!(0b1000_0000),
             // FF1B = REG_NR31:         WWWW WWWW
             // FF1C = REG_NR32:         .XX. ....
+            REG_NR32 => set_bits!(0b0110_0000),
             // FF1D = REG_NR33:         WWWW WWWW
             // FF1E = REG_NR34:         WX.. .WWW
+            REG_NR34 => set_bits!(0b1100_0111),
             // FF1F
             // FF20 = REG_NR41:         ..WW WWWW
+            REG_NR41 => set_bits!(0b0011_1111),
             // FF21 = REG_NR42:         XXXX XXXX
             // FF22 = REG_NR43:         XXXX XXXX
             // FF23 = REG_NR44:         WX.. ....
+            REG_NR44 => set_bits!(0b1100_0000),
             // FF24 = REG_NR50:         XXXX XXXX
             // FF25 = REG_NR51:         XXXX XXXX
             // FF26 = REG_NR52:         X... RRRR
+            REG_NR52 => set_bits!(0b1000_0000),
             // FF27
             // ...
             // FF2F
@@ -157,9 +170,11 @@ impl MMU {
             // FF3F = REG_WAVE_RAM:     XXXX XXXX
             // FF40 = REG_LCDC:         XXXX XXXX
             // FF41 = REG_STAT:         .XXX XXRR
+            REG_STAT => set_bits!(0b0111_1100),
             // FF42 = REG_SCY:          XXXX XXXX
             // FF43 = REG_SCX:          XXXX XXXX
             // FF44 = REG_LY:           RRRR RRRR
+            REG_LY => (/* Do nothing */),
             // FF45 = REG_LYC:          XXXX XXXX
             // FF46 = REG_DMA:          XXXX XXXX
             // FF47 = REG_BGP:          XXXX XXXX
@@ -171,10 +186,13 @@ impl MMU {
             // ...
             // FF4F
             // FF50 = REG_BANK:         WWWW WWWW*
+            // TODO: Disable boot mode
+            REG_BANK => todo!("REG_BANK"),
             // FF51
             // ...
             // FFFE
             // FFFF = REG_IE:           ...X XXXX
+            REG_IE => set_bits!(0b0001_1111),
 
             // Fully writable or just normal RAM:
             _ => self.hram.set(address, value),
