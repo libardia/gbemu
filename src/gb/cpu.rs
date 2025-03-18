@@ -37,6 +37,7 @@ pub struct CPU {
     // Control
     terminate: bool,
     // For debugging
+    break_once_on: Option<u16>,
     pub breakpoints: Vec<u16>,
     pub debug_mode: bool,
     pub break_mode: bool,
@@ -53,8 +54,13 @@ impl CPU {
         const INTERRUPT_TIME: MTime = MTime::make(5);
 
         // Breakpoint?
-        if self.debug_mode && self.breakpoints.contains(&self.pc) {
-            self.break_mode = true;
+        if self.debug_mode {
+            if self.break_once_on == Some(self.pc) {
+                self.break_once_on = None;
+                self.break_mode = true;
+            } else if self.breakpoints.contains(&self.pc) {
+                self.break_mode = true;
+            }
         }
 
         // Record current PC (for logging)
@@ -179,14 +185,33 @@ impl CPU {
     fn debug_break(&mut self) {
         println!("BEFORE INSTRUCTION:");
         self.debug_print();
+        println!("c: continue one step; x: exit break mode; bXXXX: add a breakpoint at address;");
+        println!("wXXXX: wait until address but do not add breakpoint. Default 'c'.");
         let mut invalid_input = true;
         while invalid_input {
-            let msg = input("c - continue one step, x - exit break mode [Cx]: ");
             invalid_input = false;
-            match msg.trim() {
-                "x" => self.break_mode = false,
-                "c" | "" => (),
-                _ => invalid_input = true,
+            let msg = input("> ");
+            let trimmed = msg.trim();
+
+            if trimmed == "x" {
+                self.break_mode = false;
+            } else if let Some(rest) = trimmed.strip_prefix("b") {
+                if let Ok(a) = u16::from_str_radix(rest, 16) {
+                    self.breakpoints.push(a);
+                } else {
+                    invalid_input = true;
+                }
+            } else if let Some(rest) = trimmed.strip_prefix("w") {
+                if let Ok(a) = u16::from_str_radix(rest, 16) {
+                    self.break_once_on = Some(a);
+                    self.break_mode = false;
+                } else {
+                    invalid_input = true;
+                }
+            } else if trimmed == "c" || trimmed.is_empty() {
+                // Do nothing
+            } else {
+                invalid_input = true;
             }
         }
     }
