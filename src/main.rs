@@ -28,8 +28,8 @@ fn main() {
     // let mut gb = GB::new(9999999.0, 5);
 
     gb.load_prog(&[0xED, 0xEC]);
-    // gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
-    gb.load("/run/media/tonyl/Data/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb");
+    gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
+    // gb.load("/run/media/tonyl/Data/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb");
 
     gb.set_debug_mode(true);
     // gb.set_breakpoints(&[0x150, 0x239]);

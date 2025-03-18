@@ -110,7 +110,7 @@ impl MMU {
         }
 
         // High RAM is the only address space left
-        self.hram.get(address)
+        self.high_ram_get(address)
     }
 
     pub fn get_tile_index_at(&self, map: bool, tile_x: usize, tile_y: usize) -> u8 {
@@ -187,7 +187,7 @@ impl MMU {
 
         // High RAM is the only address space left, but all the registers are here, so it needs
         // special handling
-        self.hram.set(address, value);
+        self.high_ram_set(address, value);
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
@@ -303,5 +303,5 @@ macro_rules! set_or_continue {
 }
 pub(self) use set_or_continue;
 
-mod mmu_load;
 mod high_ram_handler;
+mod mmu_load;
