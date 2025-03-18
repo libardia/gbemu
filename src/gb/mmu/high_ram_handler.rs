@@ -186,8 +186,12 @@ impl MMU {
             // ...
             // FF4F
             // FF50 = REG_BANK:         WWWW WWWW*
-            // TODO: Disable boot mode
-            REG_BANK => todo!("REG_BANK"),
+            REG_BANK => {
+                if self.boot_mode && value != 0 {
+                    self.boot_mode = false;
+                    self.hram.set(address, value);
+                }
+            }
             // FF51
             // ...
             // FFFE

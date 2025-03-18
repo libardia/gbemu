@@ -3,14 +3,13 @@ use std::array;
 use crate::{
     gb::gpu::color_id::ColorID,
     mem_region::{
-        io_regs::REG_BANK,
         regions::{
             BOOT_ROM_BANK, ECHO_RAM, EXTERNAL_RAM, HIGH_RAM, OAM, ROM_SPACE, TILE_DATA, TILE_MAPS,
             TILE_MAP_0, TILE_MAP_1, UNUSABLE_MEM, WORK_RAM,
         },
         MemoryRegion,
     },
-    util::{error_and_panic, new},
+    util::{error_and_panic, new, Hex16, Hex8},
 };
 
 use boot_rom::BOOT_ROM;
@@ -71,18 +70,13 @@ impl MMU {
     }
 
     pub fn get(&self, address: u16) -> u8 {
-        // In boot mode, the boot ROM "overrides" this address range
-        if self.boot_mode {
-            if BOOT_ROM_BANK.contains(address) {
-                return BOOT_ROM[address as usize];
-            }
-        }
+        let hex_address = Hex16::make(address);
 
         // MBC-controlled ranges
         if ROM_SPACE.contains(address) || EXTERNAL_RAM.contains(address) {
             return match self.mbc.as_ref() {
                 Some(mbc) => mbc.read_byte(address),
-                None => warn_read_open_bus!(address, "No MBC present."),
+                None => warn_read_open_bus!(hex_address, "No MBC present."),
             };
         }
 
@@ -97,7 +91,7 @@ impl MMU {
 
         // Echo RAM
         if ECHO_RAM.contains(address) {
-            warn!("Write to Echo RAM at 0x{address:0>4X}. Echo RAM is not intended to be used.");
+            warn!("Write to Echo RAM at {hex_address:?}. Echo RAM is not intended to be used.");
             return self.wram.get(address - ECHO_RAM_OFFSET);
         }
 
@@ -106,7 +100,7 @@ impl MMU {
 
         // Unusable space
         if UNUSABLE_MEM.contains(address) {
-            return warn_read_open_bus!(address, "Tried to read from unusable address space.");
+            return warn_read_open_bus!(hex_address, "Tried to read from unusable address space.");
         }
 
         // High RAM is the only address space left
@@ -132,26 +126,13 @@ impl MMU {
     }
 
     pub fn set(&mut self, address: u16, value: u8) {
-        // In boot mode, the boot ROM "overrides" this address range
-        if self.boot_mode {
-            if BOOT_ROM_BANK.contains(address) {
-                // The boot ROM shouldn't ever try to write to this area, and by the time the main
-                // program gets control, boot mode should be disabled. So if something tries to
-                // write here, something has broken somewhere.
-                error_and_panic!("Tried to write to read-only boot ROM in boot mode at address 0x{address:0>4X}! Something has gone very wrong.");
-            } else if address == REG_BANK {
-                // If the value is anything other than 0, disable boot mode
-                self.boot_mode = value == 0;
-                self.hram.set(address, value);
-                return;
-            }
-        }
+        let hex_address = Hex16::make(address);
 
         // MBC-controlled ranges
         if ROM_SPACE.contains(address) || EXTERNAL_RAM.contains(address) {
             match self.mbc.as_mut() {
                 Some(mbc) => mbc.write_byte(address, value),
-                None => warn_write_rom!(address, value, "No MBC present."),
+                None => warn_write_rom!(hex_address, Hex8::make(value), "No MBC present."),
             }
             return;
         }
@@ -171,7 +152,7 @@ impl MMU {
 
         // Echo RAM
         if ECHO_RAM.contains(address) {
-            warn!("Read from Echo RAM at 0x{address:0>4X}. Echo RAM is not intended to be used.");
+            warn!("Read from Echo RAM at {hex_address:?}. Echo RAM is not intended to be used.");
             self.wram.set(address - ECHO_RAM_OFFSET, value);
             return;
         }
@@ -181,7 +162,7 @@ impl MMU {
 
         // Unusable space
         if UNUSABLE_MEM.contains(address) {
-            warn_write_open_bus!(address, "Tried to write to unusable address space.");
+            warn_write_open_bus!(hex_address, "Tried to write to unusable address space.");
             return;
         }
 
@@ -190,9 +171,18 @@ impl MMU {
     }
 
     pub fn cpu_read(&self, address: u16) -> u8 {
+        let hex_address = Hex16::make(address);
+
+        // In boot mode, the boot ROM "overrides" this address range
+        if self.boot_mode {
+            if BOOT_ROM_BANK.contains(address) {
+                return BOOT_ROM[address as usize];
+            }
+        }
+
         for blocked in self.blocked_ranges.iter() {
             if blocked.contains(address) {
-                return warn_read_open_bus!(address, "Address is blocked.");
+                return warn_read_open_bus!(hex_address, "Address is blocked.");
             }
         }
 
@@ -205,9 +195,19 @@ impl MMU {
     }
 
     pub fn cpu_write(&mut self, address: u16, value: u8) {
+        let hex_address = Hex16::make(address);
+
+        // In boot mode, the boot ROM "overrides" this address range
+        if self.boot_mode && BOOT_ROM_BANK.contains(address) {
+            // The boot ROM shouldn't ever try to write to this area, and by the time the main
+            // program gets control, boot mode should be disabled. So if something tries to write
+            // here, something has broken somewhere.
+            error_and_panic!("Tried to write to read-only boot ROM in boot mode at address {hex_address:?}! Something has gone very wrong.");
+        }
+
         for blocked in self.blocked_ranges.iter() {
             if blocked.contains(address) {
-                warn_write_open_bus!(address, "Address is blocked.");
+                warn_write_open_bus!(hex_address, "Address is blocked.");
                 return;
             }
         }
@@ -263,14 +263,14 @@ impl MMU {
 macro_rules! warn_read_open_bus {
     ($address:expr) => {{
         log::warn!(
-            "Memory address 0x{:0>4X} invalid, returning open bus value.",
+            "Memory address {:?} invalid, returning open bus value.",
             $address,
         );
         0xFF
     }};
     ($address:expr, $($format_arg:expr),+) => {{
         log::warn!(
-            "Memory address 0x{:0>4X} invalid, returning open bus value. {}",
+            "Memory address {:?} invalid, returning open bus value. {}",
             $address,
             format!($($format_arg),+)
         );
@@ -281,14 +281,14 @@ pub(self) use warn_read_open_bus;
 
 macro_rules! warn_write_open_bus {
     ($address:expr, $($format_arg:expr),+) => {
-        log::warn!("Memory address 0x{:0>4X} invalid, ignoring write. {}", $address, format!($($format_arg),+))
+        log::warn!("Memory address {:?} invalid, ignoring write. {}", $address, format!($($format_arg),+))
     };
 }
 pub(self) use warn_write_open_bus;
 
 macro_rules! warn_write_rom {
     ($address:expr, $value:expr, $($format_arg:expr),+) => {
-        log::warn!("Tried to write 0x{:0>2X} to read only memory at 0x{:0>4X}. {}", $value, $address, format!($($format_arg),+))
+        log::warn!("Tried to write {:?} to read only memory at {:?}. {}", $value, $address, format!($($format_arg),+))
     };
 }
 pub(self) use warn_write_rom;
