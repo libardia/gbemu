@@ -185,7 +185,8 @@ impl MMU {
             return;
         }
 
-        // High RAM is the only address space left
+        // High RAM is the only address space left, but all the registers are here, so it needs
+        // special handling
         self.hram.set(address, value);
     }
 
@@ -303,3 +304,4 @@ macro_rules! set_or_continue {
 pub(self) use set_or_continue;
 
 mod mmu_load;
+mod high_ram_handler;
