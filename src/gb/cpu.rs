@@ -65,7 +65,7 @@ impl CPU {
 
         // Record current PC (for logging)
         self.this_instruction_pc = self.pc.into();
-        self.this_instruction_code = self.mmu_read_byte(self.pc).into();
+        self.this_instruction_code = self.mmu_read(self.pc).into();
 
         if self.ime {
             // Check for interrupt
@@ -96,7 +96,7 @@ impl CPU {
         cycles_elapsed
     }
 
-    /* #region Registers as hex ================================================================ */
+    /* #region Registers as hex ================================================================= */
 
     get_as_hex!(hpc, pc, Hex16);
     get_as_hex!(hsp, sp, Hex16);
@@ -112,27 +112,27 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region MMU convenience ================================================================= */
+    /* #region MMU convenience ================================================================== */
 
-    fn mmu_read_byte(&self, address: u16) -> u8 {
-        self.mmu.borrow().read_byte(address)
+    fn mmu_read(&self, address: u16) -> u8 {
+        self.mmu.borrow().cpu_read(address)
     }
 
-    fn mmu_write_byte(&self, address: u16, value: u8) {
-        self.mmu.borrow_mut().write_byte(address, value);
+    fn mmu_write(&self, address: u16, value: u8) {
+        self.mmu.borrow_mut().cpu_write(address, value);
     }
 
     fn mmu_read_word(&self, address: u16) -> u16 {
-        self.mmu.borrow().read_word(address)
+        self.mmu.borrow().cpu_read_word(address)
     }
 
     fn mmu_write_word(&self, address: u16, value: u16) {
-        self.mmu.borrow_mut().write_word(address, value);
+        self.mmu.borrow_mut().cpu_write_word(address, value);
     }
 
     /* #endregion */
 
-    /* #region Registers ======================================================================= */
+    /* #region Registers ======================================================================== */
 
     fn get_hl_then_inc(&mut self) -> u16 {
         let before = self.get_hl();
@@ -165,7 +165,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Stack =========================================================================== */
+    /* #region Stack ============================================================================ */
 
     fn push_word(&mut self, value: u16) {
         self.sp = self.sp.wrapping_sub(2);
@@ -180,7 +180,7 @@ impl CPU {
 
     /* #endregion */
 
-    /* #region Debugging ======================================================================= */
+    /* #region Debugging ======================================================================== */
 
     fn debug_break(&mut self) {
         println!("BEFORE INSTRUCTION:");

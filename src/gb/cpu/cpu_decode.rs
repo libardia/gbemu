@@ -17,7 +17,7 @@ impl CPU {
     }
 
     fn next_byte(&mut self) -> u8 {
-        let byte = self.mmu_read_byte(self.pc);
+        let byte = self.mmu_read(self.pc);
         self.pc += 1;
         byte
     }

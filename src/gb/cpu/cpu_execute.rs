@@ -125,11 +125,11 @@ impl CPU {
     /* #region MMU convenience ================================================================= */
 
     fn read_mhl(&self) -> u8 {
-        self.mmu_read_byte(self.get_hl())
+        self.mmu_read(self.get_hl())
     }
 
     fn write_mhl(&mut self, value: u8) {
-        self.mmu_write_byte(self.get_hl(), value);
+        self.mmu_write(self.get_hl(), value);
     }
 
     /* #endregion */
@@ -194,12 +194,12 @@ impl CPU {
 
     fn get_mr16(&mut self, mr16: ArgR16MEM) -> u8 {
         let address = self.get_mr16_as_address(mr16);
-        self.mmu_read_byte(address)
+        self.mmu_read(address)
     }
 
     fn set_mr16(&mut self, mr16: ArgR16MEM, value: u8) {
         let address = self.get_mr16_as_address(mr16);
-        self.mmu_write_byte(address, value);
+        self.mmu_write(address, value);
     }
 
     fn get_r16stk(&self, r16stk: ArgR16STK) -> u16 {

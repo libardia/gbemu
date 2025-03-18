@@ -110,7 +110,7 @@ impl MMU {
         }
 
         // High RAM is the only address space left
-        self.high_ram_get(address)
+        self.hram.get(address)
     }
 
     pub fn get_tile_index_at(&self, map: bool, tile_x: usize, tile_y: usize) -> u8 {
@@ -185,22 +185,26 @@ impl MMU {
             return;
         }
 
-        // High RAM is the only address space left, but all the registers are here, so it needs
-        // special handling
-        self.high_ram_set(address, value);
+        // High RAM is the only address space left
+        self.hram.set(address, value);
     }
 
-    pub fn read_byte(&self, address: u16) -> u8 {
+    pub fn cpu_read(&self, address: u16) -> u8 {
         for blocked in self.blocked_ranges.iter() {
             if blocked.contains(address) {
                 return warn_read_open_bus!(address, "Address is blocked.");
             }
         }
 
-        self.get(address)
+        if HIGH_RAM.contains(address) {
+            // Enforce register readability
+            self.high_ram_get(address)
+        } else {
+            self.get(address)
+        }
     }
 
-    pub fn write_byte(&mut self, address: u16, value: u8) {
+    pub fn cpu_write(&mut self, address: u16, value: u8) {
         for blocked in self.blocked_ranges.iter() {
             if blocked.contains(address) {
                 warn_write_open_bus!(address, "Address is blocked.");
@@ -208,20 +212,25 @@ impl MMU {
             }
         }
 
-        self.set(address, value);
+        if HIGH_RAM.contains(address) {
+            // Enforce register writeability
+            self.high_ram_set(address, value)
+        } else {
+            self.set(address, value)
+        }
     }
 
-    pub fn read_word(&self, address: u16) -> u16 {
-        let lsb = self.read_byte(address) as u16;
-        let msb = self.read_byte(address + 1) as u16;
+    pub fn cpu_read_word(&self, address: u16) -> u16 {
+        let lsb = self.cpu_read(address) as u16;
+        let msb = self.cpu_read(address + 1) as u16;
         (msb << 8) | lsb
     }
 
-    pub fn write_word(&mut self, address: u16, value: u16) {
+    pub fn cpu_write_word(&mut self, address: u16, value: u16) {
         let lsb = (value & 0xFF) as u8;
         let msb = ((value & 0xFF00) >> 8) as u8;
-        self.write_byte(address, lsb);
-        self.write_byte(address + 1, msb);
+        self.cpu_write(address, lsb);
+        self.cpu_write(address + 1, msb);
     }
 
     /* #endregion */

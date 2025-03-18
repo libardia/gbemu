@@ -65,9 +65,9 @@ impl CPU {
         let address = 0xFF00 + (n8 as u16);
 
         if a_is_dest {
-            self.a = self.mmu_read_byte(address);
+            self.a = self.mmu_read(address);
         } else {
-            self.mmu_write_byte(address, self.a);
+            self.mmu_write(address, self.a);
         }
 
         3.into()
@@ -79,9 +79,9 @@ impl CPU {
         let address = 0xFF00 + (self.c as u16);
 
         if a_is_dest {
-            self.a = self.mmu_read_byte(address);
+            self.a = self.mmu_read(address);
         } else {
-            self.mmu_write_byte(address, self.a);
+            self.mmu_write(address, self.a);
         }
 
         2.into()

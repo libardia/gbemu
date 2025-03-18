@@ -68,6 +68,9 @@ impl MMU {
             // FF25 = REG_NR51:         XXXX XXXX
             // FF26 = REG_NR52:         X... RRRR
             REG_NR52 => get_bits!(0b1000_1111),
+            // FF27
+            // ...
+            // FF2F
             // FF30 = REG_WAVE_RAM:     XXXX XXXX
             // ...  = REG_WAVE_RAM:     XXXX XXXX
             // FF3F = REG_WAVE_RAM:     XXXX XXXX
@@ -102,7 +105,78 @@ impl MMU {
 
     pub(super) fn high_ram_set(&mut self, address: u16, value: u8) {
         // TODO: high ram set
+        macro_rules! set_bits {
+            ($mask:expr) => {{
+                let bits_to_write = value & $mask;
+                let current_compl = self.hram.get(address) & !$mask;
+                self.hram.set(address, current_compl | bits_to_write);
+            }};
+        }
         match address {
+            // FF00 = REG_JOYP:         ..WW RRRR
+            REG_JOYP => set_bits!(0b0011_0000),
+            // FF01 = REG_SB:           XXXX XXXX
+            // FF02 = REG_SC:           X... ..XX
+            // FF03
+            // FF04 = REG_DIV:          XXXX XXXX*
+            // FF05 = REG_TIMA:         XXXX XXXX
+            // FF06 = REG_TMA:          XXXX XXXX
+            // FF07 = REG_TAC:          .... .XXX
+            // FF08
+            // ...
+            // FF0E
+            // FF0F = REG_IF:           ...X XXXX
+            // FF10 = REG_NR10:         .XXX XXXX
+            // FF11 = REG_NR11:         XXWW WWWW
+            // FF12 = REG_NR12:         XXXX XXXX
+            // FF13 = REG_NR13:         WWWW WWWW
+            // FF14 = REG_NR14:         WX.. .WWW
+            // FF15
+            // FF16 = REG_NR21:         XXWW WWWW
+            // FF17 = REG_NR22:         XXXX XXXX
+            // FF18 = REG_NR23:         WWWW WWWW
+            // FF19 = REG_NR24:         WX.. .WWW
+            // FF1A = REG_NR30:         X... ....
+            // FF1B = REG_NR31:         WWWW WWWW
+            // FF1C = REG_NR32:         .XX. ....
+            // FF1D = REG_NR33:         WWWW WWWW
+            // FF1E = REG_NR34:         WX.. .WWW
+            // FF1F
+            // FF20 = REG_NR41:         ..WW WWWW
+            // FF21 = REG_NR42:         XXXX XXXX
+            // FF22 = REG_NR43:         XXXX XXXX
+            // FF23 = REG_NR44:         WX.. ....
+            // FF24 = REG_NR50:         XXXX XXXX
+            // FF25 = REG_NR51:         XXXX XXXX
+            // FF26 = REG_NR52:         X... RRRR
+            // FF27
+            // ...
+            // FF2F
+            // FF30 = REG_WAVE_RAM:     XXXX XXXX
+            // ...  = REG_WAVE_RAM:     XXXX XXXX
+            // FF3F = REG_WAVE_RAM:     XXXX XXXX
+            // FF40 = REG_LCDC:         XXXX XXXX
+            // FF41 = REG_STAT:         .XXX XXRR
+            // FF42 = REG_SCY:          XXXX XXXX
+            // FF43 = REG_SCX:          XXXX XXXX
+            // FF44 = REG_LY:           RRRR RRRR
+            // FF45 = REG_LYC:          XXXX XXXX
+            // FF46 = REG_DMA:          XXXX XXXX
+            // FF47 = REG_BGP:          XXXX XXXX
+            // FF48 = REG_OBP0:         XXXX XXXX
+            // FF49 = REG_OBP1:         XXXX XXXX
+            // FF4A = REG_WY:           XXXX XXXX
+            // FF4B = REG_WX:           XXXX XXXX
+            // FF4C
+            // ...
+            // FF4F
+            // FF50 = REG_BANK:         WWWW WWWW*
+            // FF51
+            // ...
+            // FFFE
+            // FFFF = REG_IE:           ...X XXXX
+
+            // Fully writable or just normal RAM:
             _ => self.hram.set(address, value),
         }
     }
