@@ -46,7 +46,7 @@ impl MBC for RomOnlyMBC {
                 None => warn_write_open_bus!(address, "No external RAM in this cart."),
             }
         } else {
-            warn_write_rom!(address, "Can't write to rom-only MBC.");
+            warn_write_rom!(address, value, "Can't write to rom-only MBC.");
         }
     }
 }

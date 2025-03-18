@@ -250,7 +250,7 @@ impl GPU {
         self.ds.win_y_counter = 0;
 
         // Present the frame and wait if necessary
-        self.frame();
+        self.frame(true);
     }
 
     /* #endregion */

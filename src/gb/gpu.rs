@@ -147,6 +147,7 @@ impl GPU {
 
             self.ds = DrawState::new();
             self.reset_frame_buffer();
+            self.frame(false);
 
             // Make sure memory is unblocked
             self.mmu.borrow_mut().unblock_region(OAM);
@@ -154,6 +155,7 @@ impl GPU {
         } else if !last_enabled && self.get_enabled() {
             debug!("LCD enabled.");
             self.disabled_frame_time = 0.into();
+            self.frame(false);
         }
 
         // If LCD is disabled...
@@ -161,7 +163,6 @@ impl GPU {
             self.disabled_frame_time += dt.into();
             if self.disabled_frame_time >= FRAME_TIME {
                 self.disabled_frame_time %= FRAME_TIME;
-                self.frame();
             }
         }
         // If LCD is enabled...
@@ -202,12 +203,15 @@ impl GPU {
         self.set_regs();
     }
 
-    fn frame(&mut self) {
+    fn frame(&mut self, wait: bool) {
         let dt = self.last_frame_time.elapsed();
         self.last_frame_time = Instant::now();
 
-        let wait_dur = self.seconds_per_frame.saturating_sub(dt);
-        sleep(wait_dur);
+        let mut wait_dur = Duration::ZERO;
+        if wait {
+            wait_dur = self.seconds_per_frame.saturating_sub(dt);
+            sleep(wait_dur);
+        }
 
         if self.get_enabled() {
             let fps = 1.0 / (dt + wait_dur).as_secs_f32();

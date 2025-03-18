@@ -151,7 +151,7 @@ impl MMU {
         if ROM_SPACE.contains(address) || EXTERNAL_RAM.contains(address) {
             match self.mbc.as_mut() {
                 Some(mbc) => mbc.write_byte(address, value),
-                None => warn_write_rom!(address, "No MBC present."),
+                None => warn_write_rom!(address, value, "No MBC present."),
             }
             return;
         }
@@ -277,8 +277,8 @@ macro_rules! warn_write_open_bus {
 pub(self) use warn_write_open_bus;
 
 macro_rules! warn_write_rom {
-    ($address:expr, $($format_arg:expr),+) => {
-        log::warn!("Tried to write to read only memory at 0x{:0>4X}. {}", $address, format!($($format_arg),+))
+    ($address:expr, $value:expr, $($format_arg:expr),+) => {
+        log::warn!("Tried to write 0x{:0>2X} to read only memory at 0x{:0>4X}. {}", $value, $address, format!($($format_arg),+))
     };
 }
 pub(self) use warn_write_rom;
