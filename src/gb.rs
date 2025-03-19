@@ -4,6 +4,7 @@ use cpu::CPU;
 use gpu::GPU;
 use log::debug;
 use mmu::{nintendo_logo::NINTENDO_LOGO, MMU};
+use timer::Timer;
 
 use crate::{mem_region::regions::ROM_SPACE, util::new};
 
@@ -12,10 +13,12 @@ pub mod gpu;
 pub mod mbc;
 pub mod mmu;
 pub mod time_types;
+pub mod timer;
 
 #[derive(Debug)]
 pub struct GB {
     cpu: CPU,
+    timer: Timer,
     gpu: GPU,
     mmu: Rc<RefCell<MMU>>,
 }
@@ -25,10 +28,19 @@ impl GB {
 
         Self {
             cpu: CPU::new(mmu.clone()),
+            timer: Timer::new(mmu.clone()),
             gpu: GPU::new(mmu.clone(), fps, window_scale),
             mmu,
         }
     });
+
+    pub fn boot(&mut self) {
+        while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
+            let dt = self.cpu.step();
+            self.timer.step(dt);
+            self.gpu.step(dt);
+        }
+    }
 
     pub fn set_debug_mode(&mut self, mode: bool) {
         self.cpu.debug_mode = mode;
@@ -48,13 +60,6 @@ impl GB {
 
     pub fn load_prog(&mut self, prog: &[u8]) {
         self.load_bytes(&Self::make_dummy_cart(prog));
-    }
-
-    pub fn boot(&mut self) {
-        while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
-            let dt = self.cpu.step();
-            self.gpu.step(dt);
-        }
     }
 
     fn make_dummy_cart(prog: &[u8]) -> Vec<u8> {
