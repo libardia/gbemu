@@ -32,7 +32,7 @@ fn main() {
     let timer_test = gb.compile(vec![
         LD_r8_r8(ArgR8::A, ArgR8::CONST(0b100.into())), // A = b100
         LDH_mn16_a(0xFF.into()), // [$FFFF] = A = b100 (enable timer interrupt)
-        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b110.into())), // A = b101
+        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b101.into())), // A = b101
         LDH_mn16_a(0x07.into()), // [$FF07] = A = b101 (enable timer, clock = 4)
         EI,
         JR_e8(-2),

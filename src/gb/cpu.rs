@@ -2,7 +2,7 @@ use instructions::Instruction;
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
-    mem_region::io_regs::{REG_IE, REG_IF},
+    mem_region::io_regs::{REG_IE, REG_IF, REG_TIMA},
     util::{bit_flag, byte_of, either, input, new, Hex16, Hex8},
 };
 
@@ -241,7 +241,7 @@ impl Display for CPU {
         write!(f, "| A:  {:?}      F:  {:0>4b}   | IE: {:0>5b}\n", self.ha(), self.f >> 4, self.int_enabled & 0x1F)?;
         write!(f, "| B:  {:?}      C:  {:?}   | IF: {:0>5b}\n", self.hb(), self.hc(), self.int_flags & 0x1F)?;
         write!(f, "| D:  {:?}      E:  {:?}   |\n", self.hd(), self.he())?;
-        write!(f, "| H:  {:?}      L:  {:?}   |\n", self.hh(), self.hl())?;
+        write!(f, "| H:  {:?}      L:  {:?}   | TIMA: {:?}\n", self.hh(), self.hl(), Hex8::make(self.mmu_read(REG_TIMA)))?;
         write!(f, "+--------------------------+")
     }
 }
