@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use cpu::CPU;
+use cpu::{instructions::Instruction, CPU};
 use gpu::GPU;
 use log::debug;
 use mmu::{nintendo_logo::NINTENDO_LOGO, MMU};
@@ -22,6 +22,8 @@ pub struct GB {
     timer: Timer,
     gpu: GPU,
     mmu: Rc<RefCell<MMU>>,
+    // For compiling. Only constructed if required.
+    encode_table: Option<Box<HashMap<Instruction, Vec<u8>>>>,
 }
 impl GB {
     new!(fps: f32, window_scale: usize; {
@@ -32,6 +34,7 @@ impl GB {
             timer: Timer::new(mmu.clone()),
             gpu: GPU::new(mmu.clone(), fps, window_scale),
             mmu,
+            encode_table: None
         }
     });
 
@@ -114,3 +117,5 @@ impl GB {
         cart
     }
 }
+
+mod compiler;

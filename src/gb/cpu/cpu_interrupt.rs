@@ -1,7 +1,5 @@
 use log::debug;
 
-use crate::mem_region::io_regs::{REG_IE, REG_IF};
-
 use super::CPU;
 
 const INT_NAMES: [&str; 5] = ["VBlank", "STAT", "Timer", "Serial", "Joypad"];
@@ -28,10 +26,6 @@ impl CPU {
     }
 
     pub(super) fn maybe_interrupt(&mut self) -> bool {
-        // Update registers
-        self.int_enabled = self.mmu_read(REG_IE);
-        self.int_flags = self.mmu_read(REG_IF);
-
         // These are just for readability
         let m_iter = INT_MASKS.iter();
         let a_iter = INT_ADDRESSES.iter();

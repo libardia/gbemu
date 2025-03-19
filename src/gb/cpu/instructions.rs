@@ -7,7 +7,7 @@ use crate::util::{Hex16, Hex8};
 /* #region Instructions ======================================================================== */
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load (LD_dest_source)
     LD_r8_r8(ArgR8, ArgR8),
@@ -110,7 +110,7 @@ pub enum Instruction {
 /* #region Argument types ====================================================================== */
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgR8 {
     B,
     C,
@@ -125,7 +125,7 @@ pub enum ArgR8 {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgR16 {
     BC,
     DE,
@@ -134,7 +134,7 @@ pub enum ArgR16 {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgR16STK {
     BC,
     DE,
@@ -143,7 +143,7 @@ pub enum ArgR16STK {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgR16MEM {
     BC,
     DE,
@@ -154,7 +154,7 @@ pub enum ArgR16MEM {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgU3 {
     Bit0 = 0b0000_0001,
     Bit1 = 0b0000_0010,
@@ -167,7 +167,7 @@ pub enum ArgU3 {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgVEC {
     Vec0x00 = 0x00,
     Vec0x08 = 0x08,
@@ -180,7 +180,7 @@ pub enum ArgVEC {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgCOND {
     NZ,
     Z,

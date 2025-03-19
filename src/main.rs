@@ -2,6 +2,7 @@
 
 use std::env;
 
+use gb::cpu::instructions::{ArgR8, Instruction::*};
 use gb::{gpu::REAL_GB_FPS, GB};
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
@@ -27,15 +28,24 @@ fn main() {
     // let mut gb = GB::new(30.0, 5);
     // let mut gb = GB::new(9999999.0, 5);
 
-    let print_terminate = [0xED, 0xEC];
+    // let print_terminate = gb.compile(vec![DEBUG_PRINT, TERMINATE]);
+    let timer_test = gb.compile(vec![
+        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b100.into())), // A = b100
+        LDH_mn16_a(0xFF.into()), // [$FFFF] = A = b100 (enable timer interrupt)
+        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b110.into())), // A = b101
+        LDH_mn16_a(0x07.into()), // [$FF07] = A = b101 (enable timer, clock = 4)
+        EI,
+        JR_e8(-2),
+    ]);
 
-    gb.load_prog(&print_terminate);
-    // gb.load_prog(&timer_test);
+    // gb.load_prog(&print_terminate);
+    gb.load_prog(&timer_test);
     // gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
     // gb.load("/run/media/tonyl/Data/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb");
 
     gb.set_debug_mode(true);
-    gb.set_breakpoints(&[0x2BA]);
+    gb.set_breakpoints(&[0x150, 0x50]);
+    // gb.set_breakpoints(&[0x2BA]);
 
     gb.boot();
 }

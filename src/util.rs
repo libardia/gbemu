@@ -36,7 +36,7 @@ pub(crate) use impls_debug_as_internal;
 
 macro_rules! make_number_type {
     ($type:ident, $internal_type:ty) => {
-        #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+        #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $type($internal_type);
 
         impl std::ops::Add for $type {

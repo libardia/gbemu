@@ -1,12 +1,15 @@
 use instructions::Instruction;
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::util::{bit_flag, byte_of, either, input, new, Hex16, Hex8};
+use crate::{
+    mem_region::io_regs::{REG_IE, REG_IF},
+    util::{bit_flag, byte_of, either, input, new, Hex16, Hex8},
+};
 
 use super::{mmu::MMU, time_types::MTime};
 
-mod instructions;
-mod optables;
+pub mod instructions;
+pub mod optables;
 
 #[derive(Debug, Default)]
 pub struct CPU {
@@ -52,6 +55,10 @@ impl CPU {
 
     pub fn step(&mut self) -> MTime {
         const INTERRUPT_TIME: MTime = MTime::make(5);
+
+        // Update interrupt registers
+        self.int_enabled = self.mmu_read(REG_IE);
+        self.int_flags = self.mmu_read(REG_IF);
 
         // Breakpoint?
         if self.debug_mode {
