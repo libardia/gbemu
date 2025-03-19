@@ -37,6 +37,7 @@ pub struct MMU {
     hram: MappedRegion,
     boot_mode: bool,
     blocked_ranges: Vec<MemoryRegion>,
+    reset_div: bool,
 }
 impl Default for MMU {
     fn default() -> Self {
@@ -53,6 +54,7 @@ impl Default for MMU {
             hram: MappedRegion::new(HIGH_RAM),
             boot_mode: true,
             blocked_ranges: Vec::new(),
+            reset_div: false,
         }
     }
 }
@@ -67,6 +69,12 @@ impl MMU {
 
     pub fn unblock_region(&mut self, region: MemoryRegion) {
         self.blocked_ranges.retain(|e| *e != region);
+    }
+
+    pub fn should_reset_div(&mut self) -> bool {
+        let reset = self.reset_div;
+        self.reset_div = false;
+        reset
     }
 
     pub fn get(&self, address: u16) -> u8 {

@@ -119,8 +119,7 @@ impl MMU {
             REG_SC => set_bits!(0b1000_0011),
             // FF03
             // FF04 = REG_DIV:          XXXX XXXX*
-            // TODO: Setting div is special
-            REG_DIV => todo!("DIV"),
+            REG_DIV => self.reset_div = true,
             // FF05 = REG_TIMA:         XXXX XXXX
             // FF06 = REG_TMA:          XXXX XXXX
             // FF07 = REG_TAC:          .... .XXX

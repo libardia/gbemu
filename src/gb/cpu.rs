@@ -1,7 +1,7 @@
 use instructions::Instruction;
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::util::{bit_flag, either, input, new, Hex16, Hex8};
+use crate::util::{bit_flag, byte_of, either, input, new, Hex16, Hex8};
 
 use super::{mmu::MMU, time_types::MTime};
 
@@ -231,8 +231,8 @@ impl Display for CPU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "+--------------------------+\n")?;
         write!(f, "| PC: {:?}    SP: {:?} | IME: {}\n", self.hpc(), self.hsp(), self.ime)?;
-        write!(f, "| A:  {:?}      F:  {:0>4b}   |\n", self.ha(), self.f >> 4)?;
-        write!(f, "| B:  {:?}      C:  {:?}   |\n", self.hb(), self.hc())?;
+        write!(f, "| A:  {:?}      F:  {:0>4b}   | IE: {:0>5b}\n", self.ha(), self.f >> 4, self.int_enabled & 0x1F)?;
+        write!(f, "| B:  {:?}      C:  {:?}   | IF: {:0>5b}\n", self.hb(), self.hc(), self.int_flags & 0x1F)?;
         write!(f, "| D:  {:?}      E:  {:?}   |\n", self.hd(), self.he())?;
         write!(f, "| H:  {:?}      L:  {:?}   |\n", self.hh(), self.hl())?;
         write!(f, "+--------------------------+")
@@ -248,8 +248,8 @@ macro_rules! getset_r16 {
         }
 
         pub fn $setname(&mut self, value: u16) {
-            self.$r1 = ((value & 0xFF00) >> 8) as u8;
-            self.$r2 = (value & 0xFF) as u8;
+            self.$r1 = byte_of!(value, 1);
+            self.$r2 = byte_of!(value, 0);
         }
     };
 }

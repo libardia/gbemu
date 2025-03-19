@@ -4,6 +4,7 @@ use cpu::CPU;
 use gpu::GPU;
 use log::debug;
 use mmu::{nintendo_logo::NINTENDO_LOGO, MMU};
+use time_types::TTime;
 use timer::Timer;
 
 use crate::{mem_region::regions::ROM_SPACE, util::new};
@@ -36,9 +37,9 @@ impl GB {
 
     pub fn boot(&mut self) {
         while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
-            let dt = self.cpu.step();
-            self.timer.step(dt);
+            let dt: TTime = self.cpu.step().into();
             self.gpu.step(dt);
+            self.timer.step(dt);
         }
     }
 

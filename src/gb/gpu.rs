@@ -15,10 +15,7 @@ use RenderMode::*;
 
 use crate::mem_region::regions::{OAM, VRAM};
 
-use super::{
-    mmu::MMU,
-    time_types::{MTime, TTime},
-};
+use super::{mmu::MMU, time_types::TTime};
 
 pub mod color_id;
 pub mod draw_state;
@@ -137,7 +134,7 @@ impl GPU {
         !self.win.is_open() || self.win.is_key_pressed(Key::Escape, KeyRepeat::No)
     }
 
-    pub fn step(&mut self, dt: MTime) {
+    pub fn step(&mut self, dt: TTime) {
         // Load hardware registers
         let last_enabled = self.get_enabled();
         self.load_regs();
@@ -160,7 +157,7 @@ impl GPU {
 
         // If LCD is disabled...
         if !self.get_enabled() {
-            self.disabled_frame_time += dt.into();
+            self.disabled_frame_time += dt;
             if self.disabled_frame_time >= FRAME_TIME {
                 self.disabled_frame_time %= FRAME_TIME;
             }
@@ -168,7 +165,7 @@ impl GPU {
         // If LCD is enabled...
         else {
             // Advance time
-            self.ds.time_this_line += dt.into();
+            self.ds.time_this_line += dt;
 
             // Execute the mode if it hasn't executed yet
             if self.ds.last_executed_mode != self.ds.mode {

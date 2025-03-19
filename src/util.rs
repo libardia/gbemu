@@ -140,6 +140,15 @@ macro_rules! either {
 }
 pub(crate) use either;
 
+macro_rules! byte_of {
+    ($value:expr, $byte_index:expr) => {{
+        let shift = $byte_index * 8;
+        let mask = 0xFF << shift;
+        (($value & mask) >> shift) as u8
+    }};
+}
+pub(crate) use byte_of;
+
 macro_rules! min {
     ($($item:expr),+) => {{
         let items = [$($item),+];

@@ -1,11 +1,13 @@
 use log::debug;
 
+use crate::mem_region::io_regs::{REG_IE, REG_IF};
+
 use super::CPU;
 
 const INT_NAMES: [&str; 5] = ["VBlank", "STAT", "Timer", "Serial", "Joypad"];
 
 const INT_MASKS: [u8; 5] = [
-    1,      // VBlank
+    1 << 0, // VBlank
     1 << 1, // STAT
     1 << 2, // Timer
     1 << 3, // Serial
@@ -22,10 +24,14 @@ const INT_ADDRESSES: [u16; 5] = [
 
 impl CPU {
     fn should_interrupt(&self, mask: u8) -> bool {
-        (self.int_enabled & mask) != 0 && (self.int_flags & mask) != 0
+        ((self.int_enabled & mask) & (self.int_flags & mask)) != 0
     }
 
     pub(super) fn maybe_interrupt(&mut self) -> bool {
+        // Update registers
+        self.int_enabled = self.mmu_read(REG_IE);
+        self.int_flags = self.mmu_read(REG_IF);
+
         // These are just for readability
         let m_iter = INT_MASKS.iter();
         let a_iter = INT_ADDRESSES.iter();
@@ -34,7 +40,8 @@ impl CPU {
             if self.should_interrupt(*mask) {
                 debug!(
                     "[PC {:?}] Firing interrupt handler: {}",
-                    self.hpc(), INT_NAMES[i]
+                    self.hpc(),
+                    INT_NAMES[i]
                 );
 
                 self.fire_interrupt(*mask, *address);
