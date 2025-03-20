@@ -44,7 +44,7 @@ fn main() {
     // gb.load("/run/media/tonyl/Data/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb");
 
     gb.set_debug_mode(true);
-    gb.set_breakpoints(&[0x150, 0x50]);
+    // gb.set_breakpoints(&[0x150, 0x50]);
     // gb.set_breakpoints(&[0x2BA]);
 
     gb.boot();

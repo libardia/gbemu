@@ -81,6 +81,7 @@ impl CPU {
             // If we did interrupt, return the time it took to hand off to the interrupt. This
             // always takes the same amount of time.
             if did_interrupt {
+                self.mmu_write(REG_IF, self.int_flags);
                 return INTERRUPT_TIME;
             }
         }
