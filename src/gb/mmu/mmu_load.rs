@@ -79,12 +79,12 @@ impl From<u8> for CartType {
 }
 
 impl MMU {
-    pub fn load_from_file(&mut self, path: &str) {
+    pub fn load_cart_from_file(&mut self, path: &str) {
         let bytes = fs::read(path).expect(format!("Failed to read file {}", path).as_str());
-        self.load_from_bytes(&bytes);
+        self.load_cart_from_bytes(&bytes);
     }
 
-    pub fn load_from_bytes(&mut self, bytes: &[u8]) {
+    pub fn load_cart_from_bytes(&mut self, bytes: &[u8]) {
         use CartType::*;
 
         // Get cartridge type byte as enum

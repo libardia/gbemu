@@ -55,19 +55,30 @@ impl GB {
     }
 
     pub fn load(&mut self, path: &str) {
-        self.mmu.borrow_mut().load_from_file(path);
+        self.mmu.borrow_mut().load_cart_from_file(path);
     }
 
-    pub fn load_bytes(&mut self, bytes: &[u8]) {
-        self.mmu.borrow_mut().load_from_bytes(bytes);
+    pub fn load_cart_bytes(&mut self, bytes: &[u8]) {
+        self.mmu.borrow_mut().load_cart_from_bytes(bytes);
     }
 
     pub fn load_prog(&mut self, prog: &[u8]) {
-        self.load_bytes(&Self::make_dummy_cart(prog));
+        let mut cart = Self::make_dummy_cart();
+
+        // Copy prog
+        const PROG_START: usize = 0x150;
+        for (i, b) in prog.iter().enumerate() {
+            let a = PROG_START + i;
+            if a < cart.len() {
+                cart[a] = *b;
+            }
+        }
+
+        self.load_cart_bytes(&cart);
     }
 
-    fn make_dummy_cart(prog: &[u8]) -> Vec<u8> {
-        debug!("Constructing dummy cart for provided program...");
+    pub fn make_dummy_cart() -> Vec<u8> {
+        debug!("Constructing dummy cart...");
 
         let mut cart = vec![0; ROM_SPACE.usize()];
 
@@ -104,15 +115,6 @@ impl GB {
             checksum = checksum.wrapping_sub(cart[a]).wrapping_sub(1);
         }
         cart[0x14D] = checksum;
-
-        // Copy prog
-        const PROG_START: usize = 0x150;
-        for (i, b) in prog.iter().enumerate() {
-            let a = PROG_START + i;
-            if a < cart.len() {
-                cart[a] = *b;
-            }
-        }
 
         cart
     }
