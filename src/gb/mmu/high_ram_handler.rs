@@ -176,6 +176,10 @@ impl MMU {
             REG_LY => (/* Do nothing */),
             // FF45 = REG_LYC:          XXXX XXXX
             // FF46 = REG_DMA:          XXXX XXXX
+            REG_DMA => {
+                self.hram.set(address, value);
+                self.execute_dma = true;
+            }
             // FF47 = REG_BGP:          XXXX XXXX
             // FF48 = REG_OBP0:         XXXX XXXX
             // FF49 = REG_OBP1:         XXXX XXXX

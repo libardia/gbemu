@@ -38,6 +38,7 @@ pub struct MMU {
     boot_mode: bool,
     blocked_ranges: Vec<MemoryRegion>,
     reset_div: bool,
+    execute_dma: bool,
 }
 impl Default for MMU {
     fn default() -> Self {
@@ -55,6 +56,7 @@ impl Default for MMU {
             boot_mode: true,
             blocked_ranges: Vec::new(),
             reset_div: false,
+            execute_dma: false,
         }
     }
 }
@@ -75,6 +77,12 @@ impl MMU {
         let reset = self.reset_div;
         self.reset_div = false;
         reset
+    }
+
+    pub fn should_start_dma(&mut self) -> bool {
+        let dma = self.execute_dma;
+        self.execute_dma = false;
+        dma
     }
 
     pub fn get(&self, address: u16) -> u8 {

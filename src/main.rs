@@ -2,7 +2,7 @@
 
 use std::env;
 
-use gb::cpu::instructions::{ArgR8, Instruction::*};
+// use gb::cpu::instructions::{ArgR8, Instruction::*};
 use gb::{gpu::REAL_GB_FPS, GB};
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
@@ -29,26 +29,25 @@ fn main() {
     // let mut gb = GB::new(9999999.0, 5);
 
     // let print_terminate = gb.compile(vec![DEBUG_PRINT, TERMINATE]);
-    let mut timer_cart = GB::make_dummy_cart();
-    let timer_test = gb.compile(vec![
-        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b100.into())), // A = b100
-        LDH_mn16_a(0xFF.into()), // [$FFFF] = A = b100 (enable timer interrupt)
-        LD_r8_r8(ArgR8::A, ArgR8::CONST(0b101.into())), // A = b101
-        LDH_mn16_a(0x07.into()), // [$FF07] = A = b101 (enable timer, clock = 4)
-        EI,
-        JR_e8(-2),
-    ]);
-    let timer_int = gb.compile(vec![DEBUG_PRINT, RETI]);
-    for (i, b) in timer_test.iter().enumerate() {
-        timer_cart[i + 0x150] = *b;
-    }
-    for (i, b) in timer_int.iter().enumerate() {
-        timer_cart[i + 0x50] = *b;
-    }
+    // let mut timer_cart = GB::make_dummy_cart();
+    // let timer_test = gb.compile(vec![
+    //     LD_r8_r8(ArgR8::A, ArgR8::CONST(0b100.into())), // A = b100
+    //     LDH_mn16_a(0xFF.into()), // [$FFFF] = A = b100 (enable timer interrupt)
+    //     LD_r8_r8(ArgR8::A, ArgR8::CONST(0b101.into())), // A = b101
+    //     LDH_mn16_a(0x07.into()), // [$FF07] = A = b101 (enable timer, clock = 4)
+    //     EI,
+    //     JR_e8(-2),
+    // ]);
+    // let timer_int = gb.compile(vec![DEBUG_PRINT, RETI]);
+    // for (i, b) in timer_test.iter().enumerate() {
+    //     timer_cart[i + 0x150] = *b;
+    // }
+    // for (i, b) in timer_int.iter().enumerate() {
+    //     timer_cart[i + 0x50] = *b;
+    // }
 
     // gb.load_prog(&print_terminate);
-    // gb.load_prog(&timer_test);
-    gb.load_cart_bytes(&timer_cart);
+    // gb.load_cart_bytes(&timer_cart);
     gb.load(r"D:\Emulation\ROMs\GB\Tetris (World) (Rev 1).gb");
     // gb.load("/run/media/tonyl/Data/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb");
 

@@ -1,15 +1,16 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use cpu::{instructions::Instruction, CPU};
+use dmau::DMAU;
 use gpu::GPU;
 use log::debug;
 use mmu::{nintendo_logo::NINTENDO_LOGO, MMU};
-use time_types::TTime;
 use timer::Timer;
 
 use crate::{mem_region::regions::ROM_SPACE, util::new};
 
 pub mod cpu;
+pub mod dmau;
 pub mod gpu;
 pub mod mbc;
 pub mod mmu;
@@ -21,6 +22,7 @@ pub struct GB {
     cpu: CPU,
     timer: Timer,
     gpu: GPU,
+    dmau: DMAU,
     mmu: Rc<RefCell<MMU>>,
     // For compiling. Only constructed if required.
     encode_table: Option<Box<HashMap<Instruction, Vec<u8>>>>,
@@ -33,6 +35,7 @@ impl GB {
             cpu: CPU::new(mmu.clone()),
             timer: Timer::new(mmu.clone()),
             gpu: GPU::new(mmu.clone(), fps, window_scale),
+            dmau: DMAU::new(mmu.clone()),
             mmu,
             encode_table: None
         }
@@ -40,9 +43,11 @@ impl GB {
 
     pub fn boot(&mut self) {
         while !self.cpu.should_terminate() && !self.gpu.should_terminate() {
-            let dt: TTime = self.cpu.step().into();
-            self.gpu.step(dt);
-            self.timer.step(dt);
+            let m_dt = self.cpu.step();
+            let t_dt = m_dt.into();
+            self.dmau.step(m_dt);
+            self.gpu.step(t_dt);
+            self.timer.step(t_dt);
         }
     }
 
