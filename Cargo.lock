@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "gb-decomp"
+name = "gbemu"
 version = "0.1.0"
