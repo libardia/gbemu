@@ -3,5 +3,6 @@ use crate::gb::cpu::optable::OP_TABLE;
 mod gb;
 
 fn main() {
-    println!("Hello world! {:#X?}", OP_TABLE[0xFF]);
+    let b = 0x1A;
+    println!("OP[{b:#X}]:\n\n{:#X?}", OP_TABLE[b]);
 }

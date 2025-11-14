@@ -1,6 +1,6 @@
 use super::instruction::{Arg::*, Instruction, Instruction::*};
 
-pub const OP_TABLE: [Instruction; 256] = [
+pub const OP_TABLE: [Instruction; 0x100] = [
     // 0x
     NOP,                  // x0
     LD(R16_BC, IMM_16),   // x1*
