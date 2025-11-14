@@ -1,7 +1,6 @@
-use crate::optable::OP_TABLE;
+use crate::gb::cpu::optable::OP_TABLE;
 
-mod instruction;
-mod optable;
+mod gb;
 
 fn main() {
     println!("Hello world! {:#X?}", OP_TABLE[0xFF]);
