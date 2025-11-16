@@ -33,17 +33,13 @@ pub enum Arg {
 
     // Constants
     CONST_8(u8),
-    CONST_16(u16),
-    M_CONST_16(u16),
     CONST_i8(i8),
-    CONST_i16(i16),
+    CONST_16(u16),
 
     // Constant placeholders
     IMM_8,
-    IMM_16,
-    M_IMM_16,
     IMM_i8,
-    IMM_i16,
+    IMM_16,
 }
 
 #[allow(non_camel_case_types)]

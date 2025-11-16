@@ -2,22 +2,22 @@ use super::instruction::{Arg::*, Instruction, Instruction::*};
 
 pub const OP_TABLE: [Instruction; 0x100] = [
     // 0x
-    NOP,                  // x0
-    LD(R16_BC, IMM_16),   // x1*
-    LD(M_BC, R8_A),       // x2
-    INC(R16_BC),          // x3
-    INC(R8_B),            // x4
-    DEC(R8_B),            // x5
-    LD(R8_B, IMM_8),      // x6
-    RLCA,                 // x7
-    LD(M_IMM_16, R16_SP), // x8
-    ADD_16(R16_BC),       // x9
-    LD(R8_A, M_BC),       // xA
-    DEC(R16_BC),          // xB
-    INC(R8_C),            // xC
-    DEC(R8_C),            // xD
-    LD(R8_C, IMM_8),      // xE
-    RRCA,                 // xF
+    NOP,                // x0
+    LD(R16_BC, IMM_16), // x1*
+    LD(M_BC, R8_A),     // x2
+    INC(R16_BC),        // x3
+    INC(R8_B),          // x4
+    DEC(R8_B),          // x5
+    LD(R8_B, IMM_8),    // x6
+    RLCA,               // x7
+    LD(IMM_16, R16_SP), // x8
+    ADD_16(R16_BC),     // x9
+    LD(R8_A, M_BC),     // xA
+    DEC(R16_BC),        // xB
+    INC(R8_C),          // xC
+    DEC(R8_C),          // xD
+    LD(R8_C, IMM_8),    // xE
+    RRCA,               // xF
     // 1x
     STOP(IMM_8),        // x0
     LD(R16_DE, IMM_16), // x1
@@ -206,39 +206,39 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     CP(M_HL), // xE
     CP(R8_A), // xF
     // Cx
-    RET(C_NZ),             // x0
-    POP(R16_BC),           // x1
-    JP(C_NZ, M_IMM_16),    // x2
-    JP(C_A, M_IMM_16),     // x3
-    CALL(C_NZ, M_IMM_16),  // x4
-    PUSH(R16_BC),          // x5
-    ADD(IMM_8),            // x6
-    RST(M_CONST_16(0x00)), // x7
-    RET(C_Z),              // x8
-    RET(C_A),              // x9
-    JP(C_Z, M_IMM_16),     // xA
-    PREFIX,                // xB
-    CALL(C_Z, M_IMM_16),   // xC
-    CALL(C_A, M_IMM_16),   // xD
-    ADC(IMM_8),            // xE
-    RST(M_CONST_16(0x08)), // xF
+    RET(C_NZ),           // x0
+    POP(R16_BC),         // x1
+    JP(C_NZ, IMM_16),    // x2
+    JP(C_A, IMM_16),     // x3
+    CALL(C_NZ, IMM_16),  // x4
+    PUSH(R16_BC),        // x5
+    ADD(IMM_8),          // x6
+    RST(CONST_16(0x00)), // x7
+    RET(C_Z),            // x8
+    RET(C_A),            // x9
+    JP(C_Z, IMM_16),     // xA
+    PREFIX,              // xB
+    CALL(C_Z, IMM_16),   // xC
+    CALL(C_A, IMM_16),   // xD
+    ADC(IMM_8),          // xE
+    RST(CONST_16(0x08)), // xF
     // Dx
-    RET(C_NC),             // x0
-    POP(R16_DE),           // x1
-    JP(C_NC, M_IMM_16),    // x2
-    INVALID,               // x3
-    CALL(C_NC, M_IMM_16),  // x4
-    PUSH(R16_DE),          // x5
-    SUB(IMM_8),            // x6
-    RST(M_CONST_16(0x10)), // x7
-    RET(C_C),              // x8
-    RETI,                  // x9
-    JP(C_C, M_IMM_16),     // xA
-    INVALID,               // xB
-    CALL(C_C, M_IMM_16),   // xC
-    INVALID,               // xD
-    SBC(IMM_8),            // xE
-    RST(M_CONST_16(0x18)), // xF
+    RET(C_NC),           // x0
+    POP(R16_DE),         // x1
+    JP(C_NC, IMM_16),    // x2
+    INVALID,             // x3
+    CALL(C_NC, IMM_16),  // x4
+    PUSH(R16_DE),        // x5
+    SUB(IMM_8),          // x6
+    RST(CONST_16(0x10)), // x7
+    RET(C_C),            // x8
+    RETI,                // x9
+    JP(C_C, IMM_16),     // xA
+    INVALID,             // xB
+    CALL(C_C, IMM_16),   // xC
+    INVALID,             // xD
+    SBC(IMM_8),          // xE
+    RST(CONST_16(0x18)), // xF
     // Ex
     LDH(IMM_8, R8_A),        // x0
     POP(R16_HL),             // x1
@@ -247,32 +247,32 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     INVALID,                 // x4
     PUSH(R16_HL),            // x5
     AND(IMM_8),              // x6
-    RST(M_CONST_16(0x20)),   // x7
+    RST(CONST_16(0x20)),     // x7
     ADD_STK(R16_SP, IMM_i8), // x8
     JP(C_A, M_HL),           // x9
-    LD(M_IMM_16, R8_A),      // xA
+    LD(IMM_16, R8_A),        // xA
     INVALID,                 // xB
     INVALID,                 // xC
     INVALID,                 // xD
     XOR(IMM_8),              // xE
-    RST(M_CONST_16(0x28)),   // xF
+    RST(CONST_16(0x28)),     // xF
     // Fx
-    LDH(R8_A, IMM_8),      // x0
-    POP(R16_AF),           // x1
-    LDH(R8_A, R8_C),       // x2
-    DI,                    // x3
-    INVALID,               // x4
-    PUSH(R16_AF),          // x5
-    OR(IMM_8),             // x6
-    RST(M_CONST_16(0x30)), // x7
-    LD(R16_HL, IMM_i8),    // x8
-    LD(R16_SP, R16_HL),    // x9
-    LD(R8_A, M_IMM_16),    // xA
-    EI,                    // xB
-    INVALID,               // xC
-    INVALID,               // xD
-    CP(IMM_8),             // xE
-    RST(M_CONST_16(0x38)), // xF
+    LDH(R8_A, IMM_8),    // x0
+    POP(R16_AF),         // x1
+    LDH(R8_A, R8_C),     // x2
+    DI,                  // x3
+    INVALID,             // x4
+    PUSH(R16_AF),        // x5
+    OR(IMM_8),           // x6
+    RST(CONST_16(0x30)), // x7
+    LD(R16_HL, IMM_i8),  // x8
+    LD(R16_SP, R16_HL),  // x9
+    LD(R8_A, IMM_16),    // xA
+    EI,                  // xB
+    INVALID,             // xC
+    INVALID,             // xD
+    CP(IMM_8),           // xE
+    RST(CONST_16(0x38)), // xF
 ];
 
 pub const PREFIX_TABLE: [Instruction; 256] = [
