@@ -101,6 +101,7 @@ pub enum Instruction {
     SCF,
 
     // Stack
+    ADD_STK(Arg, Arg),
     POP(Arg),
     PUSH(Arg),
 
