@@ -49,6 +49,7 @@ pub enum Arg {
     NO_ARG,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load
@@ -64,7 +65,6 @@ pub enum Instruction {
     INC(Arg),
     DEC(Arg),
     CP(Arg),
-    DAA,
 
     // Logic
     AND(Arg),
@@ -72,22 +72,12 @@ pub enum Instruction {
     XOR(Arg),
     CPL,
 
-    // Jumps
-    JP(Arg, Arg),
-    JR(Arg, Arg),
-    CALL(Arg, Arg),
-    RST(Arg),
-    RET(Arg),
-    RETI,
-
-    // Stack
-    POP(Arg),
-    PUSH(Arg),
-
-    // Bit
+    // Bit flags
     BIT(Arg, Arg),
     RES(Arg, Arg),
     SET(Arg, Arg),
+
+    // Bit shifts
     RL(Arg),
     RLC(Arg),
     RLA,
@@ -101,19 +91,32 @@ pub enum Instruction {
     SRL(Arg),
     SWAP(Arg, Arg),
 
-    // Flags
+    // Jumps
+    JP(Arg, Arg),
+    JR(Arg, Arg),
+    CALL(Arg, Arg),
+    RST(Arg),
+    RET(Arg),
+    RETI,
+
+    // Carry flag
     CCF,
     SCF,
 
+    // Stack
+    POP(Arg),
+    PUSH(Arg),
+
     // System
-    #[default]
-    NOP,
     DI,
     EI,
     HALT,
-    STOP(Arg),
 
-    // Meta
+    // Misc
+    #[default]
+    NOP,
+    DAA,
+    STOP(Arg),
     PREFIX,
     INVALID,
 }
