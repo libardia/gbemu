@@ -1,5 +1,5 @@
 #[allow(non_camel_case_types)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Arg {
     // 8-bit registers
     R8_B,
@@ -25,6 +25,7 @@ pub enum Arg {
     M_HLD,
 
     // Conditions
+    C_A, // (always)
     C_NZ,
     C_Z,
     C_NC,
@@ -43,10 +44,6 @@ pub enum Arg {
     M_IMM_16,
     IMM_i8,
     IMM_i16,
-
-    // Special
-    #[default]
-    NO_ARG,
 }
 
 #[allow(non_camel_case_types)]

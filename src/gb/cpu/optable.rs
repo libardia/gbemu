@@ -27,7 +27,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     DEC(R8_D),          // x5
     LD(R8_D, IMM_8),    // x6
     RLA,                // x7
-    JR(NO_ARG, IMM_i8), // x8
+    JR(C_A, IMM_i8),    // x8
     ADD_16(R16_DE),     // x9
     LD(R8_A, M_DE),     // xA
     DEC(R16_DE),        // xB
@@ -206,22 +206,22 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     CP(M_HL), // xE
     CP(R8_A), // xF
     // Cx
-    RET(C_NZ),   // x0
-    POP(R16_BC), // x1
-    NOP,         // x2
-    NOP,         // x3
-    NOP,         // x4
-    NOP,         // x5
-    NOP,         // x6
-    NOP,         // x7
-    NOP,         // x8
-    NOP,         // x9
-    NOP,         // xA
-    NOP,         // xB
-    NOP,         // xC
-    NOP,         // xD
-    NOP,         // xE
-    NOP,         // xF
+    RET(C_NZ),        // x0
+    POP(R16_BC),      // x1
+    JP(C_NZ, IMM_16), // x2
+    JP(C_A, IMM_16),  // x3
+    NOP,              // x4
+    NOP,              // x5
+    NOP,              // x6
+    NOP,              // x7
+    NOP,              // x8
+    NOP,              // x9
+    NOP,              // xA
+    NOP,              // xB
+    NOP,              // xC
+    NOP,              // xD
+    NOP,              // xE
+    NOP,              // xF
     // Dx
     NOP, // x0
     NOP, // x1
