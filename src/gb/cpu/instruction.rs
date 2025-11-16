@@ -6,6 +6,8 @@ pub enum Arg {
     R8_C,
     R8_D,
     R8_E,
+    R8_H,
+    R8_L,
     R8_A,
 
     // 16-bit registers
@@ -21,6 +23,12 @@ pub enum Arg {
     M_HL,
     M_HLI,
     M_HLD,
+
+    // Conditions
+    C_NZ,
+    C_Z,
+    C_NC,
+    C_C,
 
     // Constants
     CONST_8(u8),
@@ -48,18 +56,21 @@ pub enum Instruction {
     LDH(Arg, Arg),
 
     // Arithmetic
-    ADD(Arg, Arg),
+    ADD(Arg),
+    ADD_16(Arg),
     ADC(Arg),
-    SUB(Arg, Arg),
-    SBC(Arg, Arg),
+    SUB(Arg),
+    SBC(Arg),
     INC(Arg),
     DEC(Arg),
+    CP(Arg),
     DAA,
 
     // Logic
-    AND(Arg, Arg),
-    OR(Arg, Arg),
-    XOR(Arg, Arg),
+    AND(Arg),
+    OR(Arg),
+    XOR(Arg),
+    CPL,
 
     // Jumps
     JP(Arg, Arg),
@@ -88,11 +99,9 @@ pub enum Instruction {
     SLA(Arg),
     SRA(Arg),
     SRL(Arg),
-    CPL,
     SWAP(Arg, Arg),
 
     // Flags
-    CP(Arg, Arg),
     CCF,
     SCF,
 
