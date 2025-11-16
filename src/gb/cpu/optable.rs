@@ -277,275 +277,275 @@ pub const OP_TABLE: [Instruction; 0x100] = [
 
 pub const PREFIX_TABLE: [Instruction; 0x100] = [
     // 0x
-    NOP, // x0 - RLC B
-    NOP, // x1 - RLC C
-    NOP, // x2 - RLC D
-    NOP, // x3 - RLC E
-    NOP, // x4 - RLC H
-    NOP, // x5 - RLC L
-    NOP, // x6 - RLC [HL]
-    NOP, // x7 - RLC A
-    NOP, // x8 - RRC B
-    NOP, // x9 - RRC C
-    NOP, // xA - RRC D
-    NOP, // xB - RRC E
-    NOP, // xC - RRC H
-    NOP, // xD - RRC L
-    NOP, // xE - RRC [HL]
-    NOP, // xF - RRC A
+    RLC(R8_B), // x0 - RLC B
+    RLC(R8_C), // x1 - RLC C
+    RLC(R8_D), // x2 - RLC D
+    RLC(R8_E), // x3 - RLC E
+    RLC(R8_H), // x4 - RLC H
+    RLC(R8_L), // x5 - RLC L
+    RLC(M_HL), // x6 - RLC [HL]
+    RLC(R8_A), // x7 - RLC A
+    RRC(R8_B), // x8 - RRC B
+    RRC(R8_C), // x9 - RRC C
+    RRC(R8_D), // xA - RRC D
+    RRC(R8_E), // xB - RRC E
+    RRC(R8_H), // xC - RRC H
+    RRC(R8_L), // xD - RRC L
+    RRC(M_HL), // xE - RRC [HL]
+    RRC(R8_A), // xF - RRC A
     // 1x
-    NOP, // x0 - RL B
-    NOP, // x1 - RL C
-    NOP, // x2 - RL D
-    NOP, // x3 - RL E
-    NOP, // x4 - RL H
-    NOP, // x5 - RL L
-    NOP, // x6 - RL [HL]
-    NOP, // x7 - RL A
-    NOP, // x8 - RR B
-    NOP, // x9 - RR C
-    NOP, // xA - RR D
-    NOP, // xB - RR E
-    NOP, // xC - RR H
-    NOP, // xD - RR L
-    NOP, // xE - RR [HL]
-    NOP, // xF - RR A
+    RL(R8_B), // x0 - RL B
+    RL(R8_C), // x1 - RL C
+    RL(R8_D), // x2 - RL D
+    RL(R8_E), // x3 - RL E
+    RL(R8_H), // x4 - RL H
+    RL(R8_L), // x5 - RL L
+    RL(M_HL), // x6 - RL [HL]
+    RL(R8_A), // x7 - RL A
+    RR(R8_B), // x8 - RR B
+    RR(R8_C), // x9 - RR C
+    RR(R8_D), // xA - RR D
+    RR(R8_E), // xB - RR E
+    RR(R8_H), // xC - RR H
+    RR(R8_L), // xD - RR L
+    RR(M_HL), // xE - RR [HL]
+    RR(R8_A), // xF - RR A
     // 2x
-    NOP, // x0 - SLA B
-    NOP, // x1 - SLA C
-    NOP, // x2 - SLA D
-    NOP, // x3 - SLA E
-    NOP, // x4 - SLA H
-    NOP, // x5 - SLA L
-    NOP, // x6 - SLA [HL]
-    NOP, // x7 - SLA A
-    NOP, // x8 - SRA B
-    NOP, // x9 - SRA C
-    NOP, // xA - SRA D
-    NOP, // xB - SRA E
-    NOP, // xC - SRA H
-    NOP, // xD - SRA L
-    NOP, // xE - SRA [HL]
-    NOP, // xF - SRA A
+    SLA(R8_B), // x0 - SLA B
+    SLA(R8_C), // x1 - SLA C
+    SLA(R8_D), // x2 - SLA D
+    SLA(R8_E), // x3 - SLA E
+    SLA(R8_H), // x4 - SLA H
+    SLA(R8_L), // x5 - SLA L
+    SLA(M_HL), // x6 - SLA [HL]
+    SLA(R8_A), // x7 - SLA A
+    SRA(R8_B), // x8 - SRA B
+    SRA(R8_C), // x9 - SRA C
+    SRA(R8_D), // xA - SRA D
+    SRA(R8_E), // xB - SRA E
+    SRA(R8_H), // xC - SRA H
+    SRA(R8_L), // xD - SRA L
+    SRA(M_HL), // xE - SRA [HL]
+    SRA(R8_A), // xF - SRA A
     // 3x
-    NOP, // x0 - SWAP B
-    NOP, // x1 - SWAP C
-    NOP, // x2 - SWAP D
-    NOP, // x3 - SWAP E
-    NOP, // x4 - SWAP H
-    NOP, // x5 - SWAP L
-    NOP, // x6 - SWAP [HL]
-    NOP, // x7 - SWAP A
-    NOP, // x8 - SRL B
-    NOP, // x9 - SRL C
-    NOP, // xA - SRL D
-    NOP, // xB - SRL E
-    NOP, // xC - SRL H
-    NOP, // xD - SRL L
-    NOP, // xE - SRL [HL]
-    NOP, // xF - SRL A
+    SWAP(R8_B), // x0 - SWAP B
+    SWAP(R8_C), // x1 - SWAP C
+    SWAP(R8_D), // x2 - SWAP D
+    SWAP(R8_E), // x3 - SWAP E
+    SWAP(R8_H), // x4 - SWAP H
+    SWAP(R8_L), // x5 - SWAP L
+    SWAP(M_HL), // x6 - SWAP [HL]
+    SWAP(R8_A), // x7 - SWAP A
+    SRL(R8_B),  // x8 - SRL B
+    SRL(R8_C),  // x9 - SRL C
+    SRL(R8_D),  // xA - SRL D
+    SRL(R8_E),  // xB - SRL E
+    SRL(R8_H),  // xC - SRL H
+    SRL(R8_L),  // xD - SRL L
+    SRL(M_HL),  // xE - SRL [HL]
+    SRL(R8_A),  // xF - SRL A
     // 4x
-    NOP, // x0 - BIT 0, B
-    NOP, // x1 - BIT 0, C
-    NOP, // x2 - BIT 0, D
-    NOP, // x3 - BIT 0, E
-    NOP, // x4 - BIT 0, H
-    NOP, // x5 - BIT 0, L
-    NOP, // x6 - BIT 0, [HL]
-    NOP, // x7 - BIT 0, A
-    NOP, // x8 - BIT 1, B
-    NOP, // x9 - BIT 1, C
-    NOP, // xA - BIT 1, D
-    NOP, // xB - BIT 1, E
-    NOP, // xC - BIT 1, H
-    NOP, // xD - BIT 1, L
-    NOP, // xE - BIT 1, [HL]
-    NOP, // xF - BIT 1, A
+    BIT(CONST_8(0), R8_B), // x0 - BIT 0, B
+    BIT(CONST_8(0), R8_C), // x1 - BIT 0, C
+    BIT(CONST_8(0), R8_D), // x2 - BIT 0, D
+    BIT(CONST_8(0), R8_E), // x3 - BIT 0, E
+    BIT(CONST_8(0), R8_H), // x4 - BIT 0, H
+    BIT(CONST_8(0), R8_L), // x5 - BIT 0, L
+    BIT(CONST_8(0), M_HL), // x6 - BIT 0, [HL]
+    BIT(CONST_8(0), R8_A), // x7 - BIT 0, A
+    BIT(CONST_8(1), R8_B), // x8 - BIT 1, B
+    BIT(CONST_8(1), R8_C), // x9 - BIT 1, C
+    BIT(CONST_8(1), R8_D), // xA - BIT 1, D
+    BIT(CONST_8(1), R8_E), // xB - BIT 1, E
+    BIT(CONST_8(1), R8_H), // xC - BIT 1, H
+    BIT(CONST_8(1), R8_L), // xD - BIT 1, L
+    BIT(CONST_8(1), M_HL), // xE - BIT 1, [HL]
+    BIT(CONST_8(1), R8_A), // xF - BIT 1, A
     // 5x
-    NOP, // x0 - BIT 2, B
-    NOP, // x1 - BIT 2, C
-    NOP, // x2 - BIT 2, D
-    NOP, // x3 - BIT 2, E
-    NOP, // x4 - BIT 2, H
-    NOP, // x5 - BIT 2, L
-    NOP, // x6 - BIT 2, [HL]
-    NOP, // x7 - BIT 2, A
-    NOP, // x8 - BIT 3, B
-    NOP, // x9 - BIT 3, C
-    NOP, // xA - BIT 3, D
-    NOP, // xB - BIT 3, E
-    NOP, // xC - BIT 3, H
-    NOP, // xD - BIT 3, L
-    NOP, // xE - BIT 3, [HL]
-    NOP, // xF - BIT 3, A
+    BIT(CONST_8(2), R8_B), // x0 - BIT 2, B
+    BIT(CONST_8(2), R8_C), // x1 - BIT 2, C
+    BIT(CONST_8(2), R8_D), // x2 - BIT 2, D
+    BIT(CONST_8(2), R8_E), // x3 - BIT 2, E
+    BIT(CONST_8(2), R8_H), // x4 - BIT 2, H
+    BIT(CONST_8(2), R8_L), // x5 - BIT 2, L
+    BIT(CONST_8(2), M_HL), // x6 - BIT 2, [HL]
+    BIT(CONST_8(2), R8_A), // x7 - BIT 2, A
+    BIT(CONST_8(3), R8_B), // x8 - BIT 3, B
+    BIT(CONST_8(3), R8_C), // x9 - BIT 3, C
+    BIT(CONST_8(3), R8_D), // xA - BIT 3, D
+    BIT(CONST_8(3), R8_E), // xB - BIT 3, E
+    BIT(CONST_8(3), R8_H), // xC - BIT 3, H
+    BIT(CONST_8(3), R8_L), // xD - BIT 3, L
+    BIT(CONST_8(3), M_HL), // xE - BIT 3, [HL]
+    BIT(CONST_8(3), R8_A), // xF - BIT 3, A
     // 6x
-    NOP, // x0 - BIT 4, B
-    NOP, // x1 - BIT 4, C
-    NOP, // x2 - BIT 4, D
-    NOP, // x3 - BIT 4, E
-    NOP, // x4 - BIT 4, H
-    NOP, // x5 - BIT 4, L
-    NOP, // x6 - BIT 4, [HL]
-    NOP, // x7 - BIT 4, A
-    NOP, // x8 - BIT 5, B
-    NOP, // x9 - BIT 5, C
-    NOP, // xA - BIT 5, D
-    NOP, // xB - BIT 5, E
-    NOP, // xC - BIT 5, H
-    NOP, // xD - BIT 5, L
-    NOP, // xE - BIT 5, [HL]
-    NOP, // xF - BIT 5, A
+    BIT(CONST_8(4), R8_B), // x0 - BIT 4, B
+    BIT(CONST_8(4), R8_C), // x1 - BIT 4, C
+    BIT(CONST_8(4), R8_D), // x2 - BIT 4, D
+    BIT(CONST_8(4), R8_E), // x3 - BIT 4, E
+    BIT(CONST_8(4), R8_H), // x4 - BIT 4, H
+    BIT(CONST_8(4), R8_L), // x5 - BIT 4, L
+    BIT(CONST_8(4), M_HL), // x6 - BIT 4, [HL]
+    BIT(CONST_8(4), R8_A), // x7 - BIT 4, A
+    BIT(CONST_8(5), R8_B), // x8 - BIT 5, B
+    BIT(CONST_8(5), R8_C), // x9 - BIT 5, C
+    BIT(CONST_8(5), R8_D), // xA - BIT 5, D
+    BIT(CONST_8(5), R8_E), // xB - BIT 5, E
+    BIT(CONST_8(5), R8_H), // xC - BIT 5, H
+    BIT(CONST_8(5), R8_L), // xD - BIT 5, L
+    BIT(CONST_8(5), M_HL), // xE - BIT 5, [HL]
+    BIT(CONST_8(5), R8_A), // xF - BIT 5, A
     // 7x
-    NOP, // x0 - BIT 6, B
-    NOP, // x1 - BIT 6, C
-    NOP, // x2 - BIT 6, D
-    NOP, // x3 - BIT 6, E
-    NOP, // x4 - BIT 6, H
-    NOP, // x5 - BIT 6, L
-    NOP, // x6 - BIT 6, [HL]
-    NOP, // x7 - BIT 6, A
-    NOP, // x8 - BIT 7, B
-    NOP, // x9 - BIT 7, C
-    NOP, // xA - BIT 7, D
-    NOP, // xB - BIT 7, E
-    NOP, // xC - BIT 7, H
-    NOP, // xD - BIT 7, L
-    NOP, // xE - BIT 7, [HL]
-    NOP, // xF - BIT 7, A
+    BIT(CONST_8(6), R8_B), // x0 - BIT 6, B
+    BIT(CONST_8(6), R8_C), // x1 - BIT 6, C
+    BIT(CONST_8(6), R8_D), // x2 - BIT 6, D
+    BIT(CONST_8(6), R8_E), // x3 - BIT 6, E
+    BIT(CONST_8(6), R8_H), // x4 - BIT 6, H
+    BIT(CONST_8(6), R8_L), // x5 - BIT 6, L
+    BIT(CONST_8(6), M_HL), // x6 - BIT 6, [HL]
+    BIT(CONST_8(6), R8_A), // x7 - BIT 6, A
+    BIT(CONST_8(7), R8_B), // x8 - BIT 7, B
+    BIT(CONST_8(7), R8_C), // x9 - BIT 7, C
+    BIT(CONST_8(7), R8_D), // xA - BIT 7, D
+    BIT(CONST_8(7), R8_E), // xB - BIT 7, E
+    BIT(CONST_8(7), R8_H), // xC - BIT 7, H
+    BIT(CONST_8(7), R8_L), // xD - BIT 7, L
+    BIT(CONST_8(7), M_HL), // xE - BIT 7, [HL]
+    BIT(CONST_8(7), R8_A), // xF - BIT 7, A
     // 8x
-    NOP, // x0 - RES 0, B
-    NOP, // x1 - RES 0, C
-    NOP, // x2 - RES 0, D
-    NOP, // x3 - RES 0, E
-    NOP, // x4 - RES 0, H
-    NOP, // x5 - RES 0, L
-    NOP, // x6 - RES 0, [HL]
-    NOP, // x7 - RES 0, A
-    NOP, // x8 - RES 1, B
-    NOP, // x9 - RES 1, C
-    NOP, // xA - RES 1, D
-    NOP, // xB - RES 1, E
-    NOP, // xC - RES 1, H
-    NOP, // xD - RES 1, L
-    NOP, // xE - RES 1, [HL]
-    NOP, // xF - RES 1, A
+    RES(CONST_8(0), R8_B), // x0 - RES 0, B
+    RES(CONST_8(0), R8_C), // x1 - RES 0, C
+    RES(CONST_8(0), R8_D), // x2 - RES 0, D
+    RES(CONST_8(0), R8_E), // x3 - RES 0, E
+    RES(CONST_8(0), R8_H), // x4 - RES 0, H
+    RES(CONST_8(0), R8_L), // x5 - RES 0, L
+    RES(CONST_8(0), M_HL), // x6 - RES 0, [HL]
+    RES(CONST_8(0), R8_A), // x7 - RES 0, A
+    RES(CONST_8(1), R8_B), // x8 - RES 1, B
+    RES(CONST_8(1), R8_C), // x9 - RES 1, C
+    RES(CONST_8(1), R8_D), // xA - RES 1, D
+    RES(CONST_8(1), R8_E), // xB - RES 1, E
+    RES(CONST_8(1), R8_H), // xC - RES 1, H
+    RES(CONST_8(1), R8_L), // xD - RES 1, L
+    RES(CONST_8(1), M_HL), // xE - RES 1, [HL]
+    RES(CONST_8(1), R8_A), // xF - RES 1, A
     // 9x
-    NOP, // x0 - RES 2, B
-    NOP, // x1 - RES 2, C
-    NOP, // x2 - RES 2, D
-    NOP, // x3 - RES 2, E
-    NOP, // x4 - RES 2, H
-    NOP, // x5 - RES 2, L
-    NOP, // x6 - RES 2, [HL]
-    NOP, // x7 - RES 2, A
-    NOP, // x8 - RES 3, B
-    NOP, // x9 - RES 3, C
-    NOP, // xA - RES 3, D
-    NOP, // xB - RES 3, E
-    NOP, // xC - RES 3, H
-    NOP, // xD - RES 3, L
-    NOP, // xE - RES 3, [HL]
-    NOP, // xF - RES 3, A
+    RES(CONST_8(2), R8_B), // x0 - RES 2, B
+    RES(CONST_8(2), R8_C), // x1 - RES 2, C
+    RES(CONST_8(2), R8_D), // x2 - RES 2, D
+    RES(CONST_8(2), R8_E), // x3 - RES 2, E
+    RES(CONST_8(2), R8_H), // x4 - RES 2, H
+    RES(CONST_8(2), R8_L), // x5 - RES 2, L
+    RES(CONST_8(2), M_HL), // x6 - RES 2, [HL]
+    RES(CONST_8(2), R8_A), // x7 - RES 2, A
+    RES(CONST_8(3), R8_B), // x8 - RES 3, B
+    RES(CONST_8(3), R8_C), // x9 - RES 3, C
+    RES(CONST_8(3), R8_D), // xA - RES 3, D
+    RES(CONST_8(3), R8_E), // xB - RES 3, E
+    RES(CONST_8(3), R8_H), // xC - RES 3, H
+    RES(CONST_8(3), R8_L), // xD - RES 3, L
+    RES(CONST_8(3), M_HL), // xE - RES 3, [HL]
+    RES(CONST_8(3), R8_A), // xF - RES 3, A
     // Ax
-    NOP, // x0 - RES 4, B
-    NOP, // x1 - RES 4, C
-    NOP, // x2 - RES 4, D
-    NOP, // x3 - RES 4, E
-    NOP, // x4 - RES 4, H
-    NOP, // x5 - RES 4, L
-    NOP, // x6 - RES 4, [HL]
-    NOP, // x7 - RES 4, A
-    NOP, // x8 - RES 5, B
-    NOP, // x9 - RES 5, C
-    NOP, // xA - RES 5, D
-    NOP, // xB - RES 5, E
-    NOP, // xC - RES 5, H
-    NOP, // xD - RES 5, L
-    NOP, // xE - RES 5, [HL]
-    NOP, // xF - RES 5, A
+    RES(CONST_8(4), R8_B), // x0 - RES 4, B
+    RES(CONST_8(4), R8_C), // x1 - RES 4, C
+    RES(CONST_8(4), R8_D), // x2 - RES 4, D
+    RES(CONST_8(4), R8_E), // x3 - RES 4, E
+    RES(CONST_8(4), R8_H), // x4 - RES 4, H
+    RES(CONST_8(4), R8_L), // x5 - RES 4, L
+    RES(CONST_8(4), M_HL), // x6 - RES 4, [HL]
+    RES(CONST_8(4), R8_A), // x7 - RES 4, A
+    RES(CONST_8(5), R8_B), // x8 - RES 5, B
+    RES(CONST_8(5), R8_C), // x9 - RES 5, C
+    RES(CONST_8(5), R8_D), // xA - RES 5, D
+    RES(CONST_8(5), R8_E), // xB - RES 5, E
+    RES(CONST_8(5), R8_H), // xC - RES 5, H
+    RES(CONST_8(5), R8_L), // xD - RES 5, L
+    RES(CONST_8(5), M_HL), // xE - RES 5, [HL]
+    RES(CONST_8(5), R8_A), // xF - RES 5, A
     // Bx
-    NOP, // x0 - RES 6, B
-    NOP, // x1 - RES 6, C
-    NOP, // x2 - RES 6, D
-    NOP, // x3 - RES 6, E
-    NOP, // x4 - RES 6, H
-    NOP, // x5 - RES 6, L
-    NOP, // x6 - RES 6, [HL]
-    NOP, // x7 - RES 6, A
-    NOP, // x8 - RES 7, B
-    NOP, // x9 - RES 7, C
-    NOP, // xA - RES 7, D
-    NOP, // xB - RES 7, E
-    NOP, // xC - RES 7, H
-    NOP, // xD - RES 7, L
-    NOP, // xE - RES 7, [HL]
-    NOP, // xF - RES 7, A
+    RES(CONST_8(6), R8_B), // x0 - RES 6, B
+    RES(CONST_8(6), R8_C), // x1 - RES 6, C
+    RES(CONST_8(6), R8_D), // x2 - RES 6, D
+    RES(CONST_8(6), R8_E), // x3 - RES 6, E
+    RES(CONST_8(6), R8_H), // x4 - RES 6, H
+    RES(CONST_8(6), R8_L), // x5 - RES 6, L
+    RES(CONST_8(6), M_HL), // x6 - RES 6, [HL]
+    RES(CONST_8(6), R8_A), // x7 - RES 6, A
+    RES(CONST_8(7), R8_B), // x8 - RES 7, B
+    RES(CONST_8(7), R8_C), // x9 - RES 7, C
+    RES(CONST_8(7), R8_D), // xA - RES 7, D
+    RES(CONST_8(7), R8_E), // xB - RES 7, E
+    RES(CONST_8(7), R8_H), // xC - RES 7, H
+    RES(CONST_8(7), R8_L), // xD - RES 7, L
+    RES(CONST_8(7), M_HL), // xE - RES 7, [HL]
+    RES(CONST_8(7), R8_A), // xF - RES 7, A
     // Cx
-    NOP, // x0 - SET 0, B
-    NOP, // x1 - SET 0, C
-    NOP, // x2 - SET 0, D
-    NOP, // x3 - SET 0, E
-    NOP, // x4 - SET 0, H
-    NOP, // x5 - SET 0, L
-    NOP, // x6 - SET 0, [HL]
-    NOP, // x7 - SET 0, A
-    NOP, // x8 - SET 1, B
-    NOP, // x9 - SET 1, C
-    NOP, // xA - SET 1, D
-    NOP, // xB - SET 1, E
-    NOP, // xC - SET 1, H
-    NOP, // xD - SET 1, L
-    NOP, // xE - SET 1, [HL]
-    NOP, // xF - SET 1, A
+    SET(CONST_8(0), R8_B), // x0 - SET 0, B
+    SET(CONST_8(0), R8_C), // x1 - SET 0, C
+    SET(CONST_8(0), R8_D), // x2 - SET 0, D
+    SET(CONST_8(0), R8_E), // x3 - SET 0, E
+    SET(CONST_8(0), R8_H), // x4 - SET 0, H
+    SET(CONST_8(0), R8_L), // x5 - SET 0, L
+    SET(CONST_8(0), M_HL), // x6 - SET 0, [HL]
+    SET(CONST_8(0), R8_A), // x7 - SET 0, A
+    SET(CONST_8(1), R8_B), // x8 - SET 1, B
+    SET(CONST_8(1), R8_C), // x9 - SET 1, C
+    SET(CONST_8(1), R8_D), // xA - SET 1, D
+    SET(CONST_8(1), R8_E), // xB - SET 1, E
+    SET(CONST_8(1), R8_H), // xC - SET 1, H
+    SET(CONST_8(1), R8_L), // xD - SET 1, L
+    SET(CONST_8(1), M_HL), // xE - SET 1, [HL]
+    SET(CONST_8(1), R8_A), // xF - SET 1, A
     // Dx
-    NOP, // x0 - SET 2, B
-    NOP, // x1 - SET 2, C
-    NOP, // x2 - SET 2, D
-    NOP, // x3 - SET 2, E
-    NOP, // x4 - SET 2, H
-    NOP, // x5 - SET 2, L
-    NOP, // x6 - SET 2, [HL]
-    NOP, // x7 - SET 2, A
-    NOP, // x8 - SET 3, B
-    NOP, // x9 - SET 3, C
-    NOP, // xA - SET 3, D
-    NOP, // xB - SET 3, E
-    NOP, // xC - SET 3, H
-    NOP, // xD - SET 3, L
-    NOP, // xE - SET 3, [HL]
-    NOP, // xF - SET 3, A
+    SET(CONST_8(2), R8_B), // x0 - SET 2, B
+    SET(CONST_8(2), R8_C), // x1 - SET 2, C
+    SET(CONST_8(2), R8_D), // x2 - SET 2, D
+    SET(CONST_8(2), R8_E), // x3 - SET 2, E
+    SET(CONST_8(2), R8_H), // x4 - SET 2, H
+    SET(CONST_8(2), R8_L), // x5 - SET 2, L
+    SET(CONST_8(2), M_HL), // x6 - SET 2, [HL]
+    SET(CONST_8(2), R8_A), // x7 - SET 2, A
+    SET(CONST_8(3), R8_B), // x8 - SET 3, B
+    SET(CONST_8(3), R8_C), // x9 - SET 3, C
+    SET(CONST_8(3), R8_D), // xA - SET 3, D
+    SET(CONST_8(3), R8_E), // xB - SET 3, E
+    SET(CONST_8(3), R8_H), // xC - SET 3, H
+    SET(CONST_8(3), R8_L), // xD - SET 3, L
+    SET(CONST_8(3), M_HL), // xE - SET 3, [HL]
+    SET(CONST_8(3), R8_A), // xF - SET 3, A
     // Ex
-    NOP, // x0 - SET 4, B
-    NOP, // x1 - SET 4, C
-    NOP, // x2 - SET 4, D
-    NOP, // x3 - SET 4, E
-    NOP, // x4 - SET 4, H
-    NOP, // x5 - SET 4, L
-    NOP, // x6 - SET 4, [HL]
-    NOP, // x7 - SET 4, A
-    NOP, // x8 - SET 5, B
-    NOP, // x9 - SET 5, C
-    NOP, // xA - SET 5, D
-    NOP, // xB - SET 5, E
-    NOP, // xC - SET 5, H
-    NOP, // xD - SET 5, L
-    NOP, // xE - SET 5, [HL]
-    NOP, // xF - SET 5, A
+    SET(CONST_8(4), R8_B), // x0 - SET 4, B
+    SET(CONST_8(4), R8_C), // x1 - SET 4, C
+    SET(CONST_8(4), R8_D), // x2 - SET 4, D
+    SET(CONST_8(4), R8_E), // x3 - SET 4, E
+    SET(CONST_8(4), R8_H), // x4 - SET 4, H
+    SET(CONST_8(4), R8_L), // x5 - SET 4, L
+    SET(CONST_8(4), M_HL), // x6 - SET 4, [HL]
+    SET(CONST_8(4), R8_A), // x7 - SET 4, A
+    SET(CONST_8(5), R8_B), // x8 - SET 5, B
+    SET(CONST_8(5), R8_C), // x9 - SET 5, C
+    SET(CONST_8(5), R8_D), // xA - SET 5, D
+    SET(CONST_8(5), R8_E), // xB - SET 5, E
+    SET(CONST_8(5), R8_H), // xC - SET 5, H
+    SET(CONST_8(5), R8_L), // xD - SET 5, L
+    SET(CONST_8(5), M_HL), // xE - SET 5, [HL]
+    SET(CONST_8(5), R8_A), // xF - SET 5, A
     // Fx
-    NOP, // x0 - SET 6, B
-    NOP, // x1 - SET 6, C
-    NOP, // x2 - SET 6, D
-    NOP, // x3 - SET 6, E
-    NOP, // x4 - SET 6, H
-    NOP, // x5 - SET 6, L
-    NOP, // x6 - SET 6, [HL]
-    NOP, // x7 - SET 6, A
-    NOP, // x8 - SET 7, B
-    NOP, // x9 - SET 7, C
-    NOP, // xA - SET 7, D
-    NOP, // xB - SET 7, E
-    NOP, // xC - SET 7, H
-    NOP, // xD - SET 7, L
-    NOP, // xE - SET 7, [HL]
-    NOP, // xF - SET 7, A
+    SET(CONST_8(6), R8_B), // x0 - SET 6, B
+    SET(CONST_8(6), R8_C), // x1 - SET 6, C
+    SET(CONST_8(6), R8_D), // x2 - SET 6, D
+    SET(CONST_8(6), R8_E), // x3 - SET 6, E
+    SET(CONST_8(6), R8_H), // x4 - SET 6, H
+    SET(CONST_8(6), R8_L), // x5 - SET 6, L
+    SET(CONST_8(6), M_HL), // x6 - SET 6, [HL]
+    SET(CONST_8(6), R8_A), // x7 - SET 6, A
+    SET(CONST_8(7), R8_B), // x8 - SET 7, B
+    SET(CONST_8(7), R8_C), // x9 - SET 7, C
+    SET(CONST_8(7), R8_D), // xA - SET 7, D
+    SET(CONST_8(7), R8_E), // xB - SET 7, E
+    SET(CONST_8(7), R8_H), // xC - SET 7, H
+    SET(CONST_8(7), R8_L), // xD - SET 7, L
+    SET(CONST_8(7), M_HL), // xE - SET 7, [HL]
+    SET(CONST_8(7), R8_A), // xF - SET 7, A
 ];

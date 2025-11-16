@@ -82,7 +82,7 @@ pub enum Instruction {
     SLA(Arg),
     SRA(Arg),
     SRL(Arg),
-    SWAP(Arg, Arg),
+    SWAP(Arg),
 
     // Jumps
     JP(Arg, Arg),
