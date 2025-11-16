@@ -223,22 +223,22 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     ADC(IMM_8),            // xE
     RST(M_CONST_16(0x08)), // xF
     // Dx
-    NOP, // x0
-    NOP, // x1
-    NOP, // x2
-    NOP, // x3
-    NOP, // x4
-    NOP, // x5
-    NOP, // x6
-    NOP, // x7
-    NOP, // x8
-    NOP, // x9
-    NOP, // xA
-    NOP, // xB
-    NOP, // xC
-    NOP, // xD
-    NOP, // xE
-    NOP, // xF
+    RET(C_NC),             // x0
+    POP(R16_DE),           // x1
+    JP(C_NC, M_IMM_16),    // x2
+    INVALID,               // x3
+    CALL(C_NC, M_IMM_16),  // x4
+    PUSH(R16_DE),          // x5
+    SUB(IMM_8),            // x6
+    RST(M_CONST_16(0x10)), // x7
+    RET(C_C),              // x8
+    RETI,                  // x9
+    JP(C_C, M_IMM_16),     // xA
+    INVALID,               // xB
+    CALL(C_C, M_IMM_16),   // xC
+    INVALID,               // xD
+    SBC(IMM_8),            // xE
+    RST(M_CONST_16(0x18)), // xF
     // Ex
     NOP, // x0
     NOP, // x1
