@@ -275,7 +275,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     RST(CONST_16(0x38)), // xF
 ];
 
-pub const PREFIX_TABLE: [Instruction; 256] = [
+pub const PREFIX_TABLE: [Instruction; 0x100] = [
     // 0x
     NOP, // x0
     NOP, // x1
