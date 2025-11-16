@@ -257,22 +257,22 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     XOR(IMM_8),              // xE
     RST(M_CONST_16(0x28)),   // xF
     // Fx
-    NOP, // x0
-    NOP, // x1
-    NOP, // x2
-    NOP, // x3
-    NOP, // x4
-    NOP, // x5
-    NOP, // x6
-    NOP, // x7
-    NOP, // x8
-    NOP, // x9
-    NOP, // xA
-    NOP, // xB
-    NOP, // xC
-    NOP, // xD
-    NOP, // xE
-    NOP, // xF
+    LDH(R8_A, IMM_8),      // x0
+    POP(R16_AF),           // x1
+    LDH(R8_A, R8_C),       // x2
+    DI,                    // x3
+    INVALID,               // x4
+    PUSH(R16_AF),          // x5
+    OR(IMM_8),             // x6
+    RST(M_CONST_16(0x30)), // x7
+    LD(R16_HL, IMM_i8),    // x8
+    LD(R16_SP, R16_HL),    // x9
+    LD(R8_A, M_IMM_16),    // xA
+    EI,                    // xB
+    INVALID,               // xC
+    INVALID,               // xD
+    CP(IMM_8),             // xE
+    RST(M_CONST_16(0x38)), // xF
 ];
 
 pub const PREFIX_TABLE: [Instruction; 256] = [
