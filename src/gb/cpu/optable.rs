@@ -206,22 +206,22 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     CP(M_HL), // xE
     CP(R8_A), // xF
     // Cx
-    RET(C_NZ),        // x0
-    POP(R16_BC),      // x1
-    JP(C_NZ, IMM_16), // x2
-    JP(C_A, IMM_16),  // x3
-    NOP,              // x4
-    NOP,              // x5
-    NOP,              // x6
-    NOP,              // x7
-    NOP,              // x8
-    NOP,              // x9
-    NOP,              // xA
-    NOP,              // xB
-    NOP,              // xC
-    NOP,              // xD
-    NOP,              // xE
-    NOP,              // xF
+    RET(C_NZ),             // x0
+    POP(R16_BC),           // x1
+    JP(C_NZ, M_IMM_16),    // x2
+    JP(C_A, M_IMM_16),     // x3
+    CALL(C_NZ, M_IMM_16),  // x4
+    PUSH(R16_BC),          // x5
+    ADD(IMM_8),            // x6
+    RST(M_CONST_16(0x00)), // x7
+    RET(C_Z),              // x8
+    RET(C_A),              // x9
+    JP(C_Z, M_IMM_16),     // xA
+    PREFIX,                // xB
+    CALL(C_Z, M_IMM_16),   // xC
+    CALL(C_A, M_IMM_16),   // xD
+    ADC(IMM_8),            // xE
+    RST(M_CONST_16(0x08)), // xF
     // Dx
     NOP, // x0
     NOP, // x1
