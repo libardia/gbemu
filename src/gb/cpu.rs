@@ -1,5 +1,5 @@
 mod decode;
-mod instruction;
+pub mod instruction;
 mod optable;
 
 #[derive(Debug, Default)]
@@ -18,3 +18,5 @@ pub struct CPU {
     // Flags
     ime: bool,
 }
+
+impl CPU {}
