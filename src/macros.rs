@@ -4,7 +4,15 @@ macro_rules! new {
             Self::default()
         }
     };
-    ( $(-> $arg:ident: $argt:ty;)* $($field:ident = $value:expr;)* ) => {
+    ( $( -> $arg:ident: $argt:ty; )* $( $field:ident = $value:expr; )* ) => {
+        pub fn new($($arg: $argt),*) -> Self {
+            Self {
+                $($arg,)*
+                $($field: $value,)*
+            }
+        }
+    };
+    ( $( -> $arg:ident: $argt:ty; )* $( $field:ident = $value:expr; )* ... ) => {
         pub fn new($($arg: $argt),*) -> Self {
             Self {
                 $($arg,)*
