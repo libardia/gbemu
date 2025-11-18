@@ -17,7 +17,7 @@ impl Default for MMU {
 }
 
 impl MMU {
-    fn adj_address(address: u16) -> u16 {
+    fn adjust_address(address: u16) -> u16 {
         if address >= ECHO_RAM.begin {
             if address <= ECHO_RAM.end {
                 address - (ECHO_RAM.begin - WORK_RAM.begin)
@@ -34,12 +34,12 @@ impl Index<u16> for MMU {
     type Output = u8;
 
     fn index(&self, index: u16) -> &Self::Output {
-        &self.raw_ram[Self::adj_address(index) as usize]
+        &self.raw_ram[Self::adjust_address(index) as usize]
     }
 }
 
 impl IndexMut<u16> for MMU {
     fn index_mut(&mut self, index: u16) -> &mut Self::Output {
-        &mut self.raw_ram[Self::adj_address(index) as usize]
+        &mut self.raw_ram[Self::adjust_address(index) as usize]
     }
 }

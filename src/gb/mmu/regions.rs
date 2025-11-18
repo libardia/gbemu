@@ -23,31 +23,41 @@ impl MemRegion {
 
 /* #region Predefined memory regions */
 
-pub const ALL_RAM: MemRegion = MemRegion::new(0x0000, 0xFFFF);
+macro_rules! const_regions {
+    ($($name:ident: $begin:expr, $end:expr)*) => {
+        $(
+            pub const $name: MemRegion = MemRegion::new($begin, $end);
+        )*
+    };
+}
 
-pub const BOOT_ROM_BANK: MemRegion = MemRegion::new(0x0000, 0x00FF);
-pub const CART_HEADER: MemRegion = MemRegion::new(0x0100, 0x014F);
+const_regions!(
+    ALL_RAM:       0x0000, 0xFFFF
 
-pub const ROM_SPACE: MemRegion = MemRegion::new(0x0000, 0x7FFF);
-pub const ROM_BANK_0: MemRegion = MemRegion::new(0x0000, 0x3FFF);
-pub const ROM_BANK_N: MemRegion = MemRegion::new(0x4000, 0x7FFF);
+    BOOT_ROM_BANK: 0x0000, 0x00FF
+    CART_HEADER:   0x0100, 0x014F
 
-pub const VRAM: MemRegion = MemRegion::new(0x8000, 0x9FFF);
-pub const TILE_DATA: MemRegion = MemRegion::new(0x8000, 0x97FF);
-pub const TILE_MAPS: MemRegion = MemRegion::new(0x9800, 0x9FFF);
-pub const TILE_MAP_0: MemRegion = MemRegion::new(0x9800, 0x9BFF);
-pub const TILE_MAP_1: MemRegion = MemRegion::new(0x9C00, 0x9FFF);
+    ROM_SPACE:     0x0000, 0x7FFF
+    ROM_BANK_0:    0x0000, 0x3FFF
+    ROM_BANK_N:    0x4000, 0x7FFF
 
-pub const EXTERNAL_RAM: MemRegion = MemRegion::new(0xA000, 0xBFFF);
+    VRAM:          0x8000, 0x9FFF
+    TILE_DATA:     0x8000, 0x97FF
+    TILE_MAPS:     0x9800, 0x9FFF
+    TILE_MAP_0:    0x9800, 0x9BFF
+    TILE_MAP_1:    0x9C00, 0x9FFF
 
-pub const WORK_RAM: MemRegion = MemRegion::new(0xC000, 0xDFFF);
-pub const ECHO_RAM: MemRegion = MemRegion::new(0xE000, 0xFDFF);
+    EXTERNAL_RAM:  0xA000, 0xBFFF
 
-pub const OAM: MemRegion = MemRegion::new(0xFE00, 0xFE9F);
+    WORK_RAM:      0xC000, 0xDFFF
+    ECHO_RAM:      0xE000, 0xFDFF
 
-pub const UNUSABLE_MEM: MemRegion = MemRegion::new(0xFEA0, 0xFEFF);
+    OAM:           0xFE00, 0xFE9F
 
-pub const HIGH_RAM: MemRegion = MemRegion::new(0xFF00, 0xFFFF);
-pub const IO_REGS: MemRegion = MemRegion::new(0xFF00, 0xFF7F);
+    UNUSABLE_MEM:  0xFEA0, 0xFEFF
+
+    HIGH_RAM:      0xFF00, 0xFFFF
+    IO_REGS:       0xFF00, 0xFF7F
+);
 
 /* #endregion */
