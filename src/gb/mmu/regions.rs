@@ -1,22 +1,19 @@
+#[derive(Default)]
 pub struct MemRegion {
     pub begin: u16,
     pub end: u16,
 }
 
 impl MemRegion {
-    pub const fn new(begin: u16, end: u16) -> Self {
-        Self { begin, end }
-    }
-
-    pub const fn contains(&self, address: u16) -> bool {
+    pub fn contains(&self, address: u16) -> bool {
         address >= self.begin && address <= self.end
     }
 
-    pub const fn size(&self) -> u16 {
+    pub fn size(&self) -> u16 {
         self.end - self.begin + 1
     }
 
-    pub const fn usize(&self) -> usize {
+    pub fn usize(&self) -> usize {
         (self.end - self.begin) as usize + 1
     }
 }
@@ -26,7 +23,7 @@ impl MemRegion {
 macro_rules! const_regions {
     ($($name:ident: $begin:expr, $end:expr)*) => {
         $(
-            pub const $name: MemRegion = MemRegion::new($begin, $end);
+            pub const $name: MemRegion = MemRegion { begin: $begin,  end: $end };
         )*
     };
 }

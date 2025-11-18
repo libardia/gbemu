@@ -1,3 +1,5 @@
+use crate::macros::new;
+
 mod decode;
 pub mod instruction;
 mod optable;
@@ -19,4 +21,6 @@ pub struct CPU {
     ime: bool,
 }
 
-impl CPU {}
+impl CPU {
+    new!();
+}

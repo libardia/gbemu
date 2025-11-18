@@ -1,22 +1,19 @@
 pub mod regions;
 
+use crate::macros::new;
 use regions::*;
 use std::ops::{Index, IndexMut};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MMU {
     raw_ram: Vec<u8>,
 }
 
-impl Default for MMU {
-    fn default() -> Self {
-        Self {
-            raw_ram: vec![0xFF; ALL_RAM.usize() - ECHO_RAM.usize()],
-        }
-    }
-}
-
 impl MMU {
+    new!(
+        raw_ram = vec![0xFF; ALL_RAM.usize() - ECHO_RAM.usize()];
+    );
+
     fn adjust_address(address: u16) -> u16 {
         if address >= ECHO_RAM.begin {
             if address <= ECHO_RAM.end {
