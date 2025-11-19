@@ -1,7 +1,5 @@
 /target
 /output
 
-/.vscode
 /test-roms
-/gb-bootroms
 /py
