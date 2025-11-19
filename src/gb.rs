@@ -4,7 +4,7 @@ mod mmu;
 use cpu::CPU;
 use mmu::MMU;
 
-use crate::{gb::cpu::instruction::Instruction, macros::new};
+use crate::macros::new;
 
 #[derive(Debug, Default)]
 pub struct GB {
@@ -13,9 +13,8 @@ pub struct GB {
 }
 
 impl GB {
-    new!();
-
-    pub fn test_decode(&mut self, bytes: &[u8]) -> Instruction {
-        self.cpu.decode(bytes)
-    }
+    new!(
+        mmu = MMU::new();
+        cpu = CPU::new();
+    );
 }

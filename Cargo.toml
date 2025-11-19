@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+log = "0.4.28"
+minifb = "0.28.0"
+simple_logger = "5.1.0"

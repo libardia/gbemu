@@ -23,3 +23,10 @@ macro_rules! new {
     };
 }
 pub(crate) use new;
+
+macro_rules! error_panic {
+    ($($arg:tt)+) => {
+        log::error!($($arg)+);
+        panic!($($arg)+);
+    };}
+pub(crate) use error_panic;
