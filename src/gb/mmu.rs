@@ -1,9 +1,9 @@
 mod boot_rom;
-pub mod regions;
+mod regions;
 
 use crate::macros::new;
 use boot_rom::BOOT_ROM;
-use log::{error, warn};
+use log::warn;
 use regions::*;
 use std::ops::{Index, IndexMut};
 
