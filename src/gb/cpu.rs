@@ -1,7 +1,7 @@
 mod instruction;
 mod optable;
 
-use crate::macros::new;
+use crate::{gb::mmu::MMU, macros::new};
 use instruction::{Arg::*, Instruction::*, *};
 use optable::*;
 
@@ -23,75 +23,74 @@ pub struct CPU {
     ime: bool,
 }
 
+impl CPU {}
+
 impl CPU {
     new!();
 
-    pub fn decode(&mut self, bytes: &[u8]) -> Instruction {
-        // TODO: "bytes" is a stand in for the MMU. Refit to use MMU when that's done.
+    pub fn decode(&mut self, mmu: &MMU) -> Instruction {
+        fn next_byte(cpu: &mut CPU, mmu: &MMU) -> u8 {
+            let byte = mmu.get(cpu.pc);
+            cpu.pc += 1;
+            byte
+        }
 
-        let mut inst = OP_TABLE[self.read8_and_inc(bytes) as usize];
+        fn next_word(cpu: &mut CPU, mmu: &MMU) -> u16 {
+            let word = mmu.get_word(cpu.pc);
+            cpu.pc += 2;
+            word
+        }
+
+        fn next_const8(cpu: &mut CPU, mmu: &MMU) -> Arg {
+            CONST_8(next_byte(cpu, mmu))
+        }
+
+        fn next_consti8(cpu: &mut CPU, mmu: &MMU) -> Arg {
+            CONST_i8(next_byte(cpu, mmu) as i8)
+        }
+
+        fn next_const16(cpu: &mut CPU, mmu: &MMU) -> Arg {
+            CONST_16(next_word(cpu, mmu))
+        }
+
+        let mut inst = OP_TABLE[next_byte(self, mmu) as usize];
         if inst == PREFIX {
-            inst = PREFIX_TABLE[self.read8_and_inc(bytes) as usize];
+            inst = PREFIX_TABLE[next_byte(self, mmu) as usize];
         }
         match inst {
             // 0x
-            LD(first, IMM_16) => LD(first, self.read_const16(bytes)),
-            LD(first, IMM_8) => LD(first, self.read_const8(bytes)),
-            LD(IMM_16, second) => LD(self.read_const16(bytes), second),
+            LD(first, IMM_16) => LD(first, next_const16(self, mmu)),
+            LD(first, IMM_8) => LD(first, next_const8(self, mmu)),
+            LD(IMM_16, second) => LD(next_const16(self, mmu), second),
 
             // 1x
-            STOP(IMM_8) => STOP(self.read_const8(bytes)),
-            JR(first, IMM_i8) => JR(first, self.read_consti8(bytes)),
+            STOP(IMM_8) => STOP(next_const8(self, mmu)),
+            JR(first, IMM_i8) => JR(first, next_consti8(self, mmu)),
 
             // Cx
-            JP(first, IMM_16) => JP(first, self.read_const16(bytes)),
-            CALL(first, IMM_16) => CALL(first, self.read_const16(bytes)),
-            ADD(IMM_8) => ADD(self.read_const8(bytes)),
-            ADC(IMM_8) => ADC(self.read_const8(bytes)),
+            JP(first, IMM_16) => JP(first, next_const16(self, mmu)),
+            CALL(first, IMM_16) => CALL(first, next_const16(self, mmu)),
+            ADD(IMM_8) => ADD(next_const8(self, mmu)),
+            ADC(IMM_8) => ADC(next_const8(self, mmu)),
 
             // Dx
-            SUB(IMM_8) => SUB(self.read_const8(bytes)),
-            SBC(IMM_8) => SBC(self.read_const8(bytes)),
+            SUB(IMM_8) => SUB(next_const8(self, mmu)),
+            SBC(IMM_8) => SBC(next_const8(self, mmu)),
 
             // Ex
-            LDH(IMM_8, second) => LDH(self.read_const8(bytes), second),
-            AND(IMM_8) => AND(self.read_const8(bytes)),
-            ADD_STK(first, IMM_i8) => ADD_STK(first, self.read_consti8(bytes)),
-            XOR(IMM_8) => XOR(self.read_const8(bytes)),
+            LDH(IMM_8, second) => LDH(next_const8(self, mmu), second),
+            AND(IMM_8) => AND(next_const8(self, mmu)),
+            ADD_STK(first, IMM_i8) => ADD_STK(first, next_consti8(self, mmu)),
+            XOR(IMM_8) => XOR(next_const8(self, mmu)),
 
             // Fx
-            LDH(first, IMM_8) => LDH(first, self.read_const8(bytes)),
-            OR(IMM_8) => OR(self.read_const8(bytes)),
-            LD(first, IMM_i8) => LD(first, self.read_consti8(bytes)),
-            CP(IMM_8) => CP(self.read_const8(bytes)),
+            LDH(first, IMM_8) => LDH(first, next_const8(self, mmu)),
+            OR(IMM_8) => OR(next_const8(self, mmu)),
+            LD(first, IMM_i8) => LD(first, next_consti8(self, mmu)),
+            CP(IMM_8) => CP(next_const8(self, mmu)),
 
             // Any other instruction
             _ => inst,
         }
-    }
-
-    fn read8_and_inc(&mut self, bytes: &[u8]) -> u8 {
-        let byte = bytes[self.pc as usize];
-        self.pc += 1;
-        byte
-    }
-
-    fn read_const8(&mut self, bytes: &[u8]) -> Arg {
-        CONST_8(self.read8_and_inc(bytes))
-    }
-
-    fn read_consti8(&mut self, bytes: &[u8]) -> Arg {
-        CONST_i8(self.read8_and_inc(bytes) as i8)
-    }
-
-    fn read16_and_inc(&mut self, bytes: &[u8]) -> u16 {
-        let low = self.read8_and_inc(bytes) as u16;
-        let high = self.read8_and_inc(bytes) as u16;
-        let word = (high << 8) | low;
-        word
-    }
-
-    fn read_const16(&mut self, bytes: &[u8]) -> Arg {
-        CONST_16(self.read16_and_inc(bytes))
     }
 }

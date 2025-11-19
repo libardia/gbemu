@@ -48,6 +48,12 @@ impl MMU {
         }
     }
 
+    pub fn get_word(&self, address: u16) -> u16 {
+        let low = self.get(address) as u16;
+        let high = self.get(address + 1) as u16;
+        (high << 8) | low
+    }
+
     fn get_cpu(&self, address: u16) -> u8 {
         // CPU range:
         //      Everything
