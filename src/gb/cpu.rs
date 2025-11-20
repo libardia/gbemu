@@ -1,8 +1,15 @@
 mod instruction;
 mod optable;
 
-use crate::{gb::mmu::MMU, macros::new};
-use instruction::{Arg::*, Instruction::*, *};
+use crate::{
+    gb::{
+        mmu::{AccessMode, MMU},
+        MachineCycles,
+    },
+    macros::{address_fmt, byte_fmt, new},
+};
+use instruction::{Arg::*, Instruction::*, MetaInstruction::NONE, *};
+use log::error;
 use optable::*;
 
 #[derive(Debug, Default)]
@@ -20,15 +27,33 @@ pub struct CPU {
     sp: u16,
 
     // Flags
-    ime: bool,
-}
+    pub ime: bool,
 
-impl CPU {}
+    // Helper
+    pub enable_meta_instructions: bool,
+}
 
 impl CPU {
     new!();
 
-    pub fn decode(&mut self, mmu: &MMU) -> Instruction {
+    // Accessors
+    getset_r16!(get_bc, set_bc, b, c);
+    getset_r16!(get_de, set_de, d, e);
+    getset_r16!(get_hl, set_hl, h, l);
+    getset_r16!(get_af, set_af, a, f);
+
+    pub fn step(&mut self, mmu: &mut MMU) -> MachineCycles {
+        // Tell the MMU that the CPU is accessing it
+        mmu.access_mode = AccessMode::CPU;
+
+        // Decode instruction at PC
+        let inst = self.decode(mmu);
+
+        self.execute(mmu)
+    }
+
+    fn decode(&mut self, mmu: &MMU) -> Instruction {
+        /* #region Decode helpers */
         fn next_byte(cpu: &mut CPU, mmu: &MMU) -> u8 {
             let byte = mmu.get(cpu.pc);
             cpu.pc += 1;
@@ -52,11 +77,37 @@ impl CPU {
         fn next_const16(cpu: &mut CPU, mmu: &MMU) -> Arg {
             CONST_16(next_word(cpu, mmu))
         }
+        /* #endregion */
 
-        let mut inst = OP_TABLE[next_byte(self, mmu) as usize];
+        let starting_pc = self.pc;
+        let first_byte = next_byte(self, mmu);
+
+        let mut inst = OP_TABLE[first_byte as usize];
+
+        // Check for validity
+        match inst {
+            INVALID(meta_inst) => {
+                if meta_inst == NONE {
+                    error!(
+                        "Byte {} at address {} is an invalid instruction.",
+                        byte_fmt!(first_byte),
+                        address_fmt!(starting_pc)
+                    )
+                } else if !self.enable_meta_instructions {
+                    error!(
+                        "Byte {} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
+                        byte_fmt!(first_byte),
+                        address_fmt!(starting_pc)
+                    )
+                }
+            }
+            _ => (),
+        }
+
         if inst == PREFIX {
             inst = PREFIX_TABLE[next_byte(self, mmu) as usize];
         }
+
         match inst {
             // 0x
             LD(first, IMM_16) => LD(first, next_const16(self, mmu)),
@@ -93,4 +144,25 @@ impl CPU {
             _ => inst,
         }
     }
+
+    fn execute(&mut self, mmu: &mut MMU) -> MachineCycles {
+        // TODO: Execute
+        0
+    }
 }
+
+macro_rules! getset_r16 {
+    ($getname:ident, $setname:ident, $r1:ident, $r2:ident) => {
+        fn $getname(&self) -> u16 {
+            let r1 = self.$r1 as u16;
+            let r2 = self.$r2 as u16;
+            (r1 << 8 | r2)
+        }
+
+        fn $setname(&mut self, value: u16) {
+            self.$r1 = crate::macros::byte_of!(value, 1);
+            self.$r2 = crate::macros::byte_of!(value, 0);
+        }
+    };
+}
+use getset_r16;

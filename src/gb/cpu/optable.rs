@@ -1,4 +1,4 @@
-use super::instruction::{Arg::*, Instruction, Instruction::*};
+use super::instruction::{Arg::*, Instruction, Instruction::*, MetaInstruction::*};
 
 pub const OP_TABLE: [Instruction; 0x100] = [
     // 0x
@@ -226,7 +226,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     RET(C_NC),           // x0 - RET NC
     POP(R16_DE),         // x1 - POP DE
     JP(C_NC, IMM_16),    // x2 - JP NC, a16
-    INVALID,             // x3 - INVALID
+    INVALID(SHOW_CPU),   // x3 - INVALID (Meta-instruction: Print state of the CPU)
     CALL(C_NC, IMM_16),  // x4 - CALL NC, a16
     PUSH(R16_DE),        // x5 - PUSH DE
     SUB(IMM_8),          // x6 - SUB A, n8
@@ -234,26 +234,26 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     RET(C_C),            // x8 - RET C
     RETI,                // x9 - RETI
     JP(C_C, IMM_16),     // xA - JP C, a16
-    INVALID,             // xB - INVALID
+    INVALID(TERMINATE),  // xB - INVALID (Meta-instruction: Terminate the emulator)
     CALL(C_C, IMM_16),   // xC - CALL C, a16
-    INVALID,             // xD - INVALID
+    INVALID(DUMP),       // xD - INVALID (Meta-instruction: Full state dump to file)
     SBC(IMM_8),          // xE - SBC A, n8
     RST(CONST_16(0x18)), // xF - RST $18
     // Ex
     LDH(IMM_8, R8_A),        // x0 - LDH [a8], A
     POP(R16_HL),             // x1 - POP HL
     LDH(R8_C, R8_A),         // x2 - LDH [C], A
-    INVALID,                 // x3 - INVALID
-    INVALID,                 // x4 - INVALID
+    INVALID(NONE),           // x3 - INVALID
+    INVALID(NONE),           // x4 - INVALID
     PUSH(R16_HL),            // x5 - PUSH HL
     AND(IMM_8),              // x6 - AND A, n8
     RST(CONST_16(0x20)),     // x7 - RST $20
     ADD_STK(R16_SP, IMM_i8), // x8 - ADD SP, e8
     JP(C_A, M_HL),           // x9 - JP HL
     LD(IMM_16, R8_A),        // xA - LD [a16], A
-    INVALID,                 // xB - INVALID
-    INVALID,                 // xC - INVALID
-    INVALID,                 // xD - INVALID
+    INVALID(NONE),           // xB - INVALID
+    INVALID(NONE),           // xC - INVALID
+    INVALID(NONE),           // xD - INVALID
     XOR(IMM_8),              // xE - XOR A, n8
     RST(CONST_16(0x28)),     // xF - RST $28
     // Fx
@@ -261,7 +261,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     POP(R16_AF),         // x1 - POP AF
     LDH(R8_A, R8_C),     // x2 - LDH A, [C]
     DI,                  // x3 - DI
-    INVALID,             // x4 - INVALID
+    INVALID(NONE),       // x4 - INVALID
     PUSH(R16_AF),        // x5 - PUSH AF
     OR(IMM_8),           // x6 - OR A, n8
     RST(CONST_16(0x30)), // x7 - RST $30
@@ -269,8 +269,8 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     LD(R16_SP, R16_HL),  // x9 - LD SP, HL
     LD(R8_A, IMM_16),    // xA - LD A, [a16]
     EI,                  // xB - EI
-    INVALID,             // xC - INVALID
-    INVALID,             // xD - INVALID
+    INVALID(NONE),       // xC - INVALID
+    INVALID(NONE),       // xD - INVALID
     CP(IMM_8),           // xE - CP A, n8
     RST(CONST_16(0x38)), // xF - RST $38
 ];

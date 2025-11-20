@@ -70,7 +70,17 @@ pub enum Instruction {
     DAA,
     STOP(Arg),
     PREFIX,
-    INVALID,
+    INVALID(MetaInstruction),
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MetaInstruction {
+    #[default]
+    NONE,
+    SHOW_CPU,
+    TERMINATE,
+    DUMP,
 }
 
 #[allow(non_camel_case_types)]

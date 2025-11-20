@@ -1,7 +1,7 @@
 mod boot_rom;
 mod regions;
 
-use crate::macros::new;
+use crate::macros::{address_fmt, new};
 use boot_rom::BOOT_ROM;
 use log::warn;
 use regions::*;
@@ -20,12 +20,12 @@ pub enum AccessMode {
 
 #[derive(Debug, Default)]
 pub struct MMU {
-    access_mode: AccessMode,
+    pub access_mode: AccessMode,
     raw_ram: Vec<u8>,
-    boot_mode: bool,
-    dma_block: bool,
-    ppu_vram_block: bool,
-    ppu_oam_block: bool,
+    pub boot_mode: bool,
+    pub dma_block: bool,
+    pub ppu_vram_block: bool,
+    pub ppu_oam_block: bool,
 }
 
 impl MMU {
@@ -34,10 +34,6 @@ impl MMU {
         boot_mode = true;
         ...
     );
-
-    pub fn set_access_mode(&mut self, mode: AccessMode) {
-        self.access_mode = mode;
-    }
 
     pub fn get(&self, address: u16) -> u8 {
         match self.access_mode {
@@ -64,17 +60,25 @@ impl MMU {
         if self.dma_block && !DMA_USABLE.contains(address) {
             // Everything except a part of HRAM is unavailable during DMA transfer
             warn!(
-                "Blocked CPU read from {address:#X?} during DMA; all but {:#X?} - {:#X?} is blocked during DMA.",
-                DMA_USABLE.begin, DMA_USABLE.end
+                "Blocked CPU read from {} during DMA; all but {} - {} is blocked during DMA.",
+                address_fmt!(address),
+                address_fmt!(DMA_USABLE.begin),
+                address_fmt!(DMA_USABLE.end),
             );
             OPEN_BUS_VALUE
         } else if self.ppu_oam_block && OAM.contains(address) {
             // Can't read from OAM while PPU is on mode 2 or 3
-            warn!("Blocked CPU read from OAM at {address:#X?} while PPU was busy.");
+            warn!(
+                "Blocked CPU read from OAM at {} while PPU was busy.",
+                address_fmt!(address)
+            );
             OPEN_BUS_VALUE
         } else if self.ppu_vram_block && VRAM.contains(address) {
             // Can't read from VRAM while PPU is on mode 3
-            warn!("Blocked CPU read from VRAM at {address:#X?} while PPU was busy.");
+            warn!(
+                "Blocked CPU read from VRAM at {} while PPU was busy.",
+                address_fmt!(address)
+            );
             OPEN_BUS_VALUE
         } else if self.boot_mode && BOOT_ROM_BANK.contains(address) {
             // Map the boot ROM over cart ROM when in boot mode
@@ -91,7 +95,7 @@ impl MMU {
         // PPU can't read:
         //      Anything during DMA
         if self.dma_block {
-            warn!("Blocked PPU read at {address:#X?} during DMA.");
+            warn!("Blocked PPU read at {} during DMA.", address_fmt!(address));
             OPEN_BUS_VALUE
         } else {
             self[address]
@@ -106,7 +110,10 @@ impl MMU {
         // DMA can't read:
         //      VRAM, during PPU's mode 3
         if self.ppu_vram_block && VRAM.contains(address) {
-            warn!("Blocked DMA read at {address:#X?} while PPU was busy.");
+            warn!(
+                "Blocked DMA read at {} while PPU was busy.",
+                address_fmt!(address)
+            );
             OPEN_BUS_VALUE
         } else {
             self[address]

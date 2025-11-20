@@ -4,7 +4,7 @@ mod macros;
 use std::env;
 
 use gb::GB;
-use log::{debug, LevelFilter};
+use log::{debug, info, LevelFilter};
 use simple_logger::SimpleLogger;
 
 fn main() {
@@ -24,6 +24,4 @@ fn main() {
 
     let mut gb = GB::new();
     debug!("{:X?}", gb);
-
-    gb.test_decode();
 }

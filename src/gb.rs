@@ -3,23 +3,34 @@ mod mmu;
 
 use crate::macros::new;
 use cpu::CPU;
-use log::debug;
-use mmu::{AccessMode, MMU};
+use mmu::MMU;
+
+type SystemTicks = u64;
+type MachineCycles = u64;
 
 #[derive(Debug, Default)]
 pub struct GB {
     mmu: MMU,
     cpu: CPU,
+    skip_boot: bool,
 }
 
 impl GB {
     new!(
         mmu = MMU::new();
         cpu = CPU::new();
+        ...
     );
 
-    pub fn test_decode(&mut self) {
-        self.mmu.set_access_mode(AccessMode::CPU);
-        debug!("{:X?}", self.cpu.decode(&self.mmu));
+    pub fn skip_boot(&mut self, boot: bool) {
+        self.skip_boot = boot;
     }
+
+    pub fn enable_meta_instructions(&mut self, enable: bool) {
+        self.cpu.enable_meta_instructions = enable;
+    }
+
+    pub fn load_cart(&mut self, cart_path: String) {}
+
+    pub fn run(&mut self) {}
 }
