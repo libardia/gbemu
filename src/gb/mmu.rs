@@ -44,6 +44,10 @@ impl MMU {
         }
     }
 
+    pub fn set(&mut self, address: u16, value: u8) {
+        // TODO: Set for each source
+    }
+
     pub fn get_word(&self, address: u16) -> u16 {
         let low = self.get(address) as u16;
         let high = self.get(address + 1) as u16;

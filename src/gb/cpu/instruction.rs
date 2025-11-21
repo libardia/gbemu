@@ -4,7 +4,8 @@ use std::fmt::Debug;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load
-    LD(Arg, Arg),
+    LD_8(Arg, Arg),
+    LD_16(Arg, Arg),
     LDH(Arg, Arg),
 
     // Arithmetic

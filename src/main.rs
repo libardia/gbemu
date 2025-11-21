@@ -4,7 +4,7 @@ mod macros;
 use std::env;
 
 use gb::GB;
-use log::{debug, info, LevelFilter};
+use log::{debug, LevelFilter};
 use simple_logger::SimpleLogger;
 
 fn main() {

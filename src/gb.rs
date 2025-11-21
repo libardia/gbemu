@@ -32,5 +32,8 @@ impl GB {
 
     pub fn load_cart(&mut self, cart_path: String) {}
 
-    pub fn run(&mut self) {}
+    pub fn run(&mut self) {
+        let mtime = self.cpu.step(&mut self.mmu);
+        let ttime = mtime * 4;
+    }
 }
