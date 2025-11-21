@@ -10,26 +10,37 @@ use crate::{
 impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> MachineCycles {
         match inst {
+            // Load
             LD(dest, source) => todo!(),
             LD_16(dest, source) => todo!(),
             LDH(arg, arg1) => todo!(),
+
+            // 8-bit arithmetic
             ADD(arg) => todo!(),
-            ADD_16(arg) => todo!(),
             ADC(arg) => todo!(),
             SUB(arg) => todo!(),
             SBC(arg) => todo!(),
             INC(arg) => todo!(),
-            INC_16(arg) => todo!(),
             DEC(arg) => todo!(),
-            DEC_16(arg) => todo!(),
             CP(arg) => todo!(),
+
+            // 16-bit arithmetic
+            ADD_16(arg) => todo!(),
+            INC_16(arg) => todo!(),
+            DEC_16(arg) => todo!(),
+
+            // Bitwise logic
+            CPL => todo!(),
             AND(arg) => todo!(),
             OR(arg) => todo!(),
             XOR(arg) => todo!(),
-            CPL => todo!(),
+
+            // Bit flag
             BIT(arg, arg1) => todo!(),
             RES(arg, arg1) => todo!(),
             SET(arg, arg1) => todo!(),
+
+            // Shift
             RL(arg) => todo!(),
             RLC(arg) => todo!(),
             RLA => todo!(),
@@ -42,24 +53,36 @@ impl CPU {
             SRA(arg) => todo!(),
             SRL(arg) => todo!(),
             SWAP(arg) => todo!(),
+
+            // Jumps & subroutines
             JP(arg, arg1) => todo!(),
             JR(arg, arg1) => todo!(),
             CALL(arg, arg1) => todo!(),
             RST(arg) => todo!(),
             RET(arg) => todo!(),
             RETI => todo!(),
+
+            // Carry flag
             CCF => todo!(),
             SCF => todo!(),
+
+            // Stack manip
             LD_HL_SP_E8(arg, arg1) => todo!(),
             ADD_STK(arg, arg1) => todo!(),
             POP(arg) => todo!(),
             PUSH(arg) => todo!(),
+
+            // Interrupts
             DI => todo!(),
             EI => todo!(),
             HALT => todo!(),
+
+            // Misc
             NOP => todo!(),
             DAA => todo!(),
             STOP(arg) => todo!(),
+
+            // Invalid!
             PREFIX => todo!(),
             INVALID(meta_instruction) => todo!(),
         }
