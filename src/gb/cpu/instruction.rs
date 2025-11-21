@@ -4,7 +4,7 @@ use std::fmt::Debug;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load
-    LD_8(Arg, Arg),
+    LD(Arg, Arg),
     LD_16(Arg, Arg),
     LDH(Arg, Arg),
 
@@ -15,7 +15,9 @@ pub enum Instruction {
     SUB(Arg),
     SBC(Arg),
     INC(Arg),
+    INC_16(Arg),
     DEC(Arg),
+    DEC_16(Arg),
     CP(Arg),
 
     // Logic
@@ -56,6 +58,7 @@ pub enum Instruction {
     SCF,
 
     // Stack
+    LD_HL_SP_E8(Arg, Arg),
     ADD_STK(Arg, Arg),
     POP(Arg),
     PUSH(Arg),

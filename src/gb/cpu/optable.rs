@@ -4,139 +4,139 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     // 0x
     NOP,                   // x0 - NOP
     LD_16(R16_BC, IMM_16), // x1 - LD BC, n16
-    LD_8(M_BC, R8_A),      // x2 - LD [BC], A
-    INC(R16_BC),           // x3 - INC BC
+    LD(M_BC, R8_A),        // x2 - LD [BC], A
+    INC_16(R16_BC),        // x3 - INC BC
     INC(R8_B),             // x4 - INC B
     DEC(R8_B),             // x5 - DEC B
-    LD_8(R8_B, IMM_8),     // x6 - LD B, n8
+    LD(R8_B, IMM_8),       // x6 - LD B, n8
     RLCA,                  // x7 - RLCA
     LD_16(IMM_16, R16_SP), // x8 - LD [a16], SP
     ADD_16(R16_BC),        // x9 - ADD HL, BC
-    LD_8(R8_A, M_BC),      // xA - LD A, [BC]
-    DEC(R16_BC),           // xB - DEC BC
+    LD(R8_A, M_BC),        // xA - LD A, [BC]
+    DEC_16(R16_BC),        // xB - DEC BC
     INC(R8_C),             // xC - INC C
     DEC(R8_C),             // xD - DEC C
-    LD_8(R8_C, IMM_8),     // xE - LD C, n8
+    LD(R8_C, IMM_8),       // xE - LD C, n8
     RRCA,                  // xF - RRCA
     // 1x
     STOP(IMM_8),           // x0 - STOP n8
     LD_16(R16_DE, IMM_16), // x1 - LD DE, n16
-    LD_8(M_DE, R8_A),      // x2 - LD [DE], A
-    INC(R16_DE),           // x3 - INC DE
+    LD(M_DE, R8_A),        // x2 - LD [DE], A
+    INC_16(R16_DE),        // x3 - INC DE
     INC(R8_D),             // x4 - INC D
     DEC(R8_D),             // x5 - DEC D
-    LD_8(R8_D, IMM_8),     // x6 - LD D, n8
+    LD(R8_D, IMM_8),       // x6 - LD D, n8
     RLA,                   // x7 - RLA
     JR(C_A, IMM_i8),       // x8 - JR e8
     ADD_16(R16_DE),        // x9 - ADD HL, DE
-    LD_8(R8_A, M_DE),      // xA - LD A, [DE]
-    DEC(R16_DE),           // xB - DEC DE
+    LD(R8_A, M_DE),        // xA - LD A, [DE]
+    DEC_16(R16_DE),        // xB - DEC DE
     INC(R8_E),             // xC - INC E
     DEC(R8_E),             // xD - DEC E
-    LD_8(R8_E, IMM_8),     // xE - LD E, n8
+    LD(R8_E, IMM_8),       // xE - LD E, n8
     RRA,                   // xF - RRA
     // 2x
     JR(C_NZ, IMM_i8),      // x0 - JR NZ, e8
     LD_16(R16_HL, IMM_16), // x1 - LD HL, n16
-    LD_8(M_HLI, R8_A),     // x2 - LD [HL+], A
-    INC(R16_HL),           // x3 - INC HL
+    LD(M_HLI, R8_A),       // x2 - LD [HL+], A
+    INC_16(R16_HL),        // x3 - INC HL
     INC(R8_H),             // x4 - INC H
     DEC(R8_H),             // x5 - DEC H
-    LD_8(R8_H, IMM_8),     // x6 - LD H, n8
+    LD(R8_H, IMM_8),       // x6 - LD H, n8
     DAA,                   // x7 - DAA
     JR(C_Z, IMM_i8),       // x8 - JR Z, e8
     ADD_16(R16_HL),        // x9 - ADD HL, HL
-    LD_8(R8_A, M_HLI),     // xA - LD A, [HL+]
-    DEC(R16_HL),           // xB - DEC HL
+    LD(R8_A, M_HLI),       // xA - LD A, [HL+]
+    DEC_16(R16_HL),        // xB - DEC HL
     INC(R8_L),             // xC - INC L
     DEC(R8_L),             // xD - DEC L
-    LD_8(R8_L, IMM_8),     // xE - LD L, n8
+    LD(R8_L, IMM_8),       // xE - LD L, n8
     CPL,                   // xF - CPL
     // 3x
     JR(C_NC, IMM_i8),      // x0 - JR NC, e8
     LD_16(R16_SP, IMM_16), // x1 - LD SP, n16
-    LD_8(M_HLD, R8_A),     // x2 - LD [HL-], A
-    INC(R16_SP),           // x3 - INC SP
+    LD(M_HLD, R8_A),       // x2 - LD [HL-], A
+    INC_16(R16_SP),        // x3 - INC SP
     INC(M_HL),             // x4 - INC [HL]
     DEC(M_HL),             // x5 - DEC [HL]
-    LD_8(M_HL, IMM_8),     // x6 - LD [HL], n8
+    LD(M_HL, IMM_8),       // x6 - LD [HL], n8
     SCF,                   // x7 - SCF
     JR(C_C, IMM_i8),       // x8 - JR C, e8
     ADD_16(R16_SP),        // x9 - ADD HL, SP
-    LD_8(R8_A, M_HLD),     // xA - LD A, [HL-]
-    DEC(R16_SP),           // xB - DEC SP
+    LD(R8_A, M_HLD),       // xA - LD A, [HL-]
+    DEC_16(R16_SP),        // xB - DEC SP
     INC(R8_A),             // xC - INC A
     DEC(R8_A),             // xD - DEC A
-    LD_8(R8_A, IMM_8),     // xE - LD A, n8
+    LD(R8_A, IMM_8),       // xE - LD A, n8
     CCF,                   // xF - CCF
     // 4x
-    LD_8(R8_B, R8_B), // x0 - LD B, B
-    LD_8(R8_B, R8_C), // x1 - LD B, C
-    LD_8(R8_B, R8_D), // x2 - LD B, D
-    LD_8(R8_B, R8_E), // x3 - LD B, E
-    LD_8(R8_B, R8_H), // x4 - LD B, H
-    LD_8(R8_B, R8_L), // x5 - LD B, L
-    LD_8(R8_B, M_HL), // x6 - LD B, [HL]
-    LD_8(R8_B, R8_A), // x7 - LD B, A
-    LD_8(R8_C, R8_B), // x8 - LD C, B
-    LD_8(R8_C, R8_C), // x9 - LD C, C
-    LD_8(R8_C, R8_D), // xA - LD C, D
-    LD_8(R8_C, R8_E), // xB - LD C, E
-    LD_8(R8_C, R8_H), // xC - LD C, H
-    LD_8(R8_C, R8_L), // xD - LD C, L
-    LD_8(R8_C, M_HL), // xE - LD C, [HL]
-    LD_8(R8_C, R8_A), // xF - LD C, A
+    LD(R8_B, R8_B), // x0 - LD B, B
+    LD(R8_B, R8_C), // x1 - LD B, C
+    LD(R8_B, R8_D), // x2 - LD B, D
+    LD(R8_B, R8_E), // x3 - LD B, E
+    LD(R8_B, R8_H), // x4 - LD B, H
+    LD(R8_B, R8_L), // x5 - LD B, L
+    LD(R8_B, M_HL), // x6 - LD B, [HL]
+    LD(R8_B, R8_A), // x7 - LD B, A
+    LD(R8_C, R8_B), // x8 - LD C, B
+    LD(R8_C, R8_C), // x9 - LD C, C
+    LD(R8_C, R8_D), // xA - LD C, D
+    LD(R8_C, R8_E), // xB - LD C, E
+    LD(R8_C, R8_H), // xC - LD C, H
+    LD(R8_C, R8_L), // xD - LD C, L
+    LD(R8_C, M_HL), // xE - LD C, [HL]
+    LD(R8_C, R8_A), // xF - LD C, A
     // 5x
-    LD_8(R8_D, R8_B), // x0 - LD D, B
-    LD_8(R8_D, R8_C), // x1 - LD D, C
-    LD_8(R8_D, R8_D), // x2 - LD D, D
-    LD_8(R8_D, R8_E), // x3 - LD D, E
-    LD_8(R8_D, R8_H), // x4 - LD D, H
-    LD_8(R8_D, R8_L), // x5 - LD D, L
-    LD_8(R8_D, M_HL), // x6 - LD D, [HL]
-    LD_8(R8_D, R8_A), // x7 - LD D, A
-    LD_8(R8_E, R8_B), // x8 - LD E, B
-    LD_8(R8_E, R8_C), // x9 - LD E, C
-    LD_8(R8_E, R8_D), // xA - LD E, D
-    LD_8(R8_E, R8_E), // xB - LD E, E
-    LD_8(R8_E, R8_H), // xC - LD E, H
-    LD_8(R8_E, R8_L), // xD - LD E, L
-    LD_8(R8_E, M_HL), // xE - LD E, [HL]
-    LD_8(R8_E, R8_A), // xF - LD E, A
+    LD(R8_D, R8_B), // x0 - LD D, B
+    LD(R8_D, R8_C), // x1 - LD D, C
+    LD(R8_D, R8_D), // x2 - LD D, D
+    LD(R8_D, R8_E), // x3 - LD D, E
+    LD(R8_D, R8_H), // x4 - LD D, H
+    LD(R8_D, R8_L), // x5 - LD D, L
+    LD(R8_D, M_HL), // x6 - LD D, [HL]
+    LD(R8_D, R8_A), // x7 - LD D, A
+    LD(R8_E, R8_B), // x8 - LD E, B
+    LD(R8_E, R8_C), // x9 - LD E, C
+    LD(R8_E, R8_D), // xA - LD E, D
+    LD(R8_E, R8_E), // xB - LD E, E
+    LD(R8_E, R8_H), // xC - LD E, H
+    LD(R8_E, R8_L), // xD - LD E, L
+    LD(R8_E, M_HL), // xE - LD E, [HL]
+    LD(R8_E, R8_A), // xF - LD E, A
     // 6x
-    LD_8(R8_H, R8_B), // x0 - LD H, B
-    LD_8(R8_H, R8_C), // x1 - LD H, C
-    LD_8(R8_H, R8_D), // x2 - LD H, D
-    LD_8(R8_H, R8_E), // x3 - LD H, E
-    LD_8(R8_H, R8_H), // x4 - LD H, H
-    LD_8(R8_H, R8_L), // x5 - LD H, L
-    LD_8(R8_H, M_HL), // x6 - LD H, [HL]
-    LD_8(R8_H, R8_A), // x7 - LD H, A
-    LD_8(R8_L, R8_B), // x8 - LD L, B
-    LD_8(R8_L, R8_C), // x9 - LD L, C
-    LD_8(R8_L, R8_D), // xA - LD L, D
-    LD_8(R8_L, R8_E), // xB - LD L, E
-    LD_8(R8_L, R8_H), // xC - LD L, H
-    LD_8(R8_L, R8_L), // xD - LD L, L
-    LD_8(R8_L, M_HL), // xE - LD L, [HL]
-    LD_8(R8_L, R8_A), // xF - LD L, A
+    LD(R8_H, R8_B), // x0 - LD H, B
+    LD(R8_H, R8_C), // x1 - LD H, C
+    LD(R8_H, R8_D), // x2 - LD H, D
+    LD(R8_H, R8_E), // x3 - LD H, E
+    LD(R8_H, R8_H), // x4 - LD H, H
+    LD(R8_H, R8_L), // x5 - LD H, L
+    LD(R8_H, M_HL), // x6 - LD H, [HL]
+    LD(R8_H, R8_A), // x7 - LD H, A
+    LD(R8_L, R8_B), // x8 - LD L, B
+    LD(R8_L, R8_C), // x9 - LD L, C
+    LD(R8_L, R8_D), // xA - LD L, D
+    LD(R8_L, R8_E), // xB - LD L, E
+    LD(R8_L, R8_H), // xC - LD L, H
+    LD(R8_L, R8_L), // xD - LD L, L
+    LD(R8_L, M_HL), // xE - LD L, [HL]
+    LD(R8_L, R8_A), // xF - LD L, A
     // 7x
-    LD_8(M_HL, R8_B), // x0 - LD [HL], B
-    LD_8(M_HL, R8_C), // x1 - LD [HL], C
-    LD_8(M_HL, R8_D), // x2 - LD [HL], D
-    LD_8(M_HL, R8_E), // x3 - LD [HL], E
-    LD_8(M_HL, R8_H), // x4 - LD [HL], H
-    LD_8(M_HL, R8_L), // x5 - LD [HL], L
-    HALT,             // x6 - HALT
-    LD_8(M_HL, R8_A), // x7 - LD [HL], A
-    LD_8(R8_A, R8_B), // x8 - LD A, B
-    LD_8(R8_A, R8_C), // x9 - LD A, C
-    LD_8(R8_A, R8_D), // xA - LD A, D
-    LD_8(R8_A, R8_E), // xB - LD A, E
-    LD_8(R8_A, R8_H), // xC - LD A, H
-    LD_8(R8_A, R8_L), // xD - LD A, L
-    LD_8(R8_A, M_HL), // xE - LD A, [HL]
-    LD_8(R8_A, R8_A), // xF - LD A, A
+    LD(M_HL, R8_B), // x0 - LD [HL], B
+    LD(M_HL, R8_C), // x1 - LD [HL], C
+    LD(M_HL, R8_D), // x2 - LD [HL], D
+    LD(M_HL, R8_E), // x3 - LD [HL], E
+    LD(M_HL, R8_H), // x4 - LD [HL], H
+    LD(M_HL, R8_L), // x5 - LD [HL], L
+    HALT,           // x6 - HALT
+    LD(M_HL, R8_A), // x7 - LD [HL], A
+    LD(R8_A, R8_B), // x8 - LD A, B
+    LD(R8_A, R8_C), // x9 - LD A, C
+    LD(R8_A, R8_D), // xA - LD A, D
+    LD(R8_A, R8_E), // xB - LD A, E
+    LD(R8_A, R8_H), // xC - LD A, H
+    LD(R8_A, R8_L), // xD - LD A, L
+    LD(R8_A, M_HL), // xE - LD A, [HL]
+    LD(R8_A, R8_A), // xF - LD A, A
     // 8x
     ADD(R8_B), // x0 - ADD A, B
     ADD(R8_C), // x1 - ADD A, C
@@ -250,29 +250,29 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     RST(CONST_16(0x20)),     // x7 - RST $20
     ADD_STK(R16_SP, IMM_i8), // x8 - ADD SP, e8
     JP(C_A, M_HL),           // x9 - JP HL
-    LD_8(IMM_16, R8_A),      // xA - LD [a16], A
+    LD(IMM_16, R8_A),        // xA - LD [a16], A
     INVALID(NONE),           // xB - INVALID
     INVALID(NONE),           // xC - INVALID
     INVALID(NONE),           // xD - INVALID
     XOR(IMM_8),              // xE - XOR A, n8
     RST(CONST_16(0x28)),     // xF - RST $28
     // Fx
-    LDH(R8_A, IMM_8),      // x0 - LDH A, [a8]
-    POP(R16_AF),           // x1 - POP AF
-    LDH(R8_A, R8_C),       // x2 - LDH A, [C]
-    DI,                    // x3 - DI
-    INVALID(NONE),         // x4 - INVALID
-    PUSH(R16_AF),          // x5 - PUSH AF
-    OR(IMM_8),             // x6 - OR A, n8
-    RST(CONST_16(0x30)),   // x7 - RST $30
-    LD_16(R16_HL, IMM_i8), // x8 - LD HL, SP + e8
-    LD_16(R16_SP, R16_HL), // x9 - LD SP, HL
-    LD_8(R8_A, IMM_16),    // xA - LD A, [a16]
-    EI,                    // xB - EI
-    INVALID(NONE),         // xC - INVALID
-    INVALID(NONE),         // xD - INVALID
-    CP(IMM_8),             // xE - CP A, n8
-    RST(CONST_16(0x38)),   // xF - RST $38
+    LDH(R8_A, IMM_8),            // x0 - LDH A, [a8]
+    POP(R16_AF),                 // x1 - POP AF
+    LDH(R8_A, R8_C),             // x2 - LDH A, [C]
+    DI,                          // x3 - DI
+    INVALID(NONE),               // x4 - INVALID
+    PUSH(R16_AF),                // x5 - PUSH AF
+    OR(IMM_8),                   // x6 - OR A, n8
+    RST(CONST_16(0x30)),         // x7 - RST $30
+    LD_HL_SP_E8(R16_HL, IMM_i8), // x8 - LD HL, SP + e8
+    LD_16(R16_SP, R16_HL),       // x9 - LD SP, HL
+    LD(R8_A, IMM_16),            // xA - LD A, [a16]
+    EI,                          // xB - EI
+    INVALID(NONE),               // xC - INVALID
+    INVALID(NONE),               // xD - INVALID
+    CP(IMM_8),                   // xE - CP A, n8
+    RST(CONST_16(0x38)),         // xF - RST $38
 ];
 
 pub const PREFIX_TABLE: [Instruction; 0x100] = [

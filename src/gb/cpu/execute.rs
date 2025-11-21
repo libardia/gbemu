@@ -10,7 +10,7 @@ use crate::{
 impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> MachineCycles {
         match inst {
-            LD_8(dest, source) => todo!(),
+            LD(dest, source) => todo!(),
             LD_16(dest, source) => todo!(),
             LDH(arg, arg1) => todo!(),
             ADD(arg) => todo!(),
@@ -19,7 +19,9 @@ impl CPU {
             SUB(arg) => todo!(),
             SBC(arg) => todo!(),
             INC(arg) => todo!(),
+            INC_16(arg) => todo!(),
             DEC(arg) => todo!(),
+            DEC_16(arg) => todo!(),
             CP(arg) => todo!(),
             AND(arg) => todo!(),
             OR(arg) => todo!(),
@@ -48,6 +50,7 @@ impl CPU {
             RETI => todo!(),
             CCF => todo!(),
             SCF => todo!(),
+            LD_HL_SP_E8(arg, arg1) => todo!(),
             ADD_STK(arg, arg1) => todo!(),
             POP(arg) => todo!(),
             PUSH(arg) => todo!(),

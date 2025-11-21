@@ -45,9 +45,9 @@ impl CPU {
 
         match inst {
             // 0x
-            LD(first, IMM_16) => LD(first, self.next_const16(mmu)),
+            LD_16(first, IMM_16) => LD_16(first, self.next_const16(mmu)),
             LD(first, IMM_8) => LD(first, self.next_const8(mmu)),
-            LD(IMM_16, second) => LD(self.next_const16(mmu), second),
+            LD_16(IMM_16, second) => LD_16(self.next_const16(mmu), second),
 
             // 1x
             STOP(IMM_8) => STOP(self.next_const8(mmu)),
@@ -67,12 +67,14 @@ impl CPU {
             LDH(IMM_8, second) => LDH(self.next_const8(mmu), second),
             AND(IMM_8) => AND(self.next_const8(mmu)),
             ADD_STK(first, IMM_i8) => ADD_STK(first, self.next_consti8(mmu)),
+            LD(IMM_16, second) => LD(self.next_const16(mmu), second),
             XOR(IMM_8) => XOR(self.next_const8(mmu)),
 
             // Fx
             LDH(first, IMM_8) => LDH(first, self.next_const8(mmu)),
             OR(IMM_8) => OR(self.next_const8(mmu)),
-            LD(first, IMM_i8) => LD(first, self.next_consti8(mmu)),
+            LD_HL_SP_E8(first, IMM_i8) => LD_HL_SP_E8(first, self.next_consti8(mmu)),
+            LD(first, IMM_16) => LD(first, self.next_const16(mmu)),
             CP(IMM_8) => CP(self.next_const8(mmu)),
 
             // Any other instruction
