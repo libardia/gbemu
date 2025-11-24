@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load
     LD(Arg, Arg),
@@ -69,7 +69,6 @@ pub enum Instruction {
     HALT,
 
     // Misc
-    #[default]
     NOP,
     DAA,
     STOP(Arg),
@@ -78,9 +77,8 @@ pub enum Instruction {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MetaInstruction {
-    #[default]
     NONE,
     SHOW_CPU,
     TERMINATE,
