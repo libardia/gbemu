@@ -29,6 +29,7 @@ pub struct MMU {
     pub dma_block: bool,
     pub ppu_vram_block: bool,
     pub ppu_oam_block: bool,
+    system_timer: u16,
 }
 
 impl MMU {
@@ -37,6 +38,14 @@ impl MMU {
         boot_mode = true;
         ...
     );
+
+    pub fn add_time(&mut self, ticks: u16) {
+        self.system_timer = self.system_timer.wrapping_add(ticks);
+    }
+
+    pub fn get_time(&self) -> u16 {
+        self.system_timer
+    }
 
     pub fn get(&self, address: u16) -> u8 {
         match self.access_mode {

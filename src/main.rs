@@ -24,4 +24,6 @@ fn main() {
 
     let mut gb = GB::new();
     debug!("{:X?}", gb);
+
+    gb.run();
 }

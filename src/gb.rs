@@ -5,9 +5,6 @@ use crate::macros::new;
 use cpu::CPU;
 use mmu::MMU;
 
-type SystemTicks = u64;
-type MachineCycles = u64;
-
 #[derive(Debug, Default)]
 pub struct GB {
     mmu: MMU,

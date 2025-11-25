@@ -9,7 +9,7 @@ use crate::{
 };
 
 impl CPU {
-    pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> MachineCycles {
+    pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> u16 {
         match inst {
             // Load
             LD_r8_r8(dest, source) => todo!(),

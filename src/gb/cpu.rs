@@ -2,10 +2,7 @@ mod instruction;
 mod optable;
 
 use crate::{
-    gb::{
-        mmu::{AccessMode, MMU},
-        MachineCycles,
-    },
+    gb::mmu::{AccessMode, MMU},
     macros::{bit_flag, either, new},
 };
 
@@ -34,7 +31,7 @@ impl CPU {
     new!();
 
     // Step
-    pub fn step(&mut self, mmu: &mut MMU) -> MachineCycles {
+    pub fn step(&mut self, mmu: &mut MMU) -> u16 {
         // Tell the MMU that the CPU is accessing it
         mmu.access_mode = AccessMode::CPU;
 
