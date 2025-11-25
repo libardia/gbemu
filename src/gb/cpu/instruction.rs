@@ -5,9 +5,9 @@ use std::fmt::Debug;
 pub enum Instruction {
     // Load
     LD_r8_r8(R8, R8),
-    LD_r16_r16(R16, R16),
-    LD_mem_r8(Mem, R8),
     LD_r8_mem(R8, Mem),
+    LD_mem_r8(Mem, R8),
+    LD_r16_r16(R16, R16),
 
     // Load high (in memory from FF00 to FFFF)
     LDH_A_mem(Mem),

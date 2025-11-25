@@ -65,3 +65,28 @@ macro_rules! byte_of {
     }};
 }
 pub(crate) use byte_of;
+
+macro_rules! bit_flag {
+    (get => $name:ident, $byte:ident, $bit_position:expr) => {
+        pub fn $name(&self) -> bool {
+            const MASK: u8 = 1 << $bit_position;
+            self.$byte & MASK != 0
+        }
+    };
+    (set => $name:ident, $byte:ident, $bit_position:expr) => {
+        pub fn $name(&mut self, value: bool) {
+            const MASK: u8 = 1 << $bit_position;
+            const INV_MASK: u8 = !MASK;
+            if value {
+                self.$byte |= MASK;
+            } else {
+                self.$byte &= INV_MASK;
+            }
+        }
+    };
+    ($getname:ident, $setname:ident, $byte:ident, $bit_position:expr) => {
+        bit_flag!(get => $getname, $byte, $bit_position);
+        bit_flag!(set => $setname, $byte, $bit_position);
+    };
+}
+pub(crate) use bit_flag;
