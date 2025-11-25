@@ -12,39 +12,39 @@ impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> u16 {
         match inst {
             // Load
-            LD_r8_r8(dest, source) => todo!(),
-            LD_r8_mem(dest, source) => todo!(),
-            LD_mem_r8(dest, source) => todo!(),
-            LD_r16_r16(dest, source) => todo!(),
+            LD_r8_r8(dest, src) => self.load_r8_r8(mmu, dest, src),
+            LD_r8_mem(dest, src) => self.load_r8_mem(mmu, dest, src),
+            LD_mem_r8(dest, src) => self.load_mem_r8(mmu, dest, src),
+            LD_r16_r16(dest, src) => self.load_r16_r16(dest, src),
 
             // Load high
-            LDH_A_mem(address) => todo!(),
-            LDH_mem_A(address) => todo!(),
+            LDH_A_mem(src) => self.loadhigh_a_mem(mmu, src),
+            LDH_mem_A(dest) => self.loadhigh_mem_a(mmu, dest),
 
             // 8-bit arithmetic
-            ADD_r8(operand) => todo!(),
-            ADC_r8(operand) => todo!(),
-            SUB_r8(operand) => todo!(),
-            SBC_r8(operand) => todo!(),
-            INC_r8(target) => todo!(),
-            DEC_r8(target) => todo!(),
-            CP_r8(operand) => todo!(),
+            ADD_r8(op) => self.add_8(mmu, op, false),
+            ADC_r8(op) => self.add_8(mmu, op, true),
+            SUB_r8(op) => self.sub_8(mmu, op, false),
+            SBC_r8(op) => self.sub_8(mmu, op, true),
+            INC_r8(target) => self.inc_8(mmu, target),
+            DEC_r8(target) => self.dec_8(mmu, target),
+            CP_r8(op) => self.compare_8(mmu, op),
 
             // 16-bit arithmetic
-            ADD_r16(operand) => todo!(),
-            INC_r16(target) => todo!(),
-            DEC_r16(target) => todo!(),
+            ADD_r16(op) => self.add_16(op),
+            INC_r16(target) => self.inc_16(target),
+            DEC_r16(target) => self.dec_16(target),
 
             // Logic
-            AND_r8(operand) => todo!(),
-            OR_r8(operand) => todo!(),
-            XOR_r8(operand) => todo!(),
+            AND(op) => todo!(),
+            OR(op) => todo!(),
+            XOR(op) => todo!(),
             CPL => todo!(),
 
             // Bit flags
-            BIT_r8(bit_index, target) => todo!(),
-            SET_r8(bit_index, target) => todo!(),
-            RES_r8(bit_index, target) => todo!(),
+            BIT(bit, target) => todo!(),
+            SET(bit, target) => todo!(),
+            RES(bit, target) => todo!(),
 
             // Bit shifts
             RL(target) => todo!(),
@@ -61,10 +61,10 @@ impl CPU {
             SWAP(target) => todo!(),
 
             // Jumps and subroutines
-            CALL(condition, address) => todo!(),
-            JP(condition, address) => todo!(),
-            JR(condition, offset) => todo!(),
-            RET(condition) => todo!(),
+            CALL(cond, address) => todo!(),
+            JP(cond, address) => todo!(),
+            JR(cond, off) => todo!(),
+            RET(cond) => todo!(),
             RETI => todo!(),
             RST(Mem::IMM(address)) => todo!(),
 
@@ -73,9 +73,9 @@ impl CPU {
             SCF => todo!(),
 
             // Stack manipulation
-            ADD_SP_e8(offset) => todo!(),
+            ADD_SP_e8(off) => todo!(),
             LD_a16_SP(address) => todo!(),
-            LD_HL_SPe8(offset) => todo!(),
+            LD_HL_SPe8(off) => todo!(),
             POP(target) => todo!(),
             PUSH(target) => todo!(),
 
@@ -96,8 +96,8 @@ impl CPU {
         }
     }
 
-    fn get_r8(&self, mmu: &MMU, r8: R8) -> u8 {
-        match r8 {
+    fn get_r8(&self, mmu: &MMU, src: R8) -> u8 {
+        match src {
             R8::B => self.b,
             R8::C => self.c,
             R8::D => self.d,
@@ -110,8 +110,8 @@ impl CPU {
         }
     }
 
-    fn set_r8(&mut self, mmu: &mut MMU, r8: R8, value: u8) {
-        match r8 {
+    fn set_r8(&mut self, mmu: &mut MMU, dest: R8, value: u8) {
+        match dest {
             R8::B => self.b = value,
             R8::C => self.c = value,
             R8::D => self.d = value,
@@ -127,8 +127,8 @@ impl CPU {
         }
     }
 
-    fn get_r16(&self, r16: R16) -> u16 {
-        match r16 {
+    fn get_r16(&self, src: R16) -> u16 {
+        match src {
             R16::BC => self.get_bc(),
             R16::DE => self.get_de(),
             R16::HL => self.get_hl(),
@@ -138,8 +138,8 @@ impl CPU {
         }
     }
 
-    fn set_r16(&mut self, r16: R16, value: u16) {
-        match r16 {
+    fn set_r16(&mut self, dest: R16, value: u16) {
+        match dest {
             R16::BC => self.set_bc(value),
             R16::DE => self.set_de(value),
             R16::HL => self.set_hl(value),
@@ -165,12 +165,12 @@ impl CPU {
         }
     }
 
-    fn get_mem(&mut self, mmu: &MMU, mem: Mem) -> u8 {
-        mmu.get(self.address_from_mem(mem))
+    fn get_mem(&mut self, mmu: &MMU, src: Mem) -> u8 {
+        mmu.get(self.address_from_mem(src))
     }
 
-    fn set_mem(&mut self, mmu: &mut MMU, mem: Mem, value: u8) {
-        mmu.set(self.address_from_mem(mem), value);
+    fn set_mem(&mut self, mmu: &mut MMU, dest: Mem, value: u8) {
+        mmu.set(self.address_from_mem(dest), value);
     }
 
     fn test_condition(&self, cond: Cond) -> bool {
@@ -184,4 +184,6 @@ impl CPU {
     }
 }
 
+mod arith16;
+mod arith8;
 mod load;

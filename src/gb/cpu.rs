@@ -2,8 +2,11 @@ mod instruction;
 mod optable;
 
 use crate::{
-    gb::mmu::{AccessMode, MMU},
-    macros::{bit_flag, either, new},
+    gb::{
+        mmu::{AccessMode, MMU},
+        MTime,
+    },
+    macros::{bit_flag, new},
 };
 
 #[derive(Debug, Default)]
@@ -31,7 +34,7 @@ impl CPU {
     new!();
 
     // Step
-    pub fn step(&mut self, mmu: &mut MMU) -> u16 {
+    pub fn step(&mut self, mmu: &mut MMU) -> MTime {
         // Tell the MMU that the CPU is accessing it
         mmu.access_mode = AccessMode::CPU;
 
@@ -49,15 +52,15 @@ impl CPU {
 
     // F register flags
     bit_flag!(getf_z, setf_z, f, 7);
-    bit_flag!(getf_s, setf_s, f, 6);
-    bit_flag!(getf_hc, setf_hc, f, 5);
+    bit_flag!(getf_n, setf_n, f, 6);
+    bit_flag!(getf_h, setf_h, f, 5);
     bit_flag!(getf_c, setf_c, f, 4);
 
-    fn set_all_flags(&mut self, z: bool, s: bool, hc: bool, c: bool) {
-        self.f = either!(z, 1 << 7, 0)
-            | either!(s, 1 << 6, 0)
-            | either!(hc, 1 << 5, 0)
-            | either!(c, 1 << 4, 0)
+    fn set_all_flags(&mut self, z: bool, n: bool, h: bool, c: bool) {
+        self.f = if z { 1 << 7 } else { 0 }
+            | if n { 1 << 6 } else { 0 }
+            | if h { 1 << 5 } else { 0 }
+            | if c { 1 << 4 } else { 0 }
     }
 
     // Convenience

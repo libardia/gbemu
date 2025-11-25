@@ -46,17 +46,6 @@ macro_rules! address_fmt {
 }
 pub(crate) use address_fmt;
 
-macro_rules! either {
-    ($cond:expr, $a:expr, $b:expr) => {
-        if $cond {
-            $a
-        } else {
-            $b
-        }
-    };
-}
-pub(crate) use either;
-
 macro_rules! byte_of {
     ($value:expr, $byte_index:expr) => {{
         let shift = $byte_index * 8;

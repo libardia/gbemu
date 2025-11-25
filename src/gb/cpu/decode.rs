@@ -68,14 +68,14 @@ impl CPU {
 
             // Ex
             LDH_mem_A(Mem::HIGH_IMM(_)) => LDH_mem_A(Mem::HIGH_IMM(self.next_byte(mmu))),
-            AND_r8(R8::IMM(_)) => AND_r8(R8::IMM(self.next_byte(mmu))),
+            AND(R8::IMM(_)) => AND(R8::IMM(self.next_byte(mmu))),
             ADD_SP_e8(_) => ADD_SP_e8(self.next_signed(mmu)),
             LD_mem_r8(Mem::IMM(_), second) => LD_mem_r8(Mem::IMM(self.next_word(mmu)), second),
-            XOR_r8(R8::IMM(_)) => XOR_r8(R8::IMM(self.next_byte(mmu))),
+            XOR(R8::IMM(_)) => XOR(R8::IMM(self.next_byte(mmu))),
 
             // Fx
             LDH_A_mem(Mem::HIGH_IMM(_)) => LDH_A_mem(Mem::HIGH_IMM(self.next_byte(mmu))),
-            OR_r8(R8::IMM(_)) => OR_r8(R8::IMM(self.next_byte(mmu))),
+            OR(R8::IMM(_)) => OR(R8::IMM(self.next_byte(mmu))),
             LD_HL_SPe8(_) => LD_HL_SPe8(self.next_signed(mmu)),
             LD_r8_mem(first, Mem::IMM(_)) => LD_r8_mem(first, Mem::IMM(self.next_word(mmu))),
             CP_r8(R8::IMM(_)) => CP_r8(R8::IMM(self.next_byte(mmu))),

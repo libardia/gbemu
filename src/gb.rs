@@ -5,6 +5,9 @@ use crate::macros::new;
 use cpu::CPU;
 use mmu::MMU;
 
+type MTime = u16;
+type TTime = u16;
+
 #[derive(Debug, Default)]
 pub struct GB {
     mmu: MMU,

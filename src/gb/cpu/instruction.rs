@@ -28,15 +28,15 @@ pub enum Instruction {
     DEC_r16(R16),
 
     // Logic
-    AND_r8(R8),
-    OR_r8(R8),
-    XOR_r8(R8),
+    AND(R8),
+    OR(R8),
+    XOR(R8),
     CPL,
 
     // Bit flags
-    BIT_r8(u8, R8),
-    SET_r8(u8, R8),
-    RES_r8(u8, R8),
+    BIT(u8, R8),
+    SET(u8, R8),
+    RES(u8, R8),
 
     // Bit shifts
     RL(R8),

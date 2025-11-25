@@ -2,7 +2,10 @@ mod boot_rom;
 mod mbc;
 mod regions;
 
-use crate::macros::{address_fmt, error_panic, new};
+use crate::{
+    gb::TTime,
+    macros::{address_fmt, error_panic, new},
+};
 use boot_rom::BOOT_ROM;
 use log::warn;
 use mbc::MBC;
@@ -29,7 +32,7 @@ pub struct MMU {
     pub dma_block: bool,
     pub ppu_vram_block: bool,
     pub ppu_oam_block: bool,
-    system_timer: u16,
+    system_timer: TTime,
 }
 
 impl MMU {
