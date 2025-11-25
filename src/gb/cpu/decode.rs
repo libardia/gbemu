@@ -2,9 +2,11 @@ use super::*;
 use crate::{
     gb::cpu::{
         instruction::{
-            Arg::{self, *},
+            Cond,
             Instruction::{self, *},
-            MetaInstruction::NONE,
+            Mem,
+            MetaInstruction::*,
+            R16, R8,
         },
         optable::*,
     },
@@ -43,39 +45,40 @@ impl CPU {
             inst = PREFIX_TABLE[self.next_byte(mmu) as usize];
         }
 
+        // Fill any constants in the instruction
         match inst {
             // 0x
-            LD_16(first, IMM_16) => LD_16(first, self.next_const16(mmu)),
-            LD(first, IMM_8) => LD(first, self.next_const8(mmu)),
-            LD_16(IMM_16, second) => LD_16(self.next_const16(mmu), second),
+            LD_r16_r16(first, R16::IMM(_)) => LD_r16_r16(first, R16::IMM(self.next_word(mmu))),
+            LD_r8_r8(first, R8::IMM(_)) => LD_r8_r8(first, R8::IMM(self.next_byte(mmu))),
+            LD_a16_SP(Mem::IMM(_)) => LD_a16_SP(Mem::IMM(self.next_word(mmu))),
 
             // 1x
-            STOP(IMM_8) => STOP(self.next_const8(mmu)),
-            JR(first, IMM_i8) => JR(first, self.next_consti8(mmu)),
+            STOP(_) => STOP(self.next_byte(mmu)),
+            JR(first, _) => JR(first, self.next_signed(mmu)),
 
             // Cx
-            JP(first, IMM_16) => JP(first, self.next_const16(mmu)),
-            CALL(first, IMM_16) => CALL(first, self.next_const16(mmu)),
-            ADD(IMM_8) => ADD(self.next_const8(mmu)),
-            ADC(IMM_8) => ADC(self.next_const8(mmu)),
+            JP(first, Mem::IMM(_)) => JP(first, Mem::IMM(self.next_word(mmu))),
+            CALL(first, Mem::IMM(_)) => CALL(first, Mem::IMM(self.next_word(mmu))),
+            ADD_r8(R8::IMM(_)) => ADD_r8(R8::IMM(self.next_byte(mmu))),
+            ADC_r8(R8::IMM(_)) => ADC_r8(R8::IMM(self.next_byte(mmu))),
 
             // Dx
-            SUB(IMM_8) => SUB(self.next_const8(mmu)),
-            SBC(IMM_8) => SBC(self.next_const8(mmu)),
+            SUB_r8(R8::IMM(_)) => SUB_r8(R8::IMM(self.next_byte(mmu))),
+            SBC_r8(R8::IMM(_)) => SBC_r8(R8::IMM(self.next_byte(mmu))),
 
             // Ex
-            LDH(IMM_8, second) => LDH(self.next_const8(mmu), second),
-            AND(IMM_8) => AND(self.next_const8(mmu)),
-            ADD_STK(first, IMM_i8) => ADD_STK(first, self.next_consti8(mmu)),
-            LD(IMM_16, second) => LD(self.next_const16(mmu), second),
-            XOR(IMM_8) => XOR(self.next_const8(mmu)),
+            LDH_mem_A(Mem::HIGH_IMM(_)) => LDH_mem_A(Mem::HIGH_IMM(self.next_byte(mmu))),
+            AND_r8(R8::IMM(_)) => AND_r8(R8::IMM(self.next_byte(mmu))),
+            ADD_SP_e8(_) => ADD_SP_e8(self.next_signed(mmu)),
+            LD_mem_r8(Mem::IMM(_), second) => LD_mem_r8(Mem::IMM(self.next_word(mmu)), second),
+            XOR_r8(R8::IMM(_)) => XOR_r8(R8::IMM(self.next_byte(mmu))),
 
             // Fx
-            LDH(first, IMM_8) => LDH(first, self.next_const8(mmu)),
-            OR(IMM_8) => OR(self.next_const8(mmu)),
-            LD_HL_SP_E8(first, IMM_i8) => LD_HL_SP_E8(first, self.next_consti8(mmu)),
-            LD(first, IMM_16) => LD(first, self.next_const16(mmu)),
-            CP(IMM_8) => CP(self.next_const8(mmu)),
+            LDH_A_mem(Mem::HIGH_IMM(_)) => LDH_A_mem(Mem::HIGH_IMM(self.next_byte(mmu))),
+            OR_r8(R8::IMM(_)) => OR_r8(R8::IMM(self.next_byte(mmu))),
+            LD_HL_SPe8(_) => LD_HL_SPe8(self.next_signed(mmu)),
+            LD_r8_mem(first, Mem::IMM(_)) => LD_r8_mem(first, Mem::IMM(self.next_word(mmu))),
+            CP_r8(R8::IMM(_)) => CP_r8(R8::IMM(self.next_byte(mmu))),
 
             // Any other instruction
             _ => inst,
@@ -88,21 +91,13 @@ impl CPU {
         byte
     }
 
+    fn next_signed(&mut self, mmu: &MMU) -> i8 {
+        self.next_byte(mmu) as i8
+    }
+
     fn next_word(&mut self, mmu: &MMU) -> u16 {
         let word = mmu.get_word(self.pc);
         self.pc += 2;
         word
-    }
-
-    fn next_const8(&mut self, mmu: &MMU) -> Arg {
-        CONST_8(self.next_byte(mmu))
-    }
-
-    fn next_consti8(&mut self, mmu: &MMU) -> Arg {
-        CONST_i8(self.next_byte(mmu) as i8)
-    }
-
-    fn next_const16(&mut self, mmu: &MMU) -> Arg {
-        CONST_16(self.next_word(mmu))
     }
 }
