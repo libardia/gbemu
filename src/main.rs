@@ -23,7 +23,5 @@ fn main() {
     /* #endregion */
 
     let mut gb = GB::new();
-    debug!("{:X?}", gb);
-
     gb.run();
 }

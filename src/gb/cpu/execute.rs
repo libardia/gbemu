@@ -42,23 +42,23 @@ impl CPU {
             CPL => self.op_cpl(),
 
             // Bit flags
-            BIT(bit, target) => todo!(),
-            SET(bit, target) => todo!(),
-            RES(bit, target) => todo!(),
+            BIT(bit, target) => self.op_bit(mmu, bit, target),
+            SET(bit, target) => self.op_set(mmu, bit, target),
+            RES(bit, target) => self.op_res(mmu, bit, target),
 
             // Bit shifts
-            RL(target) => todo!(),
-            RLA => todo!(),
-            RLC(target) => todo!(),
-            RLCA => todo!(),
-            RR(target) => todo!(),
-            RRA => todo!(),
-            RRC(target) => todo!(),
-            RRCA => todo!(),
-            SLA(target) => todo!(),
-            SRA(target) => todo!(),
-            SRL(target) => todo!(),
-            SWAP(target) => todo!(),
+            RL(target) => self.op_rl(mmu, target, true, false),
+            RLA => self.op_rl(mmu, R8::A, true, true),
+            RLC(target) => self.op_rl(mmu, target, false, false),
+            RLCA => self.op_rl(mmu, R8::A, false, true),
+            RR(target) => self.op_rr(mmu, target, true, false),
+            RRA => self.op_rr(mmu, R8::A, true, true),
+            RRC(target) => self.op_rr(mmu, target, false, false),
+            RRCA => self.op_rr(mmu, R8::A, false, true),
+            SLA(target) => self.op_sl(mmu, target),
+            SRA(target) => self.op_sr(mmu, target, true),
+            SRL(target) => self.op_sr(mmu, target, false),
+            SWAP(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
             CALL(cond, address) => todo!(),
@@ -186,5 +186,7 @@ impl CPU {
 
 mod arith16;
 mod arith8;
+mod bitflags;
+mod bitshifts;
 mod load;
 mod logic;
