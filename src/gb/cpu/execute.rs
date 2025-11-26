@@ -12,34 +12,34 @@ impl CPU {
     pub fn execute(&mut self, mmu: &mut MMU, inst: Instruction) -> u16 {
         match inst {
             // Load
-            LD_r8_r8(dest, src) => self.load_r8_r8(mmu, dest, src),
-            LD_r8_mem(dest, src) => self.load_r8_mem(mmu, dest, src),
-            LD_mem_r8(dest, src) => self.load_mem_r8(mmu, dest, src),
-            LD_r16_r16(dest, src) => self.load_r16_r16(dest, src),
+            LD_r8_r8(dest, src) => self.op_load_r8_r8(mmu, dest, src),
+            LD_r8_mem(dest, src) => self.op_load_r8_mem(mmu, dest, src),
+            LD_mem_r8(dest, src) => self.op_load_mem_r8(mmu, dest, src),
+            LD_r16_r16(dest, src) => self.op_load_r16_r16(dest, src),
 
             // Load high
-            LDH_A_mem(src) => self.loadhigh_a_mem(mmu, src),
-            LDH_mem_A(dest) => self.loadhigh_mem_a(mmu, dest),
+            LDH_A_mem(src) => self.op_loadhigh_a_mem(mmu, src),
+            LDH_mem_A(dest) => self.op_loadhigh_mem_a(mmu, dest),
 
             // 8-bit arithmetic
-            ADD_r8(op) => self.add_8(mmu, op, false),
-            ADC_r8(op) => self.add_8(mmu, op, true),
-            SUB_r8(op) => self.sub_8(mmu, op, false),
-            SBC_r8(op) => self.sub_8(mmu, op, true),
-            INC_r8(target) => self.inc_8(mmu, target),
-            DEC_r8(target) => self.dec_8(mmu, target),
-            CP_r8(op) => self.compare_8(mmu, op),
+            ADD_r8(op) => self.op_add_8(mmu, op, false),
+            ADC_r8(op) => self.op_add_8(mmu, op, true),
+            SUB_r8(op) => self.op_sub_8(mmu, op, false),
+            SBC_r8(op) => self.op_sub_8(mmu, op, true),
+            INC_r8(target) => self.op_inc_8(mmu, target),
+            DEC_r8(target) => self.op_dec_8(mmu, target),
+            CP_r8(op) => self.op_cp_8(mmu, op),
 
             // 16-bit arithmetic
-            ADD_r16(op) => self.add_16(op),
-            INC_r16(target) => self.inc_16(target),
-            DEC_r16(target) => self.dec_16(target),
+            ADD_r16(op) => self.op_add_16(op),
+            INC_r16(target) => self.op_inc_16(target),
+            DEC_r16(target) => self.op_dec_16(target),
 
             // Logic
-            AND(op) => todo!(),
-            OR(op) => todo!(),
-            XOR(op) => todo!(),
-            CPL => todo!(),
+            AND(op) => self.op_and(mmu, op),
+            OR(op) => self.op_or(mmu, op),
+            XOR(op) => self.op_xor(mmu, op),
+            CPL => self.op_cpl(),
 
             // Bit flags
             BIT(bit, target) => todo!(),
@@ -187,3 +187,4 @@ impl CPU {
 mod arith16;
 mod arith8;
 mod load;
+mod logic;

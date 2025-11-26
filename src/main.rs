@@ -1,11 +1,11 @@
+#[allow(dead_code)]
 mod gb;
 mod macros;
-
-use std::env;
 
 use gb::GB;
 use log::{debug, LevelFilter};
 use simple_logger::SimpleLogger;
+use std::env;
 
 fn main() {
     /* #region Set up logger */

@@ -1,7 +1,7 @@
 use super::*;
 
 impl CPU {
-    pub(super) fn add_8(&mut self, mmu: &MMU, op: R8, with_carry: bool) -> MTime {
+    pub(super) fn op_add_8(&mut self, mmu: &MMU, op: R8, with_carry: bool) -> MTime {
         let lhs = self.a;
         let rhs = self.get_r8(mmu, op);
         let cv = (with_carry && self.getf_c()) as u8;
@@ -22,7 +22,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn sub_8(&mut self, mmu: &MMU, op: R8, with_carry: bool) -> MTime {
+    pub(super) fn op_sub_8(&mut self, mmu: &MMU, op: R8, with_carry: bool) -> MTime {
         // This is a seperate sub-function because "compare" is identical
         self.a = self.subtract_internal(mmu, op, with_carry);
 
@@ -32,7 +32,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn compare_8(&mut self, mmu: &MMU, op: R8) -> MTime {
+    pub(super) fn op_cp_8(&mut self, mmu: &MMU, op: R8) -> MTime {
         // Do a subtraction and set flags accordingly, but ignore the result
         self.subtract_internal(mmu, op, false);
 
@@ -42,7 +42,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn inc_8(&mut self, mmu: &mut MMU, target: R8) -> MTime {
+    pub(super) fn op_inc_8(&mut self, mmu: &mut MMU, target: R8) -> MTime {
         let before = self.get_r8(mmu, target);
         let after = before.wrapping_add(1);
         self.set_r8(mmu, target, after);
@@ -57,7 +57,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn dec_8(&mut self, mmu: &mut MMU, target: R8) -> MTime {
+    pub(super) fn op_dec_8(&mut self, mmu: &mut MMU, target: R8) -> MTime {
         let before = self.get_r8(mmu, target);
         let after = before.wrapping_sub(1);
         self.set_r8(mmu, target, after);

@@ -2,7 +2,6 @@ use super::*;
 use crate::{
     gb::cpu::{
         instruction::{
-            Cond,
             Instruction::{self, *},
             Mem,
             MetaInstruction::*,
@@ -10,9 +9,8 @@ use crate::{
         },
         optable::*,
     },
-    macros::{address_fmt, byte_fmt},
+    macros::{address_fmt, byte_fmt, error_panic},
 };
-use log::error;
 
 impl CPU {
     pub(super) fn decode(&mut self, mmu: &MMU) -> Instruction {
@@ -25,13 +23,13 @@ impl CPU {
         match inst {
             INVALID(meta_inst) => {
                 if meta_inst == NONE {
-                    error!(
+                    error_panic!(
                         "Byte {} at address {} is an invalid instruction.",
                         byte_fmt!(first_byte),
                         address_fmt!(starting_pc)
                     )
                 } else if !self.enable_meta_instructions {
-                    error!(
+                    error_panic!(
                         "Byte {} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
                         byte_fmt!(first_byte),
                         address_fmt!(starting_pc)
