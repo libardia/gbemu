@@ -78,7 +78,7 @@ impl CPU {
 
     // Stack
     fn push_stack(&mut self, mmu: &mut MMU, value: u16) {
-        let high = ((value & 0xFF00) >> 8) as u8;
+        let high = (value >> 8) as u8;
         let low = (value & 0xFF) as u8;
 
         self.sp = self.sp.wrapping_sub(1);

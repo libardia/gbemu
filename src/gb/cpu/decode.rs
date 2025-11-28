@@ -48,7 +48,7 @@ impl CPU {
             // 0x
             LD_r16_r16(first, R16::IMM(_)) => LD_r16_r16(first, R16::IMM(self.next_word(mmu))),
             LD_r8_r8(first, R8::IMM(_)) => LD_r8_r8(first, R8::IMM(self.next_byte(mmu))),
-            LD_a16_SP(Mem::IMM(_)) => LD_a16_SP(Mem::IMM(self.next_word(mmu))),
+            LD_a16_SP(_) => LD_a16_SP(self.next_word(mmu)),
 
             // 1x
             STOP(_) => STOP(self.next_byte(mmu)),

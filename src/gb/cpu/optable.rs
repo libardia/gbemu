@@ -16,7 +16,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     DEC_r8(R8::B),                    // x5 - DEC B
     LD_r8_r8(R8::B, R8::IMM(0)),      // x6 - LD B, n8
     RLCA,                             // x7 - RLCA
-    LD_a16_SP(Mem::IMM(0)),           // x8 - LD [a16], SP
+    LD_a16_SP(0),                     // x8 - LD [a16], SP
     ADD_r16(R16::BC),                 // x9 - ADD HL, BC
     LD_r8_mem(R8::A, Mem::BC),        // xA - LD A, [BC]
     DEC_r16(R16::BC),                 // xB - DEC BC

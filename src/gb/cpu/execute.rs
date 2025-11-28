@@ -73,11 +73,11 @@ impl CPU {
             SCF => todo!(),
 
             // Stack manipulation
-            ADD_SP_e8(off) => todo!(),
-            LD_a16_SP(address) => todo!(),
-            LD_HL_SPe8(off) => todo!(),
-            POP(target) => todo!(),
-            PUSH(target) => todo!(),
+            ADD_SP_e8(off) => self.op_add_sp_e8(off),
+            LD_a16_SP(address) => self.op_ld_a16_sp(mmu, address),
+            LD_HL_SPe8(off) => self.op_ld_hl_sp_e8(off),
+            POP(target) => self.op_pop(mmu, target),
+            PUSH(target) => self.op_push(mmu, target),
 
             // Interrupts
             DI => todo!(),
@@ -191,3 +191,4 @@ mod bitshifts;
 mod jumps;
 mod load;
 mod logic;
+mod stack;

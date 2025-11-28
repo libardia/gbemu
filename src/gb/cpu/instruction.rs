@@ -66,7 +66,7 @@ pub enum Instruction {
 
     // Stack manipulation
     ADD_SP_e8(i8),
-    LD_a16_SP(Mem),
+    LD_a16_SP(u16),
     LD_HL_SPe8(i8),
     POP(R16),
     PUSH(R16),
