@@ -212,39 +212,39 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     CP_r8(R8::MHL), // xE - CP A, [HL]
     CP_r8(R8::A),   // xF - CP A, A
     // Cx
-    RET(Cond::NZ),                   // x0 - RET NZ
-    POP(R16::BC),                    // x1 - POP BC
-    JP(Cond::NZ, Mem::IMM(0)),       // x2 - JP NZ, a16
-    JP(Cond::ALWAYS, Mem::IMM(0)),   // x3 - JP a16
-    CALL(Cond::NZ, Mem::IMM(0)),     // x4 - CALL NZ, a16
-    PUSH(R16::BC),                   // x5 - PUSH BC
-    ADD_r8(R8::IMM(0)),              // x6 - ADD A, n8
-    RST(Mem::IMM(0x0000)),           // x7 - RST $00
-    RET(Cond::Z),                    // x8 - RET Z
-    RET(Cond::ALWAYS),               // x9 - RET
-    JP(Cond::Z, Mem::IMM(0)),        // xA - JP Z, a16
-    PREFIX,                          // xB - PREFIX
-    CALL(Cond::Z, Mem::IMM(0)),      // xC - CALL Z, a16
-    CALL(Cond::ALWAYS, Mem::IMM(0)), // xD - CALL a16
-    ADC_r8(R8::IMM(0)),              // xE - ADC A, n8
-    RST(Mem::IMM(0x0008)),           // xF - RST $08
+    RET(Cond::NZ),                 // x0 - RET NZ
+    POP(R16::BC),                  // x1 - POP BC
+    JP(Cond::NZ, Mem::IMM(0)),     // x2 - JP NZ, a16
+    JP(Cond::ALWAYS, Mem::IMM(0)), // x3 - JP a16
+    CALL(Cond::NZ, 0),             // x4 - CALL NZ, a16
+    PUSH(R16::BC),                 // x5 - PUSH BC
+    ADD_r8(R8::IMM(0)),            // x6 - ADD A, n8
+    RST(0x00),                     // x7 - RST $00
+    RET(Cond::Z),                  // x8 - RET Z
+    RET(Cond::ALWAYS),             // x9 - RET
+    JP(Cond::Z, Mem::IMM(0)),      // xA - JP Z, a16
+    PREFIX,                        // xB - PREFIX
+    CALL(Cond::Z, 0),              // xC - CALL Z, a16
+    CALL(Cond::ALWAYS, 0),         // xD - CALL a16
+    ADC_r8(R8::IMM(0)),            // xE - ADC A, n8
+    RST(0x08),                     // xF - RST $08
     // Dx
-    RET(Cond::NC),               // x0 - RET NC
-    POP(R16::DE),                // x1 - POP DE
-    JP(Cond::NC, Mem::IMM(0)),   // x2 - JP NC, a16
-    INVALID(SHOW_CPU),           // x3 - INVALID (Meta-instruction: Print state of the CPU)
-    CALL(Cond::NC, Mem::IMM(0)), // x4 - CALL NC, a16
-    PUSH(R16::DE),               // x5 - PUSH DE
-    SUB_r8(R8::IMM(0)),          // x6 - SUB A, n8
-    RST(Mem::IMM(0x0010)),       // x7 - RST $10
-    RET(Cond::C),                // x8 - RET C
-    RETI,                        // x9 - RETI
-    JP(Cond::C, Mem::IMM(0)),    // xA - JP C, a16
-    INVALID(TERMINATE),          // xB - INVALID (Meta-instruction: Terminate the emulator)
-    CALL(Cond::C, Mem::IMM(0)),  // xC - CALL C, a16
-    INVALID(DUMP),               // xD - INVALID (Meta-instruction: Full state dump to file)
-    SBC_r8(R8::IMM(0)),          // xE - SBC A, n8
-    RST(Mem::IMM(0x0018)),       // xF - RST $18
+    RET(Cond::NC),             // x0 - RET NC
+    POP(R16::DE),              // x1 - POP DE
+    JP(Cond::NC, Mem::IMM(0)), // x2 - JP NC, a16
+    INVALID(SHOW_CPU),         // x3 - INVALID (Meta-instruction: Print state of the CPU)
+    CALL(Cond::NC, 0),         // x4 - CALL NC, a16
+    PUSH(R16::DE),             // x5 - PUSH DE
+    SUB_r8(R8::IMM(0)),        // x6 - SUB A, n8
+    RST(0x10),                 // x7 - RST $10
+    RET(Cond::C),              // x8 - RET C
+    RETI,                      // x9 - RETI
+    JP(Cond::C, Mem::IMM(0)),  // xA - JP C, a16
+    INVALID(TERMINATE),        // xB - INVALID (Meta-instruction: Terminate the emulator)
+    CALL(Cond::C, 0),          // xC - CALL C, a16
+    INVALID(DUMP),             // xD - INVALID (Meta-instruction: Full state dump to file)
+    SBC_r8(R8::IMM(0)),        // xE - SBC A, n8
+    RST(0x18),                 // xF - RST $18
     // Ex
     LDH_mem_A(Mem::HIGH_IMM(0)),   // x0 - LDH [a8], A
     POP(R16::HL),                  // x1 - POP HL
@@ -253,7 +253,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     INVALID(NONE),                 // x4 - INVALID
     PUSH(R16::HL),                 // x5 - PUSH HL
     AND(R8::IMM(0)),               // x6 - AND A, n8
-    RST(Mem::IMM(0x0020)),         // x7 - RST $20
+    RST(0x20),                     // x7 - RST $20
     ADD_SP_e8(0),                  // x8 - ADD SP, e8
     JP(Cond::ALWAYS, Mem::HL),     // x9 - JP HL
     LD_mem_r8(Mem::IMM(0), R8::A), // xA - LD [a16], A
@@ -261,7 +261,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     INVALID(NONE),                 // xC - INVALID
     INVALID(NONE),                 // xD - INVALID
     XOR(R8::IMM(0)),               // xE - XOR A, n8
-    RST(Mem::IMM(0x0028)),         // xF - RST $28
+    RST(0x28),                     // xF - RST $28
     // Fx
     LDH_A_mem(Mem::HIGH_IMM(0)),   // x0 - LDH A, [a8]
     POP(R16::AF),                  // x1 - POP AF
@@ -270,7 +270,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     INVALID(NONE),                 // x4 - INVALID
     PUSH(R16::AF),                 // x5 - PUSH AF
     OR(R8::IMM(0)),                // x6 - OR A, n8
-    RST(Mem::IMM(0x0030)),         // x7 - RST $30
+    RST(0x30),                     // x7 - RST $30
     LD_HL_SPe8(0),                 // x8 - LD HL, SP + e8
     LD_r16_r16(R16::SP, R16::HL),  // x9 - LD SP, HL
     LD_r8_mem(R8::A, Mem::IMM(0)), // xA - LD A, [a16]
@@ -278,7 +278,7 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     INVALID(NONE),                 // xC - INVALID
     INVALID(NONE),                 // xD - INVALID
     CP_r8(R8::IMM(0)),             // xE - CP A, n8
-    RST(Mem::IMM(0x0038)),         // xF - RST $38
+    RST(0x38),                     // xF - RST $38
 ];
 
 pub const PREFIX_TABLE: [Instruction; 0x100] = [

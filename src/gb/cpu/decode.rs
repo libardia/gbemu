@@ -56,7 +56,7 @@ impl CPU {
 
             // Cx
             JP(first, Mem::IMM(_)) => JP(first, Mem::IMM(self.next_word(mmu))),
-            CALL(first, Mem::IMM(_)) => CALL(first, Mem::IMM(self.next_word(mmu))),
+            CALL(first, _) => CALL(first, self.next_word(mmu)),
             ADD_r8(R8::IMM(_)) => ADD_r8(R8::IMM(self.next_byte(mmu))),
             ADC_r8(R8::IMM(_)) => ADC_r8(R8::IMM(self.next_byte(mmu))),
 

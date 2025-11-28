@@ -53,12 +53,12 @@ pub enum Instruction {
     SWAP(R8),
 
     // Jumps and subroutines
-    CALL(Cond, Mem),
+    CALL(Cond, u16),
     JP(Cond, Mem),
     JR(Cond, i8),
     RET(Cond),
     RETI,
-    RST(Mem),
+    RST(u16),
 
     // Carry flag
     CCF,

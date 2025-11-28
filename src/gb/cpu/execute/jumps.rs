@@ -6,7 +6,7 @@ impl CPU {
             self.pc = self.address_from_mem(address);
 
             match cond {
-                Cond::ALWAYS => 1,
+                Cond::ALWAYS => 1, // Special fast version for 'JP HL'
                 _ => 4,
             }
         } else {
@@ -27,10 +27,10 @@ impl CPU {
         }
     }
 
-    pub(super) fn op_call(&mut self, mmu: &mut MMU, cond: Cond, address: Mem) -> MTime {
+    pub(super) fn op_call(&mut self, mmu: &mut MMU, cond: Cond, address: u16) -> MTime {
         if self.test_condition(cond) {
             self.push_stack(mmu, self.pc);
-            self.pc = self.address_from_mem(address);
+            self.pc = address;
             // 6 cycles if jump
             6
         } else {

@@ -66,7 +66,7 @@ impl CPU {
             JR(cond, off) => self.op_jump_rel(cond, off),
             RET(cond) => self.op_ret(mmu, cond, false),
             RETI => self.op_ret(mmu, Cond::ALWAYS, true),
-            RST(Mem::IMM(address)) => self.op_rst(mmu, address),
+            RST(address) => self.op_rst(mmu, address),
 
             // Carry flag
             CCF => todo!(),
