@@ -85,7 +85,7 @@ impl CPU {
 
     fn next_byte(&mut self, mmu: &MMU) -> u8 {
         let byte = mmu.get(self.pc);
-        self.pc += 1;
+        self.pc = self.pc.wrapping_add(1);
         byte
     }
 
@@ -94,8 +94,8 @@ impl CPU {
     }
 
     fn next_word(&mut self, mmu: &MMU) -> u16 {
-        let word = mmu.get_word(self.pc);
-        self.pc += 2;
-        word
+        let low = self.next_byte(mmu) as u16;
+        let high = self.next_byte(mmu) as u16;
+        (high << 8) | low
     }
 }

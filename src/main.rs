@@ -1,9 +1,8 @@
-#[allow(dead_code)]
 mod gb;
 mod macros;
 
 use gb::GB;
-use log::{debug, LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 

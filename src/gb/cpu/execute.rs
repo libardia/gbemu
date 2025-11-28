@@ -61,12 +61,12 @@ impl CPU {
             SWAP(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
-            CALL(cond, address) => todo!(),
-            JP(cond, address) => todo!(),
-            JR(cond, off) => todo!(),
-            RET(cond) => todo!(),
-            RETI => todo!(),
-            RST(Mem::IMM(address)) => todo!(),
+            CALL(cond, address) => self.op_call(mmu, cond, address),
+            JP(cond, address) => self.op_jump(cond, address),
+            JR(cond, off) => self.op_jump_rel(cond, off),
+            RET(cond) => self.op_ret(mmu, cond, false),
+            RETI => self.op_ret(mmu, Cond::ALWAYS, true),
+            RST(Mem::IMM(address)) => self.op_rst(mmu, address),
 
             // Carry flag
             CCF => todo!(),
@@ -86,7 +86,7 @@ impl CPU {
 
             // Misc
             DAA => todo!(),
-            NOP => todo!(),
+            NOP => 1, // Do nothing for 1 MTime
             STOP(_) => todo!(),
 
             // Meta
@@ -188,5 +188,6 @@ mod arith16;
 mod arith8;
 mod bitflags;
 mod bitshifts;
+mod jumps;
 mod load;
 mod logic;

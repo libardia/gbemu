@@ -63,17 +63,37 @@ impl CPU {
             | if c { 1 << 4 } else { 0 }
     }
 
-    // Convenience
+    // HL +/-
     fn get_hli(&mut self) -> u16 {
         let orig = self.get_hl();
-        self.set_hl(self.get_hl() + 1);
+        self.set_hl(self.get_hl().wrapping_add(1));
         orig
     }
 
     fn get_hld(&mut self) -> u16 {
         let orig = self.get_hl();
-        self.set_hl(self.get_hl() - 1);
+        self.set_hl(self.get_hl().wrapping_sub(1));
         orig
+    }
+
+    // Stack
+    fn push_stack(&mut self, mmu: &mut MMU, value: u16) {
+        let high = ((value & 0xFF00) >> 8) as u8;
+        let low = (value & 0xFF) as u8;
+
+        self.sp = self.sp.wrapping_sub(1);
+        mmu.set(self.sp, high);
+        self.sp = self.sp.wrapping_sub(1);
+        mmu.set(self.sp, low);
+    }
+
+    fn pop_stack(&mut self, mmu: &mut MMU) -> u16 {
+        let low = mmu.get(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+        let high = mmu.get(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+
+        (high << 8) | low
     }
 }
 
