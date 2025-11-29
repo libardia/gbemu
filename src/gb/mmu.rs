@@ -41,12 +41,10 @@ impl MMU {
         ...
     );
 
+    pub fn initialize() {}
+
     pub fn add_time(&mut self, ticks: u16) {
         self.system_timer = self.system_timer.wrapping_add(ticks);
-    }
-
-    pub fn get_time(&self) -> u16 {
-        self.system_timer
     }
 
     pub fn get(&self, address: u16) -> u8 {
@@ -239,6 +237,212 @@ impl MMU {
         }
     }
 
+    /* #endregion */
+
+    /* #region High RAM */
+    fn hram_get(&self, address: u16) -> u8 {
+        const WRITE_ONLY_VALUE: u8 = 0xFF;
+
+        macro_rules! get_bits {
+            ($mask:expr) => {
+                // Returns 1 in each unreadable bit
+                self[address] | !$mask
+            };
+        }
+
+        match address {
+            // FF00 = IO_JOYP:         ..WW RRRR
+            IO_JOYP => get_bits!(0b0000_1111),
+            // FF01 = IO_SB:           XXXX XXXX
+            // FF02 = IO_SC:           X... ...X
+            IO_SC => get_bits!(0b1000_0001),
+            // FF03
+            // FF04 = IO_DIV:          XXXX XXXX*
+            IO_DIV => (self.system_timer >> 8) as u8,
+            // FF05 = IO_TIMA:         XXXX XXXX
+            // FF06 = IO_TMA:          XXXX XXXX
+            // FF07 = IO_TAC:          .... .XXX
+            IO_TAC => get_bits!(0b0000_0111),
+            // FF08
+            // ...
+            // FF0E
+            // FF0F = IO_IF:           ...X XXXX
+            IO_IF => get_bits!(0b0001_1111),
+            // FF10 = IO_NR10:         .XXX XXXX
+            IO_NR10 => get_bits!(0b0111_1111),
+            // FF11 = IO_NR11:         XXWW WWWW
+            IO_NR11 => get_bits!(0b1100_0000),
+            // FF12 = IO_NR12:         XXXX XXXX
+            // FF13 = IO_NR13:         WWWW WWWW
+            IO_NR13 => WRITE_ONLY_VALUE,
+            // FF14 = IO_NR14:         WX.. .WWW
+            IO_NR14 => get_bits!(0b0100_0000),
+            // FF15
+            // FF16 = IO_NR21:         XXWW WWWW
+            IO_NR21 => get_bits!(0b1100_0000),
+            // FF17 = IO_NR22:         XXXX XXXX
+            // FF18 = IO_NR23:         WWWW WWWW
+            IO_NR23 => WRITE_ONLY_VALUE,
+            // FF19 = IO_NR24:         WX.. .WWW
+            IO_NR24 => get_bits!(0b0100_0000),
+            // FF1A = IO_NR30:         X... ....
+            IO_NR30 => get_bits!(0b1000_0000),
+            // FF1B = IO_NR31:         WWWW WWWW
+            IO_NR31 => WRITE_ONLY_VALUE,
+            // FF1C = IO_NR32:         .XX. ....
+            IO_NR32 => get_bits!(0b0110_0000),
+            // FF1D = IO_NR33:         WWWW WWWW
+            IO_NR33 => WRITE_ONLY_VALUE,
+            // FF1E = IO_NR34:         WX.. .WWW
+            IO_NR34 => get_bits!(0b0100_0000),
+            // FF1F
+            // FF20 = IO_NR41:         ..WW WWWW
+            IO_NR41 => WRITE_ONLY_VALUE,
+            // FF21 = IO_NR42:         XXXX XXXX
+            // FF22 = IO_NR43:         XXXX XXXX
+            // FF23 = IO_NR44:         WX.. ....
+            IO_NR44 => get_bits!(0b0100_0000),
+            // FF24 = IO_NR50:         XXXX XXXX
+            // FF25 = IO_NR51:         XXXX XXXX
+            // FF26 = IO_NR52:         X... RRRR
+            IO_NR52 => get_bits!(0b1000_1111),
+            // FF27
+            // ...
+            // FF2F
+            // FF30 = IO_WAVE_RAM:     XXXX XXXX
+            // ...  = IO_WAVE_RAM:     XXXX XXXX
+            // FF3F = IO_WAVE_RAM:     XXXX XXXX
+            // FF40 = IO_LCDC:         XXXX XXXX
+            // FF41 = IO_STAT:         .XXX XXRR
+            IO_STAT => get_bits!(0b0111_1111),
+            // FF42 = IO_SCY:          XXXX XXXX
+            // FF43 = IO_SCX:          XXXX XXXX
+            // FF44 = IO_LY:           RRRR RRRR
+            // FF45 = IO_LYC:          XXXX XXXX
+            // FF46 = IO_DMA:          XXXX XXXX
+            // FF47 = IO_BGP:          XXXX XXXX
+            // FF48 = IO_OBP0:         XXXX XXXX
+            // FF49 = IO_OBP1:         XXXX XXXX
+            // FF4A = IO_WY:           XXXX XXXX
+            // FF4B = IO_WX:           XXXX XXXX
+            // FF4C
+            // ...
+            // FF4F
+            // FF50 = IO_BANK:         WWWW WWWW*
+            IO_BANK => WRITE_ONLY_VALUE,
+            // FF51
+            // ...
+            // FFFE
+            // FFFF = IO_IE:           ...X XXXX
+            IO_IE => get_bits!(0b0001_1111),
+
+            // Fully readable or just normal RAM:
+            _ => self[address],
+        }
+    }
+
+    fn hram_set(&mut self, address: u16, value: u8) {
+        macro_rules! set_bits {
+            ($mask:expr) => {{
+                let bits_to_write = value & $mask;
+                let current_compl = self[address] & !$mask;
+                self[address] = current_compl | bits_to_write;
+            }};
+        }
+        match address {
+            // FF00 = IO_JOYP:         ..WW RRRR
+            IO_JOYP => set_bits!(0b0011_0000),
+            // FF01 = IO_SB:           XXXX XXXX
+            // FF02 = IO_SC:           X... ...X
+            IO_SC => set_bits!(0b1000_0001),
+            // FF03
+            // FF04 = IO_DIV:          XXXX XXXX*
+            IO_DIV => self.system_timer = 0,
+            // FF05 = IO_TIMA:         XXXX XXXX
+            // FF06 = IO_TMA:          XXXX XXXX
+            // FF07 = IO_TAC:          .... .XXX
+            IO_TAC => set_bits!(0b0000_0111),
+            // FF08
+            // ...
+            // FF0E
+            // FF0F = IO_IF:           ...X XXXX
+            IO_IF => set_bits!(0b0001_1111),
+            // FF10 = IO_NR10:         .XXX XXXX
+            IO_NR10 => set_bits!(0b0111_1111),
+            // FF11 = IO_NR11:         XXWW WWWW
+            // FF12 = IO_NR12:         XXXX XXXX
+            // FF13 = IO_NR13:         WWWW WWWW
+            // FF14 = IO_NR14:         WX.. .WWW
+            IO_NR14 => set_bits!(0b1100_0111),
+            // FF15
+            // FF16 = IO_NR21:         XXWW WWWW
+            // FF17 = IO_NR22:         XXXX XXXX
+            // FF18 = IO_NR23:         WWWW WWWW
+            // FF19 = IO_NR24:         WX.. .WWW
+            IO_NR24 => set_bits!(0b1100_0111),
+            // FF1A = IO_NR30:         X... ....
+            IO_NR30 => set_bits!(0b1000_0000),
+            // FF1B = IO_NR31:         WWWW WWWW
+            // FF1C = IO_NR32:         .XX. ....
+            IO_NR32 => set_bits!(0b0110_0000),
+            // FF1D = IO_NR33:         WWWW WWWW
+            // FF1E = IO_NR34:         WX.. .WWW
+            IO_NR34 => set_bits!(0b1100_0111),
+            // FF1F
+            // FF20 = IO_NR41:         ..WW WWWW
+            IO_NR41 => set_bits!(0b0011_1111),
+            // FF21 = IO_NR42:         XXXX XXXX
+            // FF22 = IO_NR43:         XXXX XXXX
+            // FF23 = IO_NR44:         WX.. ....
+            IO_NR44 => set_bits!(0b1100_0000),
+            // FF24 = IO_NR50:         XXXX XXXX
+            // FF25 = IO_NR51:         XXXX XXXX
+            // FF26 = IO_NR52:         X... RRRR
+            IO_NR52 => set_bits!(0b1000_0000),
+            // FF27
+            // ...
+            // FF2F
+            // FF30 = IO_WAVE_RAM:     XXXX XXXX
+            // ...  = IO_WAVE_RAM:     XXXX XXXX
+            // FF3F = IO_WAVE_RAM:     XXXX XXXX
+            // FF40 = IO_LCDC:         XXXX XXXX
+            // FF41 = IO_STAT:         .XXX XXRR
+            IO_STAT => set_bits!(0b0111_1100),
+            // FF42 = IO_SCY:          XXXX XXXX
+            // FF43 = IO_SCX:          XXXX XXXX
+            // FF44 = IO_LY:           RRRR RRRR
+            IO_LY => (/* Do nothing */),
+            // FF45 = IO_LYC:          XXXX XXXX
+            // FF46 = IO_DMA:          XXXX XXXX
+            IO_DMA => {
+                self[address] = value;
+                // self.execute_dma = true;
+            }
+            // FF47 = IO_BGP:          XXXX XXXX
+            // FF48 = IO_OBP0:         XXXX XXXX
+            // FF49 = IO_OBP1:         XXXX XXXX
+            // FF4A = IO_WY:           XXXX XXXX
+            // FF4B = IO_WX:           XXXX XXXX
+            // FF4C
+            // ...
+            // FF4F
+            // FF50 = IO_BANK:         WWWW WWWW*
+            IO_BANK => {
+                if self.boot_mode && value != 0 {
+                    self.boot_mode = false;
+                    self[address] = value;
+                }
+            }
+            // FF51
+            // ...
+            // FFFE
+            // FFFF = IO_IE:           ...X XXXX
+            IO_IE => set_bits!(0b0001_1111),
+
+            // Fully writable or just normal RAM:
+            _ => self[address] = value,
+        }
+    }
     /* #endregion */
 }
 
