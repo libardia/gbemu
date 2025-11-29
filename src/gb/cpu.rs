@@ -71,14 +71,14 @@ impl CPU {
         match self.mode {
             CPUMode::Normal => (), // Do nothing
             CPUMode::Halt => {
+                // HALT ends whenever any interrupt is triggered (whether or not it would be handled)
                 if mmu.get(IO_IF) != 0 {
-                    // HALT ends whenever any interrupt is triggered (whether or not it would be handled)
                     self.mode = CPUMode::Normal;
                 }
             }
             CPUMode::Stop => {
+                // STOP ends when any input bit of IO_JOYP goes low (a button is pressed)
                 if (mmu.get(IO_JOYP) & 0xF) != 0xF {
-                    // STOP ends when any input bit of IO_JOYP goes low (a button is pressed)
                     self.mode = CPUMode::Normal;
                 }
             }
@@ -93,7 +93,7 @@ impl CPU {
                 let inst = self.decode(mmu);
                 self.execute(mmu, inst)
             }
-            CPUMode::Halt | CPUMode::Stop => 1,
+            _ => 1,
         }
     }
 
