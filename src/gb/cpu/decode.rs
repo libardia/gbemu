@@ -85,7 +85,12 @@ impl CPU {
 
     fn next_byte(&mut self, mmu: &MMU) -> u8 {
         let byte = mmu.get(self.pc);
-        self.pc = self.pc.wrapping_add(1);
+        if self.halt_bug {
+            // Don't increment PC, whoops!
+            self.halt_bug = false
+        } else {
+            self.pc = self.pc.wrapping_add(1);
+        }
         byte
     }
 

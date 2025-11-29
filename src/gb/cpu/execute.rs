@@ -69,8 +69,8 @@ impl CPU {
             RST(address) => self.op_rst(mmu, address),
 
             // Carry flag
-            CCF => todo!(),
-            SCF => todo!(),
+            CCF => self.op_ccf(),
+            SCF => self.op_scf(),
 
             // Stack manipulation
             ADD_SP_e8(off) => self.op_add_sp_e8(off),
@@ -80,14 +80,14 @@ impl CPU {
             PUSH(target) => self.op_push(mmu, target),
 
             // Interrupts
-            DI => todo!(),
-            EI => todo!(),
-            HALT => todo!(),
+            DI => self.op_di(),
+            EI => self.op_ei(),
+            HALT => self.op_halt(mmu),
 
             // Misc
-            DAA => todo!(),
+            DAA => self.op_daa(),
             NOP => 1, // Do nothing for 1 MTime
-            STOP(_) => todo!(),
+            STOP(_) => self.op_stop(),
 
             // Meta
             INVALID(meta) => todo!(),
@@ -191,4 +191,5 @@ mod bitshifts;
 mod jumps;
 mod load;
 mod logic;
+mod misc;
 mod stack;

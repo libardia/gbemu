@@ -10,6 +10,14 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
+enum EIState {
+    #[default]
+    Idle,
+    Waiting,
+    Now,
+}
+
+#[derive(Debug, Default)]
 pub struct CPU {
     // Registers
     b: u8,
@@ -25,8 +33,13 @@ pub struct CPU {
 
     // Flags
     ime: bool,
+    halt_mode: bool,
 
     // Helper
+    ei_state: EIState,
+    halt_bug: bool,
+
+    // Meta
     pub enable_meta_instructions: bool,
 }
 
@@ -38,9 +51,21 @@ impl CPU {
         // Tell the MMU that the CPU is accessing it
         mmu.access_mode = AccessMode::CPU;
 
-        // Decode instruction at PC
-        let inst = self.decode(mmu);
+        // Delayed effect of EI
+        match self.ei_state {
+            EIState::Idle => (), // Do nothing
+            EIState::Waiting => self.ei_state = EIState::Now,
+            EIState::Now => {
+                self.ime = true;
+                self.ei_state = EIState::Idle;
+            }
+        }
 
+        // Service interruptions
+        // TODO: interruptions
+
+        // Decode and execute instruction at PC
+        let inst = self.decode(mmu);
         self.execute(mmu, inst)
     }
 
