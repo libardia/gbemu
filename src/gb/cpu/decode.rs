@@ -1,6 +1,6 @@
 use super::*;
-use crate::{
-    gb::cpu::{
+use crate::gb::{
+    cpu::{
         instruction::{
             Instruction::{self, *},
             Mem,

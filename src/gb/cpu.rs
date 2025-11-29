@@ -1,12 +1,11 @@
 mod instruction;
 mod optable;
 
-use crate::{
-    gb::{
-        mmu::{AccessMode, MMU},
-        MTime,
-    },
+use crate::gb::{
     macros::{bit_flag, new},
+    mmu::{AccessMode, MMU},
+    regions::{IO_IF, IO_JOYP},
+    MTime,
 };
 
 #[derive(Debug, Default)]
@@ -15,6 +14,14 @@ enum EIState {
     Idle,
     Waiting,
     Now,
+}
+
+#[derive(Debug, Default)]
+enum CPUMode {
+    #[default]
+    Normal,
+    Halt,
+    Stop,
 }
 
 #[derive(Debug, Default)]
@@ -33,7 +40,7 @@ pub struct CPU {
 
     // Flags
     ime: bool,
-    halt_mode: bool,
+    mode: CPUMode,
 
     // Helper
     ei_state: EIState,
@@ -61,12 +68,33 @@ impl CPU {
             }
         }
 
-        // Service interruptions
-        // TODO: interruptions
+        match self.mode {
+            CPUMode::Normal => (), // Do nothing
+            CPUMode::Halt => {
+                if mmu.get(IO_IF) != 0 {
+                    // HALT ends whenever any interrupt is triggered (whether or not it would be handled)
+                    self.mode = CPUMode::Normal;
+                }
+            }
+            CPUMode::Stop => {
+                if (mmu.get(IO_JOYP) & 0xF) != 0xF {
+                    // STOP ends when any input bit of IO_JOYP goes low (a button is pressed)
+                    self.mode = CPUMode::Normal;
+                }
+            }
+        }
 
-        // Decode and execute instruction at PC
-        let inst = self.decode(mmu);
-        self.execute(mmu, inst)
+        match self.mode {
+            CPUMode::Normal => {
+                // Handle interruptions
+                // TODO: interruptions
+
+                // Decode and execute instruction at PC ()
+                let inst = self.decode(mmu);
+                self.execute(mmu, inst)
+            }
+            CPUMode::Halt | CPUMode::Stop => 1,
+        }
     }
 
     // Accessors
@@ -134,8 +162,8 @@ macro_rules! getset_r16 {
         }
 
         fn $setname(&mut self, value: u16) {
-            self.$r1 = crate::macros::byte_of!(value, 1);
-            self.$r2 = crate::macros::byte_of!(value, 0);
+            self.$r1 = crate::gb::macros::byte_of!(value, 1);
+            self.$r2 = crate::gb::macros::byte_of!(value, 0);
         }
     };
 }

@@ -1,5 +1,4 @@
 mod gb;
-mod macros;
 
 use gb::GB;
 use log::LevelFilter;

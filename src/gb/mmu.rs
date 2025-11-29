@@ -1,15 +1,14 @@
 mod boot_rom;
 mod mbc;
-mod regions;
 
-use crate::{
-    gb::TTime,
+use crate::gb::{
     macros::{address_fmt, error_panic, new},
+    regions::*,
+    TTime,
 };
 use boot_rom::BOOT_ROM;
 use log::warn;
 use mbc::MBC;
-use regions::*;
 use std::ops::{Index, IndexMut};
 
 const OPEN_BUS_VALUE: u8 = 0xFF;

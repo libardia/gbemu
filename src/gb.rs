@@ -1,8 +1,10 @@
 mod cpu;
+mod macros;
 mod mmu;
+mod regions;
 
-use crate::macros::new;
 use cpu::CPU;
+use macros::new;
 use mmu::MMU;
 
 type MTime = u16;
@@ -33,7 +35,13 @@ impl GB {
     pub fn load_cart(&mut self, cart_path: String) {}
 
     pub fn run(&mut self) {
-        let mtime = self.cpu.step(&mut self.mmu);
-        let ttime = mtime * 4;
+        loop {
+            let m_dt = self.cpu.step(&mut self.mmu);
+            let t_dt = m_dt * 4;
+
+            // TODO: dmau.step(m_dt)
+            // TODO: ppu.step(t_dt)
+            // TODO: apu.step(t_dt)
+        }
     }
 }

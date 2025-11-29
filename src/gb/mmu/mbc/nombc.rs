@@ -1,6 +1,5 @@
-use crate::{gb::mmu::regions::ROM_SPACE, macros::new};
-
 use super::*;
+use crate::{gb::macros::new, gb::regions::ROM_SPACE};
 
 #[derive(Debug, Default)]
 pub struct NoMBC {
