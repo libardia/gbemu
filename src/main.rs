@@ -11,7 +11,7 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 
     SimpleLogger::new()
-        .with_level(LevelFilter::Debug)
+        .with_level(LevelFilter::Info)
         .env()
         .init()
         .unwrap();

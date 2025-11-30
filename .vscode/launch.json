@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug executable 'gbemu'",
+            "name": "debug (log: debug)",
             "type": "lldb",
             "request": "launch",
             "cargo": {
@@ -14,7 +14,19 @@
                     "--bin=gbemu"
                 ]
             },
-            "args": []
+            "args": ["debug"]
+        },
+        {
+            "name": "debug (log: trace)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "run",
+                    "--bin=gbemu"
+                ]
+            },
+            "args": ["trace"]
         },
         {
             "name": "Debug unit tests in executable 'gbemu'",
