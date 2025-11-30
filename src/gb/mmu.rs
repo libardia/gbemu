@@ -9,7 +9,6 @@ use crate::gb::{
 use boot_rom::BOOT_ROM;
 use log::{error, warn};
 use mbc::MBC;
-use std::ops::{Index, IndexMut};
 
 const OPEN_BUS_VALUE: u8 = 0xFF;
 
@@ -43,7 +42,7 @@ impl MMU {
 
     pub fn init_io(&mut self) {
         for (reg, def) in IO_DEFAULTS {
-            self[reg] = def;
+            self.raw_ram[adjust_address(reg)] = def;
         }
     }
 
@@ -53,7 +52,7 @@ impl MMU {
 
     pub fn get(&self, address: u16) -> u8 {
         match self.access_mode {
-            AccessMode::Full => self[address],
+            AccessMode::Full => self.get_full(address),
             AccessMode::CPU => self.get_cpu(address),
             AccessMode::PPU => self.get_ppu(address),
             AccessMode::DMA => self.get_dma(address),
@@ -62,7 +61,7 @@ impl MMU {
 
     pub fn set(&mut self, address: u16, value: u8) {
         match self.access_mode {
-            AccessMode::Full => self[address] = value,
+            AccessMode::Full => self.set_full(address, value),
             AccessMode::CPU => self.set_cpu(address, value),
             AccessMode::PPU => self.set_ppu(address, value),
             AccessMode::DMA => self.set_dma(address, value),
@@ -70,6 +69,29 @@ impl MMU {
     }
 
     /* #region CPU */
+    fn get_raw(&self, address: u16) -> u8 {
+        self.raw_ram[adjust_address(address)]
+    }
+
+    fn set_raw(&mut self, address: u16, value: u8) {
+        self.raw_ram[adjust_address(address)] = value;
+    }
+
+    fn get_full(&self, address: u16) -> u8 {
+        if HIGH_RAM.contains(address) {
+            self.hram_get(address)
+        } else {
+            self.get_raw(address)
+        }
+    }
+
+    fn set_full(&mut self, address: u16, value: u8) {
+        if HIGH_RAM.contains(address) {
+            self.hram_set(address, value);
+        } else {
+            self.set_raw(address, value);
+        }
+    }
 
     fn get_cpu(&self, address: u16) -> u8 {
         // CPU range:
@@ -117,7 +139,7 @@ impl MMU {
             }
         } else {
             // Any other address
-            self[address]
+            self.get_full(address)
         }
     }
 
@@ -160,7 +182,7 @@ impl MMU {
             }
         } else {
             // Any other address
-            self[address] = value;
+            self.set_full(address, value);
         };
     }
 
@@ -177,7 +199,7 @@ impl MMU {
             warn!("Blocked PPU read at {} during DMA.", address_fmt!(address));
             OPEN_BUS_VALUE
         } else {
-            self[address]
+            self.get_full(address)
         }
     }
 
@@ -189,7 +211,7 @@ impl MMU {
         if self.dma_block {
             warn!("Blocked PPU write at {} during DMA.", address_fmt!(address));
         } else {
-            self[address] = value;
+            self.set_full(address, value);
         }
     }
 
@@ -221,7 +243,7 @@ impl MMU {
                 }
             }
         } else {
-            self[address]
+            self.get_full(address)
         }
     }
 
@@ -238,7 +260,7 @@ impl MMU {
                 address_fmt!(address)
             );
         } else {
-            self[address] = value;
+            self.set_full(address, value);
         }
     }
 
@@ -251,13 +273,13 @@ impl MMU {
         macro_rules! get_bits {
             ($mask:expr) => {
                 // Returns 1 in each unreadable bit
-                self[address] | !$mask
+                self.get_raw(address) | !$mask
             };
         }
 
         match address {
-            // FF00 = IO_JOYP:         ..WW RRRR
-            IO_JOYP => get_bits!(0b0000_1111),
+            // FF00 = IO_JOYP:         ..XX RRRR
+            IO_JOYP => self.get_joyp(),
             // FF01 = IO_SB:           XXXX XXXX
             // FF02 = IO_SC:           X... ...X
             IO_SC => get_bits!(0b1000_0001),
@@ -342,7 +364,7 @@ impl MMU {
             IO_IE => get_bits!(0b0001_1111),
 
             // Fully readable or just normal RAM:
-            _ => self[address],
+            _ => self.get_raw(address),
         }
     }
 
@@ -350,12 +372,12 @@ impl MMU {
         macro_rules! set_bits {
             ($mask:expr) => {{
                 let bits_to_write = value & $mask;
-                let current_compl = self[address] & !$mask;
-                self[address] = current_compl | bits_to_write;
+                let current_compl = self.get_raw(address) & !$mask;
+                self.set_raw(address, current_compl | bits_to_write);
             }};
         }
         match address {
-            // FF00 = IO_JOYP:         ..WW RRRR
+            // FF00 = IO_JOYP:         ..XX RRRR
             IO_JOYP => set_bits!(0b0011_0000),
             // FF01 = IO_SB:           XXXX XXXX
             // FF02 = IO_SC:           X... ...X
@@ -420,8 +442,7 @@ impl MMU {
             // FF45 = IO_LYC:          XXXX XXXX
             // FF46 = IO_DMA:          XXXX XXXX
             IO_DMA => {
-                self[address] = value;
-                // self.execute_dma = true;
+                // TODO: self.execute_dma = true;
             }
             // FF47 = IO_BGP:          XXXX XXXX
             // FF48 = IO_OBP0:         XXXX XXXX
@@ -435,7 +456,6 @@ impl MMU {
             IO_BANK => {
                 if self.boot_mode && value != 0 {
                     self.boot_mode = false;
-                    self[address] = value;
                 }
             }
             // FF51
@@ -445,7 +465,7 @@ impl MMU {
             IO_IE => set_bits!(0b0001_1111),
 
             // Fully writable or just normal RAM:
-            _ => self[address] = value,
+            _ => self.set_raw(address, value),
         }
     }
     /* #endregion */
@@ -454,32 +474,27 @@ impl MMU {
 /* #region Raw indexing */
 
 impl MMU {
-    fn adjust_address(address: u16) -> u16 {
-        let folded = if address >= ECHO_RAM.begin {
-            if address <= ECHO_RAM.end {
-                address - (ECHO_RAM.begin - WORK_RAM.begin)
-            } else {
-                address - ECHO_RAM.size()
-            }
+    fn get_joyp(&self) -> u8 {
+        // TODO: Return currently held AND SELECTED buttons
+        // Returns only the last 4 bits: 0 means button is held, 1 is not held
+        let joyp = self.get_raw(IO_JOYP);
+        let butt = (joyp & 0b0010_0000) != 0;
+        let dpad = (joyp & 0b0001_0000) != 0;
+        0b1100_1111 & ((butt as u8) << 5) & ((dpad as u8) << 4)
+    }
+}
+
+fn adjust_address(address: u16) -> usize {
+    let folded = if address >= ECHO_RAM.begin {
+        if address <= ECHO_RAM.end {
+            address - (ECHO_RAM.begin - WORK_RAM.begin)
         } else {
-            address
-        };
-        folded - ROM_SPACE.size()
-    }
-}
-
-impl Index<u16> for MMU {
-    type Output = u8;
-
-    fn index(&self, index: u16) -> &Self::Output {
-        &self.raw_ram[Self::adjust_address(index) as usize]
-    }
-}
-
-impl IndexMut<u16> for MMU {
-    fn index_mut(&mut self, index: u16) -> &mut Self::Output {
-        &mut self.raw_ram[Self::adjust_address(index) as usize]
-    }
+            address - ECHO_RAM.size()
+        }
+    } else {
+        address
+    };
+    (folded - ROM_SPACE.size()) as usize
 }
 
 /* #endregion */
