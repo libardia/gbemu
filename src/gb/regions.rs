@@ -59,17 +59,24 @@ const_regions!(
 );
 
 macro_rules! io_regs {
-    ($($name:ident: $address:expr; $default:expr)*) => {
+    ($type:ty, $($name:ident: $address:expr; $default:expr)*) => {
         $(
             pub const $name: u16 = $address;
             paste::paste! {
                 pub const [<$name _DEFAULT>]: u16 = $default;
             }
         )*
+
+        pub const IO_DEFAULTS: $type = [
+            $(
+                ($name, $default)
+            ),*
+        ];
     };
 }
 
 io_regs!(
+    [(u16, u8); 43],
     // P1 $FF00 $CF
     IO_JOYP: 0xFF00; 0xCF
     // SB $FF01 $00
