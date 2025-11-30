@@ -5,7 +5,7 @@ use crate::gb::{
         Instruction::{self, *},
         Mem, R16, R8,
     },
-    macros::{address_fmt, byte_fmt, error_panic},
+    macros::error_panic,
 };
 
 impl CPU {
@@ -61,12 +61,12 @@ impl CPU {
             SWAP(target) => self.op_swap(mmu, target),
 
             // Jumps and subroutines
-            CALL(cond, address) => self.op_call(mmu, cond, address),
+            CALL(cond, address) => self.op_call(mmu, cond, address.0),
             JP(cond, address) => self.op_jump(cond, address),
             JR(cond, off) => self.op_jump_rel(cond, off),
             RET(cond) => self.op_ret(mmu, cond, false),
             RETI => self.op_ret(mmu, Cond::ALWAYS, true),
-            RST(address) => self.op_rst(mmu, address),
+            RST(address) => self.op_rst(mmu, address.0),
 
             // Carry flag
             CCF => self.op_ccf(),
@@ -74,7 +74,7 @@ impl CPU {
 
             // Stack manipulation
             ADD_SP_e8(off) => self.op_add_sp_e8(off),
-            LD_a16_SP(address) => self.op_ld_a16_sp(mmu, address),
+            LD_a16_SP(address) => self.op_ld_a16_sp(mmu, address.0),
             LD_HL_SPe8(off) => self.op_ld_hl_sp_e8(off),
             POP(target) => self.op_pop(mmu, target),
             PUSH(target) => self.op_push(mmu, target),
@@ -106,7 +106,7 @@ impl CPU {
             R8::L => self.l,
             R8::MHL => mmu.get(self.get_hl()),
             R8::A => self.a,
-            R8::IMM(byte) => byte,
+            R8::IMM(byte) => byte.0,
         }
     }
 
@@ -121,8 +121,7 @@ impl CPU {
             R8::MHL => mmu.set(self.get_hl(), value),
             R8::A => self.a = value,
             R8::IMM(value) => error_panic!(
-                "Tried to set a value into the constant {}, which doesn't make sense.",
-                byte_fmt!(value)
+                "Tried to set a value into the constant {value:?}, which doesn't make sense.",
             ),
         }
     }
@@ -134,7 +133,7 @@ impl CPU {
             R16::HL => self.get_hl(),
             R16::SP => self.sp,
             R16::AF => self.get_af(),
-            R16::IMM(word) => word,
+            R16::IMM(word) => word.0,
         }
     }
 
@@ -146,8 +145,7 @@ impl CPU {
             R16::SP => self.sp = value,
             R16::AF => self.set_af(value),
             R16::IMM(value) => error_panic!(
-                "Tried to set a value into the constant {}, which doesn't make sense.",
-                address_fmt!(value)
+                "Tried to set a value into the constant {value:?}, which doesn't make sense.",
             ),
         }
     }
@@ -159,9 +157,9 @@ impl CPU {
             Mem::HL => self.get_hl(),
             Mem::HLI => self.get_hli(),
             Mem::HLD => self.get_hld(),
-            Mem::IMM(address) => address,
+            Mem::IMM(address) => address.0,
             Mem::HIGH_C => self.c as u16 + 0xFF00,
-            Mem::HIGH_IMM(half_address) => half_address as u16 + 0xFF00,
+            Mem::HIGH_IMM(half_address) => half_address.0 as u16 + 0xFF00,
         }
     }
 

@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use crate::gb::types::{Byte, Word};
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -53,12 +53,12 @@ pub enum Instruction {
     SWAP(R8),
 
     // Jumps and subroutines
-    CALL(Cond, u16),
+    CALL(Cond, Word),
     JP(Cond, Mem),
     JR(Cond, i8),
     RET(Cond),
     RETI,
-    RST(u16),
+    RST(Word),
 
     // Carry flag
     CCF,
@@ -66,7 +66,7 @@ pub enum Instruction {
 
     // Stack manipulation
     ADD_SP_e8(i8),
-    LD_a16_SP(u16),
+    LD_a16_SP(Word),
     LD_HL_SPe8(i8),
     POP(R16),
     PUSH(R16),
@@ -79,7 +79,7 @@ pub enum Instruction {
     // Misc
     DAA,
     NOP,
-    STOP(u8),
+    STOP(Byte),
 
     // Meta
     PREFIX,
@@ -107,7 +107,7 @@ pub enum R8 {
     MHL,
     A,
 
-    IMM(u8),
+    IMM(Byte),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -118,7 +118,7 @@ pub enum R16 {
     SP,
     AF,
 
-    IMM(u16),
+    IMM(Word),
 }
 
 #[allow(non_camel_case_types)]
@@ -130,10 +130,10 @@ pub enum Mem {
     HLI,
     HLD,
 
-    IMM(u16),
+    IMM(Word),
 
     HIGH_C,
-    HIGH_IMM(u8),
+    HIGH_IMM(Byte),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

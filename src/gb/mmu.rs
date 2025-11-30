@@ -4,10 +4,10 @@ mod mbc;
 use crate::gb::{
     macros::{address_fmt, error_panic, new},
     regions::*,
-    TTime,
+    types::TTime,
 };
 use boot_rom::BOOT_ROM;
-use log::warn;
+use log::{error, warn};
 use mbc::MBC;
 use std::ops::{Index, IndexMut};
 
@@ -41,7 +41,11 @@ impl MMU {
         ...
     );
 
-    pub fn initialize() {}
+    pub fn init_io(&mut self) {
+        for (reg, def) in IO_DEFAULTS {
+            self[reg] = def;
+        }
+    }
 
     pub fn add_time(&mut self, ticks: u16) {
         self.system_timer = self.system_timer.wrapping_add(ticks);
@@ -104,10 +108,11 @@ impl MMU {
             match self.mbc.as_ref() {
                 Some(mbc) => mbc.get(address),
                 None => {
-                    error_panic!(
+                    error!(
                         "CPU tried to read from {} but no MBC is defined! Is there a cartridge?",
                         address_fmt!(address)
                     );
+                    OPEN_BUS_VALUE
                 }
             }
         } else {

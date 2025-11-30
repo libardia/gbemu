@@ -2,13 +2,11 @@ mod cpu;
 mod macros;
 mod mmu;
 mod regions;
+mod types;
 
 use cpu::CPU;
 use macros::new;
 use mmu::MMU;
-
-type MTime = u16;
-type TTime = u16;
 
 #[derive(Debug, Default)]
 pub struct GB {
@@ -35,6 +33,8 @@ impl GB {
     pub fn load_cart(&mut self, cart_path: String) {}
 
     pub fn run(&mut self) {
+        self.mmu.init_io();
+
         loop {
             let m_dt = self.cpu.step(&mut self.mmu);
             let t_dt = m_dt * 4;

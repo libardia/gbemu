@@ -1,80 +1,83 @@
-use crate::gb::cpu::instruction::{
-    Cond,
-    Instruction::{self, *},
-    Mem,
-    MetaInstruction::*,
-    R16, R8,
+use crate::gb::{
+    cpu::instruction::{
+        Cond,
+        Instruction::{self, *},
+        Mem,
+        MetaInstruction::*,
+        R16, R8,
+    },
+    types::{Byte, Word},
 };
 
 pub const OP_TABLE: [Instruction; 0x100] = [
     // 0x
-    NOP,                              // x0 - NOP
-    LD_r16_r16(R16::BC, R16::IMM(0)), // x1 - LD BC, n16
-    LD_mem_r8(Mem::BC, R8::A),        // x2 - LD [BC], A
-    INC_r16(R16::BC),                 // x3 - INC BC
-    INC_r8(R8::B),                    // x4 - INC B
-    DEC_r8(R8::B),                    // x5 - DEC B
-    LD_r8_r8(R8::B, R8::IMM(0)),      // x6 - LD B, n8
-    RLCA,                             // x7 - RLCA
-    LD_a16_SP(0),                     // x8 - LD [a16], SP
-    ADD_r16(R16::BC),                 // x9 - ADD HL, BC
-    LD_r8_mem(R8::A, Mem::BC),        // xA - LD A, [BC]
-    DEC_r16(R16::BC),                 // xB - DEC BC
-    INC_r8(R8::C),                    // xC - INC C
-    DEC_r8(R8::C),                    // xD - DEC C
-    LD_r8_r8(R8::C, R8::IMM(0)),      // xE - LD C, n8
-    RRCA,                             // xF - RRCA
+    NOP,                                    // x0 - NOP
+    LD_r16_r16(R16::BC, R16::IMM(Word(0))), // x1 - LD BC, n16
+    LD_mem_r8(Mem::BC, R8::A),              // x2 - LD [BC], A
+    INC_r16(R16::BC),                       // x3 - INC BC
+    INC_r8(R8::B),                          // x4 - INC B
+    DEC_r8(R8::B),                          // x5 - DEC B
+    LD_r8_r8(R8::B, R8::IMM(Byte(0))),      // x6 - LD B, n8
+    RLCA,                                   // x7 - RLCA
+    LD_a16_SP(Word(0)),                     // x8 - LD [a16], SP
+    ADD_r16(R16::BC),                       // x9 - ADD HL, BC
+    LD_r8_mem(R8::A, Mem::BC),              // xA - LD A, [BC]
+    DEC_r16(R16::BC),                       // xB - DEC BC
+    INC_r8(R8::C),                          // xC - INC C
+    DEC_r8(R8::C),                          // xD - DEC C
+    LD_r8_r8(R8::C, R8::IMM(Byte(0))),      // xE - LD C, n8
+    RRCA,                                   // xF - RRCA
     // 1x
-    STOP(0),                          // x0 - STOP n8
-    LD_r16_r16(R16::DE, R16::IMM(0)), // x1 - LD DE, n16
-    LD_mem_r8(Mem::DE, R8::A),        // x2 - LD [DE], A
-    INC_r16(R16::DE),                 // x3 - INC DE
-    INC_r8(R8::D),                    // x4 - INC D
-    DEC_r8(R8::D),                    // x5 - DEC D
-    LD_r8_r8(R8::D, R8::IMM(0)),      // x6 - LD D, n8
-    RLA,                              // x7 - RLA
-    JR(Cond::ALWAYS, 0),              // x8 - JR e8
-    ADD_r16(R16::DE),                 // x9 - ADD HL, DE
-    LD_r8_mem(R8::A, Mem::DE),        // xA - LD A, [DE]
-    DEC_r16(R16::DE),                 // xB - DEC DE
-    INC_r8(R8::E),                    // xC - INC E
-    DEC_r8(R8::E),                    // xD - DEC E
-    LD_r8_r8(R8::E, R8::IMM(0)),      // xE - LD E, n8
-    RRA,                              // xF - RRA
+    STOP(Byte(0)),                          // x0 - STOP n8
+    LD_r16_r16(R16::DE, R16::IMM(Word(0))), // x1 - LD DE, n16
+    LD_mem_r8(Mem::DE, R8::A),              // x2 - LD [DE], A
+    INC_r16(R16::DE),                       // x3 - INC DE
+    INC_r8(R8::D),                          // x4 - INC D
+    DEC_r8(R8::D),                          // x5 - DEC D
+    LD_r8_r8(R8::D, R8::IMM(Byte(0))),      // x6 - LD D, n8
+    RLA,                                    // x7 - RLA
+    JR(Cond::ALWAYS, 0),                    // x8 - JR e8
+    ADD_r16(R16::DE),                       // x9 - ADD HL, DE
+    LD_r8_mem(R8::A, Mem::DE),              // xA - LD A, [DE]
+    DEC_r16(R16::DE),                       // xB - DEC DE
+    INC_r8(R8::E),                          // xC - INC E
+    DEC_r8(R8::E),                          // xD - DEC E
+    LD_r8_r8(R8::E, R8::IMM(Byte(0))),      // xE - LD E, n8
+    RRA,                                    // xF - RRA
     // 2x
-    JR(Cond::NZ, 0),                  // x0 - JR NZ, e8
-    LD_r16_r16(R16::HL, R16::IMM(0)), // x1 - LD HL, n16
-    LD_mem_r8(Mem::HLI, R8::A),       // x2 - LD [HL+], A
-    INC_r16(R16::HL),                 // x3 - INC HL
-    INC_r8(R8::H),                    // x4 - INC H
-    DEC_r8(R8::H),                    // x5 - DEC H
-    LD_r8_r8(R8::H, R8::IMM(0)),      // x6 - LD H, n8
-    DAA,                              // x7 - DAA
-    JR(Cond::Z, 0),                   // x8 - JR Z, e8
-    ADD_r16(R16::HL),                 // x9 - ADD HL, HL
-    LD_r8_mem(R8::A, Mem::HLI),       // xA - LD A, [HL+]
-    DEC_r16(R16::HL),                 // xB - DEC HL
-    INC_r8(R8::L),                    // xC - INC L
-    DEC_r8(R8::L),                    // xD - DEC L
-    LD_r8_r8(R8::L, R8::IMM(0)),      // xE - LD L, n8
-    CPL,                              // xF - CPL
+    JR(Cond::NZ, 0),                        // x0 - JR NZ, e8
+    LD_r16_r16(R16::HL, R16::IMM(Word(0))), // x1 - LD HL, n16
+    LD_mem_r8(Mem::HLI, R8::A),             // x2 - LD [HL+], A
+    INC_r16(R16::HL),                       // x3 - INC HL
+    INC_r8(R8::H),                          // x4 - INC H
+    DEC_r8(R8::H),                          // x5 - DEC H
+    LD_r8_r8(R8::H, R8::IMM(Byte(0))),      // x6 - LD H, n8
+    DAA,                                    // x7 - DAA
+    JR(Cond::Z, 0),                         // x8 - JR Z, e8
+    ADD_r16(R16::HL),                       // x9 - ADD HL, HL
+    LD_r8_mem(R8::A, Mem::HLI),             // xA - LD A, [HL+]
+    DEC_r16(R16::HL),                       // xB - DEC HL
+    INC_r8(R8::L),                          // xC - INC L
+    DEC_r8(R8::L),                          // xD - DEC L
+    LD_r8_r8(R8::L, R8::IMM(Byte(0))),      // xE - LD L, n8
+    CPL,                                    // xF - CPL
     // 3x
-    JR(Cond::NC, 0),                  // x0 - JR NC, e8
-    LD_r16_r16(R16::SP, R16::IMM(0)), // x1 - LD SP, n16
-    LD_mem_r8(Mem::HLD, R8::A),       // x2 - LD [HL-], A
-    INC_r16(R16::SP),                 // x3 - INC SP
-    INC_r8(R8::MHL),                  // x4 - INC [HL]
-    DEC_r8(R8::MHL),                  // x5 - DEC [HL]
-    LD_r8_r8(R8::MHL, R8::IMM(0)),    // x6 - LD [HL], n8
-    SCF,                              // x7 - SCF
-    JR(Cond::C, 0),                   // x8 - JR C, e8
-    ADD_r16(R16::SP),                 // x9 - ADD HL, SP
-    LD_r8_mem(R8::A, Mem::HLD),       // xA - LD A, [HL-]
-    DEC_r16(R16::SP),                 // xB - DEC SP
-    INC_r8(R8::A),                    // xC - INC A
-    DEC_r8(R8::A),                    // xD - DEC A
-    LD_r8_r8(R8::A, R8::IMM(0)),      // xE - LD A, n8
-    CCF,                              // xF - CCF
+    JR(Cond::NC, 0),                        // x0 - JR NC, e8
+    LD_r16_r16(R16::SP, R16::IMM(Word(0))), // x1 - LD SP, n16
+    LD_mem_r8(Mem::HLD, R8::A),             // x2 - LD [HL-], A
+    INC_r16(R16::SP),                       // x3 - INC SP
+    INC_r8(R8::MHL),                        // x4 - INC [HL]
+    DEC_r8(R8::MHL),                        // x5 - DEC [HL]
+    LD_r8_r8(R8::MHL, R8::IMM(Byte(0))),    // x6 - LD [HL], n8
+    SCF,                                    // x7 - SCF
+    JR(Cond::C, 0),                         // x8 - JR C, e8
+    ADD_r16(R16::SP),                       // x9 - ADD HL, SP
+    LD_r8_mem(R8::A, Mem::HLD),             // xA - LD A, [HL-]
+    DEC_r16(R16::SP),                       // xB - DEC SP
+    INC_r8(R8::A),                          // xC - INC A
+    DEC_r8(R8::A),                          // xD - DEC A
+    LD_r8_r8(R8::A, R8::IMM(Byte(0))),      // xE - LD A, n8
+    CCF,                                    // xF - CCF
     // 4x
     LD_r8_r8(R8::B, R8::B),   // x0 - LD B, B
     LD_r8_r8(R8::B, R8::C),   // x1 - LD B, C
@@ -212,73 +215,73 @@ pub const OP_TABLE: [Instruction; 0x100] = [
     CP_r8(R8::MHL), // xE - CP A, [HL]
     CP_r8(R8::A),   // xF - CP A, A
     // Cx
-    RET(Cond::NZ),                 // x0 - RET NZ
-    POP(R16::BC),                  // x1 - POP BC
-    JP(Cond::NZ, Mem::IMM(0)),     // x2 - JP NZ, a16
-    JP(Cond::ALWAYS, Mem::IMM(0)), // x3 - JP a16
-    CALL(Cond::NZ, 0),             // x4 - CALL NZ, a16
-    PUSH(R16::BC),                 // x5 - PUSH BC
-    ADD_r8(R8::IMM(0)),            // x6 - ADD A, n8
-    RST(0x00),                     // x7 - RST $00
-    RET(Cond::Z),                  // x8 - RET Z
-    RET(Cond::ALWAYS),             // x9 - RET
-    JP(Cond::Z, Mem::IMM(0)),      // xA - JP Z, a16
-    PREFIX,                        // xB - PREFIX
-    CALL(Cond::Z, 0),              // xC - CALL Z, a16
-    CALL(Cond::ALWAYS, 0),         // xD - CALL a16
-    ADC_r8(R8::IMM(0)),            // xE - ADC A, n8
-    RST(0x08),                     // xF - RST $08
+    RET(Cond::NZ),                       // x0 - RET NZ
+    POP(R16::BC),                        // x1 - POP BC
+    JP(Cond::NZ, Mem::IMM(Word(0))),     // x2 - JP NZ, a16
+    JP(Cond::ALWAYS, Mem::IMM(Word(0))), // x3 - JP a16
+    CALL(Cond::NZ, Word(0)),             // x4 - CALL NZ, a16
+    PUSH(R16::BC),                       // x5 - PUSH BC
+    ADD_r8(R8::IMM(Byte(0))),            // x6 - ADD A, n8
+    RST(Word(0x00)),                     // x7 - RST $00
+    RET(Cond::Z),                        // x8 - RET Z
+    RET(Cond::ALWAYS),                   // x9 - RET
+    JP(Cond::Z, Mem::IMM(Word(0))),      // xA - JP Z, a16
+    PREFIX,                              // xB - PREFIX
+    CALL(Cond::Z, Word(0)),              // xC - CALL Z, a16
+    CALL(Cond::ALWAYS, Word(0)),         // xD - CALL a16
+    ADC_r8(R8::IMM(Byte(0))),            // xE - ADC A, n8
+    RST(Word(0x08)),                     // xF - RST $08
     // Dx
-    RET(Cond::NC),             // x0 - RET NC
-    POP(R16::DE),              // x1 - POP DE
-    JP(Cond::NC, Mem::IMM(0)), // x2 - JP NC, a16
-    INVALID(SHOW_CPU),         // x3 - INVALID (Meta-instruction: Print state of the CPU)
-    CALL(Cond::NC, 0),         // x4 - CALL NC, a16
-    PUSH(R16::DE),             // x5 - PUSH DE
-    SUB_r8(R8::IMM(0)),        // x6 - SUB A, n8
-    RST(0x10),                 // x7 - RST $10
-    RET(Cond::C),              // x8 - RET C
-    RETI,                      // x9 - RETI
-    JP(Cond::C, Mem::IMM(0)),  // xA - JP C, a16
-    INVALID(TERMINATE),        // xB - INVALID (Meta-instruction: Terminate the emulator)
-    CALL(Cond::C, 0),          // xC - CALL C, a16
-    INVALID(DUMP),             // xD - INVALID (Meta-instruction: Full state dump to file)
-    SBC_r8(R8::IMM(0)),        // xE - SBC A, n8
-    RST(0x18),                 // xF - RST $18
+    RET(Cond::NC),                   // x0 - RET NC
+    POP(R16::DE),                    // x1 - POP DE
+    JP(Cond::NC, Mem::IMM(Word(0))), // x2 - JP NC, a16
+    INVALID(SHOW_CPU),               // x3 - INVALID (Meta-instruction: Print state of the CPU)
+    CALL(Cond::NC, Word(0)),         // x4 - CALL NC, a16
+    PUSH(R16::DE),                   // x5 - PUSH DE
+    SUB_r8(R8::IMM(Byte(0))),        // x6 - SUB A, n8
+    RST(Word(0x10)),                 // x7 - RST $10
+    RET(Cond::C),                    // x8 - RET C
+    RETI,                            // x9 - RETI
+    JP(Cond::C, Mem::IMM(Word(0))),  // xA - JP C, a16
+    INVALID(TERMINATE),              // xB - INVALID (Meta-instruction: Terminate the emulator)
+    CALL(Cond::C, Word(0)),          // xC - CALL C, a16
+    INVALID(DUMP),                   // xD - INVALID (Meta-instruction: Full state dump to file)
+    SBC_r8(R8::IMM(Byte(0))),        // xE - SBC A, n8
+    RST(Word(0x18)),                 // xF - RST $18
     // Ex
-    LDH_mem_A(Mem::HIGH_IMM(0)),   // x0 - LDH [a8], A
-    POP(R16::HL),                  // x1 - POP HL
-    LDH_mem_A(Mem::HIGH_C),        // x2 - LDH [C], A
-    INVALID(NONE),                 // x3 - INVALID
-    INVALID(NONE),                 // x4 - INVALID
-    PUSH(R16::HL),                 // x5 - PUSH HL
-    AND(R8::IMM(0)),               // x6 - AND A, n8
-    RST(0x20),                     // x7 - RST $20
-    ADD_SP_e8(0),                  // x8 - ADD SP, e8
-    JP(Cond::ALWAYS, Mem::HL),     // x9 - JP HL
-    LD_mem_r8(Mem::IMM(0), R8::A), // xA - LD [a16], A
-    INVALID(NONE),                 // xB - INVALID
-    INVALID(NONE),                 // xC - INVALID
-    INVALID(NONE),                 // xD - INVALID
-    XOR(R8::IMM(0)),               // xE - XOR A, n8
-    RST(0x28),                     // xF - RST $28
+    LDH_mem_A(Mem::HIGH_IMM(Byte(0))),   // x0 - LDH [a8], A
+    POP(R16::HL),                        // x1 - POP HL
+    LDH_mem_A(Mem::HIGH_C),              // x2 - LDH [C], A
+    INVALID(NONE),                       // x3 - INVALID
+    INVALID(NONE),                       // x4 - INVALID
+    PUSH(R16::HL),                       // x5 - PUSH HL
+    AND(R8::IMM(Byte(0))),               // x6 - AND A, n8
+    RST(Word(0x20)),                     // x7 - RST $20
+    ADD_SP_e8(0),                        // x8 - ADD SP, e8
+    JP(Cond::ALWAYS, Mem::HL),           // x9 - JP HL
+    LD_mem_r8(Mem::IMM(Word(0)), R8::A), // xA - LD [a16], A
+    INVALID(NONE),                       // xB - INVALID
+    INVALID(NONE),                       // xC - INVALID
+    INVALID(NONE),                       // xD - INVALID
+    XOR(R8::IMM(Byte(0))),               // xE - XOR A, n8
+    RST(Word(0x28)),                     // xF - RST $28
     // Fx
-    LDH_A_mem(Mem::HIGH_IMM(0)),   // x0 - LDH A, [a8]
-    POP(R16::AF),                  // x1 - POP AF
-    LDH_A_mem(Mem::HIGH_C),        // x2 - LDH A, [C]
-    DI,                            // x3 - DI
-    INVALID(NONE),                 // x4 - INVALID
-    PUSH(R16::AF),                 // x5 - PUSH AF
-    OR(R8::IMM(0)),                // x6 - OR A, n8
-    RST(0x30),                     // x7 - RST $30
-    LD_HL_SPe8(0),                 // x8 - LD HL, SP + e8
-    LD_r16_r16(R16::SP, R16::HL),  // x9 - LD SP, HL
-    LD_r8_mem(R8::A, Mem::IMM(0)), // xA - LD A, [a16]
-    EI,                            // xB - EI
-    INVALID(NONE),                 // xC - INVALID
-    INVALID(NONE),                 // xD - INVALID
-    CP_r8(R8::IMM(0)),             // xE - CP A, n8
-    RST(0x38),                     // xF - RST $38
+    LDH_A_mem(Mem::HIGH_IMM(Byte(0))),   // x0 - LDH A, [a8]
+    POP(R16::AF),                        // x1 - POP AF
+    LDH_A_mem(Mem::HIGH_C),              // x2 - LDH A, [C]
+    DI,                                  // x3 - DI
+    INVALID(NONE),                       // x4 - INVALID
+    PUSH(R16::AF),                       // x5 - PUSH AF
+    OR(R8::IMM(Byte(0))),                // x6 - OR A, n8
+    RST(Word(0x30)),                     // x7 - RST $30
+    LD_HL_SPe8(0),                       // x8 - LD HL, SP + e8
+    LD_r16_r16(R16::SP, R16::HL),        // x9 - LD SP, HL
+    LD_r8_mem(R8::A, Mem::IMM(Word(0))), // xA - LD A, [a16]
+    EI,                                  // xB - EI
+    INVALID(NONE),                       // xC - INVALID
+    INVALID(NONE),                       // xD - INVALID
+    CP_r8(R8::IMM(Byte(0))),             // xE - CP A, n8
+    RST(Word(0x38)),                     // xF - RST $38
 ];
 
 pub const PREFIX_TABLE: [Instruction; 0x100] = [

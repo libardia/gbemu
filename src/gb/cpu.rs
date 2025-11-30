@@ -2,10 +2,10 @@ mod instruction;
 mod optable;
 
 use crate::gb::{
-    macros::{bit_flag, new},
+    macros::{address_fmt, bit_flag, byte_fmt, new},
     mmu::{AccessMode, MMU},
     regions::{IO_IF, IO_JOYP},
-    MTime,
+    types::MTime,
 };
 
 #[derive(Debug, Default)]
@@ -89,8 +89,20 @@ impl CPU {
                 // Handle interruptions
                 // TODO: interruptions
 
-                // Decode and execute instruction at PC ()
+                // For logging
+                let inst_add = self.pc;
+                let inst_byte = mmu.get(inst_add);
+
+                // Decode and execute instruction at PC
                 let inst = self.decode(mmu);
+
+                trace!(
+                    "execute {} @ {}: {inst:?}",
+                    byte_fmt!(inst_byte),
+                    address_fmt!(inst_add)
+                );
+
+                // Execute
                 self.execute(mmu, inst)
             }
             _ => 1,
@@ -168,3 +180,4 @@ macro_rules! getset_r16 {
     };
 }
 use getset_r16;
+use log::trace;

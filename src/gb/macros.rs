@@ -34,14 +34,14 @@ pub(crate) use error_panic;
 
 macro_rules! byte_fmt {
     ($n:expr) => {
-        std::format!("{:#04X}", $n)
+        std::format!("${:02X}", $n)
     };
 }
 pub(crate) use byte_fmt;
 
 macro_rules! address_fmt {
     ($n:expr) => {
-        std::format!("{:#06X}", $n)
+        std::format!("${:04X}", $n)
     };
 }
 pub(crate) use address_fmt;

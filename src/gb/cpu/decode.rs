@@ -9,7 +9,8 @@ use crate::gb::{
         },
         optable::*,
     },
-    macros::{address_fmt, byte_fmt, error_panic},
+    macros::{address_fmt, error_panic},
+    types::{Byte, Word},
 };
 
 impl CPU {
@@ -17,21 +18,19 @@ impl CPU {
         let starting_pc = self.pc;
         let first_byte = self.next_byte(mmu);
 
-        let mut inst = OP_TABLE[first_byte as usize];
+        let mut inst = OP_TABLE[first_byte.0 as usize];
 
         // Check for validity
         match inst {
             INVALID(meta_inst) => {
                 if meta_inst == NONE {
                     error_panic!(
-                        "Byte {} at address {} is an invalid instruction.",
-                        byte_fmt!(first_byte),
+                        "Byte {first_byte:?} at address {} is an invalid instruction.",
                         address_fmt!(starting_pc)
                     )
                 } else if !self.enable_meta_instructions {
                     error_panic!(
-                        "Byte {} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
-                        byte_fmt!(first_byte),
+                        "Byte {first_byte:?} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
                         address_fmt!(starting_pc)
                     )
                 }
@@ -40,7 +39,7 @@ impl CPU {
         }
 
         if inst == PREFIX {
-            inst = PREFIX_TABLE[self.next_byte(mmu) as usize];
+            inst = PREFIX_TABLE[self.next_byte(mmu).0 as usize];
         }
 
         // Fill any constants in the instruction
@@ -83,7 +82,7 @@ impl CPU {
         }
     }
 
-    fn next_byte(&mut self, mmu: &MMU) -> u8 {
+    fn next_byte(&mut self, mmu: &MMU) -> Byte {
         let byte = mmu.get(self.pc);
         if self.halt_bug {
             // Don't increment PC, whoops!
@@ -91,16 +90,16 @@ impl CPU {
         } else {
             self.pc = self.pc.wrapping_add(1);
         }
-        byte
+        Byte(byte)
     }
 
     fn next_signed(&mut self, mmu: &MMU) -> i8 {
-        self.next_byte(mmu) as i8
+        self.next_byte(mmu).0 as i8
     }
 
-    fn next_word(&mut self, mmu: &MMU) -> u16 {
-        let low = self.next_byte(mmu) as u16;
-        let high = self.next_byte(mmu) as u16;
-        (high << 8) | low
+    fn next_word(&mut self, mmu: &MMU) -> Word {
+        let low = self.next_byte(mmu).0 as u16;
+        let high = self.next_byte(mmu).0 as u16;
+        Word((high << 8) | low)
     }
 }
