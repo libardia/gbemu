@@ -14,7 +14,10 @@
                     "--bin=gbemu"
                 ]
             },
-            "args": []
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "debug"
+            }
         },
         {
             "name": "Debug unit tests in executable 'gbemu'",
@@ -25,6 +28,10 @@
                     "test",
                     "--bin=gbemu"
                 ]
+            },
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "trace"
             }
         }
     ]
