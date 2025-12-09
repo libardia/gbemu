@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 mod gb;
 
 use gb::GB;
