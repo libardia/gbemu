@@ -4,6 +4,7 @@ use crate::{cpu::CPU, mmu::MMU};
 mod cpu;
 mod mmu;
 
+#[derive(Default, Debug)]
 struct GameBoy {
     mmu: MMU,
     cpu: CPU,

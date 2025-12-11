@@ -1,3 +1,4 @@
+#[derive(Default, Debug)]
 pub struct MMU {}
 
 /* #region Tests */
