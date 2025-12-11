@@ -9,6 +9,27 @@ struct Regs {
     a: u8,
 }
 
+macro_rules! getset_r16 {
+    ($r1:ident + $r2:ident) => {
+        paste::paste! {
+            pub fn [<get_ $r1 $r2>](&self) -> u16 {
+                (self.$r1 as u16) << 8 | self.$r2 as u16
+            }
+
+            pub fn [<set_ $r1 $r2>](&mut self, value: u16) {
+                self.$r1 = ((value & 0xFF00) >> 8) as u8;
+                self.$r2 = ( value & 0x00FF ) as u8;
+            }
+        }
+    };
+}
+
+impl Regs {
+    getset_r16!(b + c);
+    getset_r16!(d + e);
+    getset_r16!(h + l);
+}
+
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Flags {
     z: bool,
@@ -46,6 +67,34 @@ mod tests {
     use super::*;
     use log::debug;
     use test_log::test;
+
+    /* #region Regs */
+    #[test]
+    fn test_r16s() {
+        macro_rules! test_r16 {
+            ($r1:ident + $r2:ident) => {
+                paste::paste! {
+                    // Get
+                    let rs_g = Regs { $r1: 0xDE, $r2: 0xAD, ..Default::default() };
+                    debug!("raw: {rs_g:x?}");
+                    assert_eq!(rs_g.[<get_ $r1 $r2>](), 0xDEAD);
+
+                    // Set
+                    let mut rs_s = Regs::default();
+                    debug!("before: {rs_s:x?}");
+                    rs_s.[<set_ $r1 $r2>](0xBEEF);
+                    debug!("after:  {rs_s:x?}");
+                    assert_eq!(rs_s.$r1, 0xBE);
+                    assert_eq!(rs_s.$r2, 0xEF);
+                }
+            };
+        }
+
+        test_r16!(b + c);
+        test_r16!(d + e);
+        test_r16!(h + l);
+    }
+    /* #endregion */
 
     /* #region Flags */
     #[test]

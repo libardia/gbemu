@@ -31,7 +31,7 @@
             },
             "env": {
                 "RUST_BACKTRACE": "1",
-                "RUST_LOG": "trace",
+                "RUST_LOG": "debug",
             },
         },
         {
@@ -46,7 +46,7 @@
             },
             "env": {
                 "RUST_BACKTRACE": "1",
-                "RUST_LOG": "trace",
+                "RUST_LOG": "debug",
             },
         },
     ]
