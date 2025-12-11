@@ -5,34 +5,49 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug executable 'gbemu'",
+            "name": "gbemu",
             "type": "lldb",
             "request": "launch",
             "cargo": {
                 "args": [
                     "run",
-                    "--bin=gbemu"
+                    "--bin=gbemu",
                 ]
             },
             "env": {
                 "RUST_BACKTRACE": "1",
-                "RUST_LOG": "debug"
-            }
+                "RUST_LOG": "debug",
+            },
         },
         {
-            "name": "Debug unit tests in executable 'gbemu'",
+            "name": "gbemu: tests",
             "type": "lldb",
             "request": "launch",
             "cargo": {
                 "args": [
                     "test",
-                    "--bin=gbemu"
+                    "--bin=gbemu",
                 ]
             },
             "env": {
                 "RUST_BACKTRACE": "1",
-                "RUST_LOG": "trace"
-            }
-        }
+                "RUST_LOG": "trace",
+            },
+        },
+        {
+            "name": "gbemu_hardware: tests",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--lib",
+                ]
+            },
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "trace",
+            },
+        },
     ]
 }

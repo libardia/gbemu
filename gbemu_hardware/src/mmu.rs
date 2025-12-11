@@ -1,16 +1,9 @@
-use log::info;
+pub struct MMU {}
 
-pub fn test() {
-    info!("test() from mmu.rs");
-}
-
+/* #region Tests */
 #[cfg(test)]
 mod tests {
     use super::*;
     use test_log::test;
-
-    #[test]
-    fn test_test() {
-        test();
-    }
 }
+/* #endregion */

@@ -1,5 +1,3 @@
-use log::info;
-
 #[allow(dead_code)]
 fn main() {
     simple_logger::SimpleLogger::new()
@@ -7,8 +5,4 @@ fn main() {
         .env()
         .init()
         .unwrap();
-
-    gbemu_hardware::cpu::test();
-    gbemu_hardware::mmu::test();
-    info!("main()");
 }
