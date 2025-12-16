@@ -3,6 +3,7 @@ use crate::{cpu::CPU, mmu::MMU};
 #[allow(dead_code)]
 mod cpu;
 mod mmu;
+mod regions;
 
 #[derive(Default, Debug)]
 struct GameBoy {
@@ -10,10 +11,8 @@ struct GameBoy {
     cpu: CPU,
 }
 
-/* #region Tests */
 #[cfg(test)]
 mod tests {
     use super::*;
     use test_log::test;
 }
-/* #endregion */

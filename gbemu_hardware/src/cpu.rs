@@ -61,7 +61,6 @@ pub struct CPU {
 
 impl CPU {}
 
-/* #region Tests */
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,4 +131,3 @@ mod tests {
     }
     /* #endregion */
 }
-/* #endregion */
