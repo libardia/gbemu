@@ -51,7 +51,7 @@ impl Flags {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct CPU {
     r: Regs,
     f: Flags,
