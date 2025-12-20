@@ -1,3 +1,8 @@
+const Z_FLAG_MASK: u8 = 0x80;
+const N_FLAG_MASK: u8 = 0x40;
+const H_FLAG_MASK: u8 = 0x20;
+const C_FLAG_MASK: u8 = 0x10;
+
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Regs {
     b: u8,
@@ -7,6 +12,7 @@ struct Regs {
     h: u8,
     l: u8,
     a: u8,
+    f: u8,
 }
 
 macro_rules! getset_r16 {
@@ -30,7 +36,7 @@ impl Regs {
     getset_r16!(h + l);
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 struct Flags {
     z: bool,
     n: bool,
@@ -38,16 +44,23 @@ struct Flags {
     c: bool,
 }
 
-impl Flags {
-    fn to_byte(&self) -> u8 {
-        (self.z as u8) << 7 | (self.n as u8) << 6 | (self.h as u8) << 5 | (self.c as u8) << 4
+impl From<u8> for Flags {
+    fn from(value: u8) -> Self {
+        Flags {
+            z: value & Z_FLAG_MASK != 0,
+            n: value & N_FLAG_MASK != 0,
+            h: value & H_FLAG_MASK != 0,
+            c: value & C_FLAG_MASK != 0,
+        }
     }
+}
 
-    fn from_byte(&mut self, value: u8) {
-        self.z = value & 0x80 != 0;
-        self.n = value & 0x40 != 0;
-        self.h = value & 0x20 != 0;
-        self.c = value & 0x10 != 0;
+impl Into<u8> for Flags {
+    fn into(self) -> u8 {
+        (if self.z { Z_FLAG_MASK } else { 0 })
+            | (if self.n { N_FLAG_MASK } else { 0 })
+            | (if self.h { H_FLAG_MASK } else { 0 })
+            | (if self.c { C_FLAG_MASK } else { 0 })
     }
 }
 
@@ -98,17 +111,15 @@ mod tests {
     /* #region Flags */
     #[test]
     fn test_byte_to_flags() {
-        for i in 0..=0xF {
-            let byte = i << 4;
+        for byte in 0..=0xFF {
             let expected = Flags {
-                z: i & 0x8 != 0,
-                n: i & 0x4 != 0,
-                h: i & 0x2 != 0,
-                c: i & 0x1 != 0,
+                z: byte & 0b1000_0000 != 0,
+                n: byte & 0b0100_0000 != 0,
+                h: byte & 0b0010_0000 != 0,
+                c: byte & 0b0001_0000 != 0,
             };
+            let fs: Flags = byte.into();
 
-            let mut fs = Flags::default();
-            fs.from_byte(byte);
             debug!("{byte:0>8b} => {expected:>5?}");
             assert_eq!(fs, expected);
         }
@@ -118,15 +129,16 @@ mod tests {
     fn test_flags_to_byte() {
         for i in 0..=0xF {
             let fs = Flags {
-                z: i & 0x8 != 0,
-                n: i & 0x4 != 0,
-                h: i & 0x2 != 0,
-                c: i & 0x1 != 0,
+                z: i & 0b1000 != 0,
+                n: i & 0b0100 != 0,
+                h: i & 0b0010 != 0,
+                c: i & 0b0001 != 0,
             };
-            let expected = i << 4;
+            let fs_byte: u8 = fs.into();
+            let expected: u8 = i << 4;
 
             debug!("{fs:>5?} => {expected:0>8b}");
-            assert_eq!(fs.to_byte(), expected);
+            assert_eq!(fs_byte, expected);
         }
     }
     /* #endregion */
