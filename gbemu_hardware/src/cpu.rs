@@ -134,11 +134,10 @@ mod tests {
                 h: i & 0b0010 != 0,
                 c: i & 0b0001 != 0,
             };
+            let fs_byte: u8 = fs.into();
             let expected: u8 = i << 4;
 
             debug!("{fs:>5?} => {expected:0>8b}");
-
-            let fs_byte: u8 = fs.into();
             assert_eq!(fs_byte, expected);
         }
     }
