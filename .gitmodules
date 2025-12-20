@@ -1,0 +1,3 @@
+[submodule "gb-bootroms"]
+	path = gb-bootroms
+	url = https://codeberg.org/ISSOtm/gb-bootroms.git
