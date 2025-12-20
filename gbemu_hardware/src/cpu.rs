@@ -36,7 +36,7 @@ impl Regs {
     getset_r16!(h + l);
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 struct Flags {
     z: bool,
     n: bool,
