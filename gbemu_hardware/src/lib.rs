@@ -4,8 +4,8 @@ use std::{io::Result, path::Path};
 mod cart;
 mod cart_types;
 mod cpu;
+mod macros;
 mod mmu;
-mod regions;
 
 struct GameBoy {
     mmu: MMU,

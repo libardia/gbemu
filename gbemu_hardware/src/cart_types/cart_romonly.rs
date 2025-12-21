@@ -1,4 +1,12 @@
-use crate::{cart::Cart, regions::ROM_SPACE};
+use crate::{
+    address_fmt,
+    cart::Cart,
+    error_panic,
+    mmu::{
+        OPEN_BUS_VALUE,
+        regions::{CART_RAM, ROM_SPACE},
+    },
+};
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
@@ -11,17 +19,27 @@ pub struct CartRomOnly {
 }
 
 impl Cart for CartRomOnly {
-    fn get(&self, address: u16) -> u8 {
+    fn peek(&self, address: u16) -> u8 {
+        // No difference from read()
+        self.read(address)
+    }
+
+    fn read(&self, address: u16) -> u8 {
         if ROM_SPACE.contains(address) {
             // ROM_SPACE begins at 0 so no need to transform the address
             self.rom[address as usize]
-        } else {
+        } else if CART_RAM.contains(address) {
             // No RAM in this cart
-            0xFF
+            OPEN_BUS_VALUE
+        } else {
+            error_panic!(
+                "Tried to read an address outside the cart's range: {}",
+                address_fmt!(address)
+            );
         }
     }
 
-    fn set(&mut self, _: u16, _: u8) {
+    fn write(&mut self, _: u16, _: u8) {
         // Ignore writes.
     }
 }

@@ -1,3 +1,5 @@
+use crate::mmu::UNINIT_VALUE;
+
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct MemoryRegion {
     pub begin: u16,
@@ -39,7 +41,7 @@ pub struct MappedMemoryRegion {
 
 impl MappedMemoryRegion {
     pub fn new(region: MemoryRegion) -> MappedMemoryRegion {
-        let mem = vec![0xFF; region.size];
+        let mem = vec![UNINIT_VALUE; region.size];
         MappedMemoryRegion { region, mem }
     }
 
@@ -64,9 +66,9 @@ macro_rules! def_regions {
 }
 
 def_regions! {
-    ALL_MEM:        0x0000, 0xFFFF;
+    ALL_MEM:      0x0000, 0xFFFF;
       ROM_SPACE:    0x0000, 0x7FFF;
-        HEADER:     0x0100, 0x014F;
+        HEADER:       0x0100, 0x014F;
       VRAM:         0x8000, 0x9FFF;
       CART_RAM:     0xA000, 0xBFFF;
       WORK_RAM:     0xC000, 0xDFFF;

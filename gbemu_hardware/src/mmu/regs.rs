@@ -1,4 +1,10 @@
-use crate::regions::MemoryRegion;
+use crate::{
+    address_fmt, error_panic,
+    mmu::{
+        OPEN_BUS_VALUE, UNINIT_VALUE,
+        regions::{IO_REGS, MappedMemoryRegion, MemoryRegion},
+    },
+};
 
 pub const JOYP: u16 = 0xFF00;
 pub const SB: u16 = 0xFF01;
@@ -44,3 +50,99 @@ pub const WY: u16 = 0xFF4A;
 pub const WX: u16 = 0xFF4B;
 pub const BANK: u16 = 0xFF50;
 pub const IE: u16 = 0xFFFF;
+
+pub struct HardwareRegs {
+    io_raw: MappedMemoryRegion,
+    // This is actually at the end of the mem at 0xFFFF, outside the IO range
+    ie: u8,
+}
+
+impl HardwareRegs {
+    pub fn new() -> Self {
+        Self {
+            io_raw: MappedMemoryRegion::new(IO_REGS),
+            ie: UNINIT_VALUE,
+        }
+    }
+
+    pub fn peek(&self, address: u16) -> u8 {
+        if IO_REGS.contains(address) {
+            self.io_raw.get(address)
+        } else if address == IE {
+            self.ie
+        } else {
+            error_panic!(
+                "Tried to read an address outside the hardware register object's range: {}",
+                address_fmt!(address)
+            );
+        }
+    }
+
+    pub fn read(&self, address: u16) -> u8 {
+        macro_rules! get_bits {
+            ($mask:expr) => {
+                // Get only the bits which are 1 in the mask
+                // Returns 1 in each unreadable bit
+                self.io_raw.get(address) | !$mask
+            };
+            (ie: $mask:expr) => {
+                // The same but for IE
+                self.ie | !$mask
+            };
+            () => {
+                // Fully readable
+                self.io_raw.get(address)
+            };
+        }
+
+        match address {
+            JOYP => get_bits!(0b00111111),
+            SB => get_bits!(),
+            SC => get_bits!(0b10000011),
+            DIV => get_bits!(),
+            TIMA => get_bits!(),
+            TMA => get_bits!(),
+            TAC => get_bits!(0b00000111),
+            IF => get_bits!(0b00011111),
+            NR10 => get_bits!(0b01111111),
+            NR11 => get_bits!(0b11000000),
+            NR12 => get_bits!(),
+            // NR13 is not readable!
+            NR14 => get_bits!(0b01000000),
+            NR21 => get_bits!(0b11000000),
+            NR22 => get_bits!(),
+            // NR23 is not readable!
+            NR24 => get_bits!(0b01000000),
+            NR30 => get_bits!(0b10000000),
+            // NR31 is not readable!
+            NR32 => get_bits!(0b01100000),
+            // NR33 is not readable!
+            NR34 => get_bits!(0b01000000),
+            // NR41 is not readable!
+            NR42 => get_bits!(),
+            NR43 => get_bits!(),
+            NR44 => get_bits!(0b01000000),
+            NR50 => get_bits!(),
+            NR51 => get_bits!(),
+            NR52 => get_bits!(0b10001111),
+            _ if WAVE_RAM.contains(address) => get_bits!(),
+            LCDC => get_bits!(),
+            STAT => get_bits!(0b01111111),
+            SCY => get_bits!(),
+            SCX => get_bits!(),
+            LY => get_bits!(),
+            LYC => get_bits!(),
+            DMA => get_bits!(),
+            BGP => get_bits!(),
+            OBP0 => get_bits!(),
+            OBP1 => get_bits!(),
+            WY => get_bits!(),
+            WX => get_bits!(),
+            // BANK is not readable!
+            IE => get_bits!(ie: 0b00011111),
+
+            // Either not a register or not readable
+            _ => OPEN_BUS_VALUE,
+        }
+    }
+}

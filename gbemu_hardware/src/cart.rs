@@ -9,8 +9,9 @@ use std::{
 const CART_INFO_START: u64 = 0x0147;
 
 pub trait Cart {
-    fn get(&self, address: u16) -> u8;
-    fn set(&mut self, address: u16, value: u8);
+    fn peek(&self, address: u16) -> u8;
+    fn read(&self, address: u16) -> u8;
+    fn write(&mut self, address: u16, value: u8);
 }
 
 pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
