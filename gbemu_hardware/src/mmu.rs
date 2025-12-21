@@ -1,5 +1,10 @@
-#[derive(Default, Debug, PartialEq, Eq)]
-pub struct MMU {}
+use crate::cart::Cart;
+
+mod regs;
+
+pub struct MMU {
+    pub cart: Box<dyn Cart>,
+}
 
 #[cfg(test)]
 mod tests {

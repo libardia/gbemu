@@ -2,19 +2,11 @@ use std::ops::Add;
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct MemoryRegion {
-    begin: u16,
-    end: u16,
+    pub begin: u16,
+    pub end: u16,
 }
 
 impl MemoryRegion {
-    pub fn begin(&self) -> u16 {
-        self.begin
-    }
-
-    pub fn end(&self) -> u16 {
-        self.begin
-    }
-
     pub fn contains(&self, address: u16) -> bool {
         self.begin <= address && self.end >= address
     }
@@ -28,14 +20,16 @@ impl MemoryRegion {
     }
 }
 
+#[derive(Debug)]
 pub struct MappedMemoryRegion {
-    region: MemoryRegion,
+    pub region: MemoryRegion,
     mem: Vec<u8>,
 }
 
 impl MappedMemoryRegion {
-    pub fn region(&self) -> &MemoryRegion {
-        &self.region
+    pub fn new(region: MemoryRegion) -> MappedMemoryRegion {
+        let mem = vec![0xFF; region.size()];
+        MappedMemoryRegion { region, mem }
     }
 
     pub fn local_address(&self, address: u16) -> u16 {
@@ -52,9 +46,23 @@ impl MappedMemoryRegion {
     }
 }
 
-pub fn map_region(region: MemoryRegion) -> MappedMemoryRegion {
-    let mem = vec![0xFF; region.size()];
-    MappedMemoryRegion { region, mem }
+macro_rules! def_regions {
+    ($($name:ident: $begin:expr, $end:expr;)+) => {
+        $(pub const $name: MemoryRegion = MemoryRegion { begin: $begin, end: $end };)+
+    };
+}
+
+def_regions! {
+    ROM_SPACE:      0x0000, 0x7FFF;
+        HEADER:     0x0100, 0x014F;
+    VRAM:           0x8000, 0x9FFF;
+    CART_RAM:       0xA000, 0xBFFF;
+    WORK_RAM:       0xC000, 0xDFFF;
+    ECHO_RAM:       0xE000, 0xFDFF;
+    OAM:            0xFE00, 0xFE9F;
+    UNUSABLE:       0xFEA0, 0xFEFF;
+    IO_REGS:        0xFF00, 0xFF7F;
+    HIGH_RAM:       0xFF80, 0xFFFE;
 }
 
 #[cfg(test)]
@@ -91,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_local_address() {
-        let reg = map_region(MemoryRegion { begin: 5, end: 10 });
+        let reg = MappedMemoryRegion::new(MemoryRegion { begin: 5, end: 10 });
         assert_eq!(reg.local_address(5), 0);
         assert_eq!(reg.local_address(7), 2);
         assert_eq!(reg.local_address(10), 5);
@@ -99,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_getset() {
-        let mut reg = map_region(MemoryRegion { begin: 5, end: 10 });
+        let mut reg = MappedMemoryRegion::new(MemoryRegion { begin: 5, end: 10 });
         reg.set(6, 0xDE);
         reg.set(7, 0xAD);
         assert_eq!(reg.get(6), 0xDE);
