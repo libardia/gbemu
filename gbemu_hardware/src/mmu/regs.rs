@@ -29,12 +29,7 @@ pub const NR44: u16 = 0xFF23;
 pub const NR50: u16 = 0xFF24;
 pub const NR51: u16 = 0xFF25;
 pub const NR52: u16 = 0xFF26;
-
-pub const WAVE_RAM: MemoryRegion = MemoryRegion {
-    begin: 0xFF30,
-    end: 0xFF3F,
-};
-
+pub const WAVE_RAM: MemoryRegion = MemoryRegion::new(0xFF30, 0xFF3F);
 pub const LCDC: u16 = 0xFF40;
 pub const STAT: u16 = 0xFF41;
 pub const SCY: u16 = 0xFF42;

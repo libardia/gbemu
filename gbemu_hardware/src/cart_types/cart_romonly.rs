@@ -1,4 +1,4 @@
-use crate::cart::Cart;
+use crate::{cart::Cart, regions::ROM_SPACE};
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
@@ -12,7 +12,13 @@ pub struct CartRomOnly {
 
 impl Cart for CartRomOnly {
     fn get(&self, address: u16) -> u8 {
-        self.rom[address as usize]
+        if ROM_SPACE.contains(address) {
+            // ROM_SPACE begins at 0 so no need to transform the address
+            self.rom[address as usize]
+        } else {
+            // No RAM in this cart
+            0xFF
+        }
     }
 
     fn set(&mut self, _: u16, _: u8) {
