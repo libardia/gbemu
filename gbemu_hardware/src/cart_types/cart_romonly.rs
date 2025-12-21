@@ -32,7 +32,7 @@ impl CartRomOnly {
         if reader.read(&mut rom)? != 0 {
             return Err(Error::new(
                 ErrorKind::FileTooLarge,
-                "Simple cartridges (no MBC, ROM only) should be exactly 32 KB",
+                "Simple cartridges (no MBC, ROM only) should be exactly 32 KiB (32,768 bytes)",
             ));
         };
 

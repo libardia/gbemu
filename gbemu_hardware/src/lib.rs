@@ -1,9 +1,5 @@
-use crate::{cpu::CPU, mmu::MMU, regions::HEADER};
-use std::{
-    fs::File,
-    io::{BufReader, Read, Result},
-    path::Path,
-};
+use crate::{cart::load_cart, cpu::CPU, mmu::MMU};
+use std::{io::Result, path::Path};
 
 mod cart;
 mod cart_types;
@@ -17,14 +13,7 @@ struct GameBoy {
 }
 
 fn run(rom_path: &str) -> Result<()> {
-    let binfile = File::open(Path::new(&rom_path));
-    let mut reader = BufReader::new(binfile?);
-
-    // Seek forward to the header
-    reader.seek_relative(0x100);
-
-    let mut header = vec![0; HEADER.size()];
-    reader.read_exact(&mut header);
+    let cart = load_cart(Path::new(rom_path))?;
 
     Ok(())
 }
