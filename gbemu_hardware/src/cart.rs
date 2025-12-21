@@ -20,7 +20,7 @@ pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
     cart_file.read_exact_at(&mut cart_info, CART_INFO_START)?;
 
     let cart_type = cart_info[0];
-    let cart_rom_size = decode_rom_size(cart_info[1])?;
+    let cart_rom_banks = decode_rom_banks(cart_info[1])?;
     let cart_ram_size = decode_ram_size(cart_info[2])?;
 
     macro_rules! make_result {
@@ -66,7 +66,7 @@ pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
     }
 }
 
-fn decode_rom_size(code: u8) -> Result<usize> {
+fn decode_rom_banks(code: u8) -> Result<usize> {
     match code {
         0x00 => Ok(2),   // 2 banks (32 KiB)
         0x01 => Ok(4),   // 4 banks (64 KiB)
