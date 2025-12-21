@@ -15,6 +15,8 @@ struct GameBoy {
 fn run(rom_path: &str) -> Result<()> {
     let cart = load_cart(Path::new(rom_path))?;
 
+    //TODO: create the rest of the GameBoy object and run it
+
     Ok(())
 }
 
