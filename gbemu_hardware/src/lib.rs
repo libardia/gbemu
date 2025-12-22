@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use crate::{cart::load_cart, cpu::CPU, mmu::MMU};
 use std::{io::Result, path::Path};
 
@@ -12,16 +15,14 @@ struct GameBoy {
     cpu: CPU,
 }
 
-fn run(rom_path: &str) -> Result<()> {
+pub fn run(rom_path: &str) -> Result<()> {
     let cart = load_cart(Path::new(rom_path))?;
+    let gb = GameBoy {
+        mmu: MMU::new(cart),
+        cpu: CPU::default(),
+    };
 
-    //TODO: create the rest of the GameBoy object and run it
+    //TODO: run the gb
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use test_log::test;
 }

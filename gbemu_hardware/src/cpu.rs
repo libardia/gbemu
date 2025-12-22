@@ -72,7 +72,9 @@ pub struct CPU {
     ime: bool,
 }
 
-impl CPU {}
+impl CPU {
+    //TODO: CPU
+}
 
 #[cfg(test)]
 mod tests {

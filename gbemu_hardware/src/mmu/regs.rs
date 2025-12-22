@@ -1,9 +1,6 @@
-use crate::{
-    address_fmt, error_panic,
-    mmu::{
-        OPEN_BUS_VALUE, UNINIT_VALUE,
-        regions::{IO_REGS, MappedMemoryRegion, MemoryRegion},
-    },
+use crate::mmu::{
+    OPEN_BUS_VALUE, UNINIT_VALUE,
+    regions::{IO_REGS, MappedMemoryRegion, MemoryRegion},
 };
 
 pub const JOYP: u16 = 0xFF00;
@@ -65,16 +62,21 @@ impl HardwareRegs {
         }
     }
 
+    // Return the value of the register, unmasked and without side effects.
     pub fn peek(&self, address: u16) -> u8 {
-        if IO_REGS.contains(address) {
-            self.io_raw.get(address)
-        } else if address == IE {
+        if address == IE {
             self.ie
         } else {
-            error_panic!(
-                "Tried to read an address outside the hardware register object's range: {}",
-                address_fmt!(address)
-            );
+            self.io_raw.get(address)
+        }
+    }
+
+    // Set the value of the register, unmasked and without side effects.
+    pub fn poke(&mut self, address: u16, value: u8) {
+        if address == IE {
+            self.ie = value;
+        } else {
+            self.io_raw.set(address, value);
         }
     }
 
@@ -83,15 +85,11 @@ impl HardwareRegs {
             ($mask:expr) => {
                 // Get only the bits which are 1 in the mask
                 // Returns 1 in each unreadable bit
-                self.io_raw.get(address) | !$mask
-            };
-            (ie: $mask:expr) => {
-                // The same but for IE
-                self.ie | !$mask
+                self.peek(address) | !$mask
             };
             () => {
                 // Fully readable
-                self.io_raw.get(address)
+                self.peek(address)
             };
         }
 
@@ -139,10 +137,73 @@ impl HardwareRegs {
             WY => get_bits!(),
             WX => get_bits!(),
             // BANK is not readable!
-            IE => get_bits!(ie: 0b00011111),
+            IE => get_bits!(0b00011111),
 
             // Either not a register or not readable
             _ => OPEN_BUS_VALUE,
+        }
+    }
+
+    pub fn write(&mut self, address: u16, value: u8) {
+        macro_rules! set_bits {
+            ($mask:expr) => {{
+                // Current byte: Bits to be set are reset to 0, all other bits are unaffected
+                let current_masked = self.peek(address) & !$mask;
+                // New byte: Bits NOT to be set are reset to 0, other bits are unaffected
+                let value_masked = value & $mask;
+                self.poke(address, current_masked | value_masked);
+            }};
+        }
+
+        match address {
+            //TODO: IO regs write
+            JOYP => set_bits!(0b00110000),
+            SB => todo!(),
+            SC => todo!(),
+            DIV => todo!(),
+            TIMA => todo!(),
+            TMA => todo!(),
+            TAC => todo!(),
+            IF => todo!(),
+            NR10 => todo!(),
+            NR11 => todo!(),
+            NR12 => todo!(),
+            NR13 => todo!(),
+            NR14 => todo!(),
+            NR21 => todo!(),
+            NR22 => todo!(),
+            NR23 => todo!(),
+            NR24 => todo!(),
+            NR30 => todo!(),
+            NR31 => todo!(),
+            NR32 => todo!(),
+            NR33 => todo!(),
+            NR34 => todo!(),
+            NR41 => todo!(),
+            NR42 => todo!(),
+            NR43 => todo!(),
+            NR44 => todo!(),
+            NR50 => todo!(),
+            NR51 => todo!(),
+            NR52 => todo!(),
+            _ if WAVE_RAM.contains(address) => todo!(),
+            LCDC => todo!(),
+            STAT => todo!(),
+            SCY => todo!(),
+            SCX => todo!(),
+            LY => todo!(),
+            LYC => todo!(),
+            DMA => todo!(),
+            BGP => todo!(),
+            OBP0 => todo!(),
+            OBP1 => todo!(),
+            WY => todo!(),
+            WX => todo!(),
+            BANK => todo!(),
+            IE => todo!(),
+
+            // Either not a register or not writable
+            _ => (),
         }
     }
 }

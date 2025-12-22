@@ -24,6 +24,10 @@ impl Cart for CartRomOnly {
         self.read(address)
     }
 
+    fn poke(&mut self, _: u16, _: u8) {
+        // Ignore
+    }
+
     fn read(&self, address: u16) -> u8 {
         if ROM_SPACE.contains(address) {
             // ROM_SPACE begins at 0 so no need to transform the address

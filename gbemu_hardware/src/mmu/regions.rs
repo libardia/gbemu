@@ -66,17 +66,23 @@ macro_rules! def_regions {
 }
 
 def_regions! {
-    ALL_MEM:      0x0000, 0xFFFF;
-      ROM_SPACE:    0x0000, 0x7FFF;
-        HEADER:       0x0100, 0x014F;
-      VRAM:         0x8000, 0x9FFF;
-      CART_RAM:     0xA000, 0xBFFF;
-      WORK_RAM:     0xC000, 0xDFFF;
-      ECHO_RAM:     0xE000, 0xFDFF;
-      OAM:          0xFE00, 0xFE9F;
-      UNUSABLE:     0xFEA0, 0xFEFF;
-      IO_REGS:      0xFF00, 0xFF7F;
-      HIGH_RAM:     0xFF80, 0xFFFE;
+    ALL_MEM: 0x0000, 0xFFFF;
+}
+
+def_regions! {
+    ROM_SPACE: 0x0000, 0x7FFF;
+    VRAM:      0x8000, 0x9FFF;
+    CART_RAM:  0xA000, 0xBFFF;
+    WORK_RAM:  0xC000, 0xDFFF;
+    ECHO_RAM:  0xE000, 0xFDFF;
+    OAM:       0xFE00, 0xFE9F;
+    UNUSABLE:  0xFEA0, 0xFEFF;
+    IO_REGS:   0xFF00, 0xFF7F;
+    HIGH_RAM:  0xFF80, 0xFFFE;
+}
+
+def_regions! {
+    HEADER: 0x0100, 0x014F;
 }
 
 #[cfg(test)]

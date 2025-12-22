@@ -10,6 +10,7 @@ const CART_INFO_START: u64 = 0x0147;
 
 pub trait Cart {
     fn peek(&self, address: u16) -> u8;
+    fn poke(&mut self, address: u16, value: u8);
     fn read(&self, address: u16) -> u8;
     fn write(&mut self, address: u16, value: u8);
 }
@@ -99,10 +100,4 @@ fn decode_ram_size(code: u8) -> Result<usize> {
             format!("Unsupported code for cart RAM size: ${code:0>2X}"),
         )),
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use test_log::test;
 }
