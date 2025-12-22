@@ -1,16 +1,16 @@
 use crate::{
     GameBoy,
-    mmu::{
+    memory::{
+        hardware_regs::{HardwareRegs, IE},
         regions::{
             CART_RAM, ECHO_RAM, HIGH_RAM, IO_REGS, MappedMemoryRegion, OAM, ROM_SPACE, VRAM,
             WORK_RAM,
         },
-        regs::{HardwareRegs, IE},
     },
 };
 
+pub mod hardware_regs;
 pub mod regions;
-pub mod regs;
 
 pub const OPEN_BUS_VALUE: u8 = 0xFF;
 pub const UNINIT_VALUE: u8 = 0xFF;
@@ -18,7 +18,7 @@ pub const UNINIT_VALUE: u8 = 0xFF;
 const ECHO_RAM_OFFSET: u16 = 0x2000;
 
 #[derive(Debug)]
-pub struct MMU {
+pub struct Memory {
     // RAM areas
     vram: MappedMemoryRegion,
     wram: MappedMemoryRegion,
@@ -28,7 +28,7 @@ pub struct MMU {
     io: HardwareRegs,
 }
 
-impl Default for MMU {
+impl Default for Memory {
     fn default() -> Self {
         Self {
             vram: MappedMemoryRegion::new(VRAM),
@@ -40,7 +40,7 @@ impl Default for MMU {
     }
 }
 
-impl MMU {
+impl Memory {
     // Return the value of memory at the given address, but without side effects that would
     // otherwise occur if it was a true read.
     pub fn peek(ctx: &GameBoy, address: u16) -> u8 {

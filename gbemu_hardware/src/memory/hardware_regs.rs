@@ -1,4 +1,4 @@
-use crate::mmu::{
+use crate::memory::{
     OPEN_BUS_VALUE, UNINIT_VALUE,
     regions::{IO_REGS, MappedMemoryRegion, MemoryRegion},
 };

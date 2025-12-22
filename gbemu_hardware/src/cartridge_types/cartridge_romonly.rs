@@ -1,8 +1,8 @@
 use crate::{
     address_fmt,
-    cart::Cart,
+    cartridge::Cartridge,
     error_panic,
-    mmu::{
+    memory::{
         OPEN_BUS_VALUE,
         regions::{CART_RAM, ROM_SPACE},
     },
@@ -18,7 +18,7 @@ pub struct CartRomOnly {
     rom: [u8; TOTAL_SIZE],
 }
 
-impl Cart for CartRomOnly {
+impl Cartridge for CartRomOnly {
     fn peek(&self, address: u16) -> u8 {
         // No difference from read()
         self.read(address)

@@ -2,29 +2,29 @@
 #![allow(unused_variables)]
 
 use crate::{
-    cart::{Cart, load_cart},
-    cpu::CPU,
-    mmu::MMU,
-    ppu::PPU,
+    cartridge::{Cartridge, load_cart},
+    graphics::Graphics,
+    memory::Memory,
+    processor::Processor,
 };
 use std::{io::Result, path::Path};
 
-mod cart;
-mod cart_types;
-mod cpu;
+mod cartridge;
+mod cartridge_types;
+mod graphics;
 mod macros;
-mod mmu;
-mod ppu;
+mod memory;
+mod processor;
 
 pub struct GameBoy {
-    cart: Box<dyn Cart>,
-    cpu: CPU,
-    ppu: PPU,
-    mmu: MMU,
+    cart: Box<dyn Cartridge>,
+    cpu: Processor,
+    ppu: Graphics,
+    mmu: Memory,
 }
 
 impl GameBoy {
-    pub fn new(cart: Box<dyn Cart>) -> Self {
+    pub fn new(cart: Box<dyn Cartridge>) -> Self {
         Self {
             cart,
             cpu: Default::default(),
@@ -35,7 +35,6 @@ impl GameBoy {
 
     pub fn run(&mut self) {
         //TODO: run
-        MMU::peek(self, 0);
     }
 }
 

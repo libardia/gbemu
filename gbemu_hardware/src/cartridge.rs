@@ -1,4 +1,4 @@
-use crate::cart_types::cart_romonly::CartRomOnly;
+use crate::cartridge_types::cartridge_romonly::CartRomOnly;
 use std::{
     fs::File,
     io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
@@ -7,7 +7,7 @@ use std::{
 
 const CART_INFO_START: u64 = 0x0147;
 
-pub trait Cart {
+pub trait Cartridge {
     fn peek(&self, address: u16) -> u8;
     fn poke(&mut self, address: u16, value: u8);
     fn read(&self, address: u16) -> u8;
@@ -22,7 +22,7 @@ fn get_rom_info(cart_file: &mut File) -> Result<(u8, u8, u8)> {
     Ok((cart_info[0], cart_info[1], cart_info[2]))
 }
 
-pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
+pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cartridge>> {
     let mut cart_file = File::open(cart_path)?;
 
     let (cart_type, crom, cram) = get_rom_info(&mut cart_file)?;
@@ -67,7 +67,7 @@ pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
         //TODO: 0xFF => make_result!(/* todo */), // HuC1+RAM+BATTERY
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported code for cart type: ${cart_type:0>2X}"),
+            format!("Unsupported cart type: ${cart_type:0>2X}"),
         )),
     }
 }
@@ -86,7 +86,7 @@ fn decode_rom_banks(code: u8) -> Result<usize> {
 
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported code for cart ROM size: ${code:0>2X}"),
+            format!("Unsupported cart ROM size: ${code:0>2X}"),
         )),
     }
 }
@@ -101,7 +101,7 @@ fn decode_ram_size(code: u8) -> Result<usize> {
 
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported code for cart RAM size: ${code:0>2X}"),
+            format!("Unsupported cart RAM size: ${code:0>2X}"),
         )),
     }
 }

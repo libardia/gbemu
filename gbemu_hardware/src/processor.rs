@@ -65,14 +65,14 @@ impl Into<u8> for Flags {
 }
 
 #[derive(Default, Debug)]
-pub struct CPU {
+pub struct Processor {
     r: Regs,
     f: Flags,
 
     ime: bool,
 }
 
-impl CPU {
+impl Processor {
     //TODO: CPU
 }
 
