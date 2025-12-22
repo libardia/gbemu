@@ -1,8 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use bumpalo::Bump;
-
 use crate::{
     cart::{Cart, load_cart},
     cpu::CPU,
@@ -18,8 +16,6 @@ mod mmu;
 mod ppu;
 
 pub struct GameBoy {
-    arena: Bump,
-
     cpu: CPU,
     mmu: Rc<RefCell<MMU>>,
 }

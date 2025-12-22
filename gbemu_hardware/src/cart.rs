@@ -1,8 +1,7 @@
 use crate::cart_types::cart_romonly::CartRomOnly;
 use std::{
     fs::File,
-    io::{Error, ErrorKind, Result},
-    os::unix::fs::FileExt,
+    io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
     path::Path,
 };
 
@@ -15,15 +14,20 @@ pub trait Cart {
     fn write(&mut self, address: u16, value: u8);
 }
 
-pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
-    let cart_file = File::open(cart_path)?;
-
+fn get_rom_info(cart_file: &mut File) -> Result<(u8, u8, u8)> {
     let mut cart_info = [0; 3];
-    cart_file.read_exact_at(&mut cart_info, CART_INFO_START)?;
+    cart_file.seek(SeekFrom::Start(CART_INFO_START))?;
+    cart_file.read_exact(&mut cart_info)?;
+    cart_file.rewind()?;
+    Ok((cart_info[0], cart_info[1], cart_info[2]))
+}
 
-    let cart_type = cart_info[0];
-    let cart_rom_banks = decode_rom_banks(cart_info[1])?;
-    let cart_ram_size = decode_ram_size(cart_info[2])?;
+pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cart>> {
+    let mut cart_file = File::open(cart_path)?;
+
+    let (cart_type, crom, cram) = get_rom_info(&mut cart_file)?;
+    let cart_rom_banks = decode_rom_banks(crom)?;
+    let cart_ram_size = decode_ram_size(cram)?;
 
     macro_rules! make_result {
         ($inner:expr) => {
@@ -99,5 +103,24 @@ fn decode_ram_size(code: u8) -> Result<usize> {
             ErrorKind::InvalidData,
             format!("Unsupported code for cart RAM size: ${code:0>2X}"),
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test_log::test;
+
+    fn file(path: &str) -> File {
+        File::open(Path::new(path)).unwrap()
+    }
+
+    #[test]
+    fn test_get_rom_info() {
+        let mut f = file("../res/dummy_cartromonly.bin");
+        let (ct, rom, ram) = get_rom_info(&mut f).unwrap();
+        assert_eq!(ct, 0x11);
+        assert_eq!(rom, 0x22);
+        assert_eq!(ram, 0x33);
     }
 }
