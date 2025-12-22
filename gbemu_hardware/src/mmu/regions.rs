@@ -88,6 +88,7 @@ def_regions! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::debug;
     use test_log::test;
 
     #[test]
@@ -111,6 +112,8 @@ mod tests {
     #[test]
     fn test_getset() {
         let mut reg = MappedMemoryRegion::new(MemoryRegion::new(5, 10));
+        debug!("Mapped region: {reg:?}");
+        reg.set(6, 0xDE);
         reg.set(7, 0xAD);
         assert_eq!(reg.get(6), 0xDE);
         assert_eq!(reg.get(7), 0xAD);
