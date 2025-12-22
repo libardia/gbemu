@@ -27,9 +27,9 @@ impl GameBoy {
     pub fn new(cart: Box<dyn Cart>) -> Self {
         Self {
             cart,
-            cpu: CPU::new(),
-            ppu: PPU::new(),
-            mmu: MMU::new(),
+            cpu: Default::default(),
+            ppu: Default::default(),
+            mmu: Default::default(),
         }
     }
 

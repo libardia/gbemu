@@ -48,20 +48,23 @@ pub const WX: u16 = 0xFF4B;
 pub const BANK: u16 = 0xFF50;
 pub const IE: u16 = 0xFFFF;
 
+#[derive(Debug)]
 pub struct HardwareRegs {
     io_raw: MappedMemoryRegion,
     // This is actually at the end of the mem at 0xFFFF, outside the IO range
     ie: u8,
 }
 
-impl HardwareRegs {
-    pub fn new() -> Self {
+impl Default for HardwareRegs {
+    fn default() -> Self {
         Self {
             io_raw: MappedMemoryRegion::new(IO_REGS),
             ie: UNINIT_VALUE,
         }
     }
+}
 
+impl HardwareRegs {
     // Return the value of the register, unmasked and without side effects.
     pub fn peek(&self, address: u16) -> u8 {
         if address == IE {

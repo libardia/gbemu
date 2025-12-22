@@ -17,6 +17,7 @@ pub const UNINIT_VALUE: u8 = 0xFF;
 
 const ECHO_RAM_OFFSET: u16 = 0x2000;
 
+#[derive(Debug)]
 pub struct MMU {
     // RAM areas
     vram: MappedMemoryRegion,
@@ -27,17 +28,19 @@ pub struct MMU {
     io: HardwareRegs,
 }
 
-impl MMU {
-    pub fn new() -> Self {
+impl Default for MMU {
+    fn default() -> Self {
         Self {
             vram: MappedMemoryRegion::new(VRAM),
             wram: MappedMemoryRegion::new(WORK_RAM),
             oam: MappedMemoryRegion::new(OAM),
             hram: MappedMemoryRegion::new(HIGH_RAM),
-            io: HardwareRegs::new(),
+            io: Default::default(),
         }
     }
+}
 
+impl MMU {
     // Return the value of memory at the given address, but without side effects that would
     // otherwise occur if it was a true read.
     pub fn peek(ctx: &GameBoy, address: u16) -> u8 {

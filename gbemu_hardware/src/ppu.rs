@@ -1,7 +1,4 @@
+#[derive(Debug, Default)]
 pub struct PPU {}
 
-impl PPU {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+impl PPU {}

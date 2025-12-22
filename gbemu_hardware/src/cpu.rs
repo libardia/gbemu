@@ -64,6 +64,7 @@ impl Into<u8> for Flags {
     }
 }
 
+#[derive(Default, Debug)]
 pub struct CPU {
     r: Regs,
     f: Flags,
@@ -72,13 +73,6 @@ pub struct CPU {
 }
 
 impl CPU {
-    pub fn new() -> Self {
-        Self {
-            r: Regs::default(),
-            f: Flags::default(),
-            ime: false,
-        }
-    }
     //TODO: CPU
 }
 

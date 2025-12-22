@@ -1,6 +1,6 @@
 use crate::mmu::UNINIT_VALUE;
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct MemoryRegion {
     pub begin: u16,
     pub end: u16,
