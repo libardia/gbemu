@@ -1,6 +1,7 @@
-use crate::mmu::MMU;
-use std::{cell::RefCell, rc::Rc};
+pub struct PPU {}
 
-pub struct PPU {
-    mmu: Rc<RefCell<MMU>>,
+impl PPU {
+    pub fn new() -> Self {
+        Self {}
+    }
 }

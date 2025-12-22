@@ -5,8 +5,9 @@ use crate::{
     cart::{Cart, load_cart},
     cpu::CPU,
     mmu::MMU,
+    ppu::PPU,
 };
-use std::{cell::RefCell, io::Result, path::Path, rc::Rc};
+use std::{io::Result, path::Path};
 
 mod cart;
 mod cart_types;
@@ -16,21 +17,25 @@ mod mmu;
 mod ppu;
 
 pub struct GameBoy {
+    cart: Box<dyn Cart>,
     cpu: CPU,
-    mmu: Rc<RefCell<MMU>>,
+    ppu: PPU,
+    mmu: MMU,
 }
 
 impl GameBoy {
     pub fn new(cart: Box<dyn Cart>) -> Self {
-        let mmu = rcref!(MMU::new(cart));
-        let cpu = CPU::new(mmu.clone());
-        Self { cpu, mmu }
-        //TODO: Okay so I think MMU should have a rcref to everything that uses a hardware register,
-        // but then everything else just takes a reference to mmu as a parameter
+        Self {
+            cart,
+            cpu: CPU::new(),
+            ppu: PPU::new(),
+            mmu: MMU::new(),
+        }
     }
 
     pub fn run(&mut self) {
         //TODO: run
+        MMU::peek(self, 0);
     }
 }
 
