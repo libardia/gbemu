@@ -12,3 +12,10 @@ macro_rules! address_fmt {
         format!("${:0>4X}", $address)
     };
 }
+
+#[macro_export]
+macro_rules! rcref {
+    ($inner:expr) => {
+        std::rc::Rc::new(std::cell::RefCell::new($inner))
+    };
+}

@@ -96,7 +96,7 @@ impl HardwareRegs {
         match address {
             JOYP => get_bits!(0b00111111),
             SB => get_bits!(),
-            SC => get_bits!(0b10000011),
+            SC => get_bits!(0b10000001),
             DIV => get_bits!(),
             TIMA => get_bits!(),
             TMA => get_bits!(),
@@ -153,20 +153,24 @@ impl HardwareRegs {
                 let value_masked = value & $mask;
                 self.poke(address, current_masked | value_masked);
             }};
+            () => {
+                // Fully writable
+                self.poke(address, value)
+            };
         }
 
         match address {
             //TODO: IO regs write
             JOYP => set_bits!(0b00110000),
-            SB => todo!(),
-            SC => todo!(),
-            DIV => todo!(),
-            TIMA => todo!(),
-            TMA => todo!(),
-            TAC => todo!(),
-            IF => todo!(),
-            NR10 => todo!(),
-            NR11 => todo!(),
+            SB => set_bits!(),
+            SC => set_bits!(0b10000001),
+            DIV => set_bits!(), // SIDE EFFECT: When any value is set, DIV resets to 0
+            TIMA => set_bits!(),
+            TMA => set_bits!(),
+            TAC => set_bits!(0b00000111), // SIDE EFFECT: Potentially causes a timer tick
+            IF => set_bits!(0b00011111),
+            NR10 => set_bits!(0b01111111),
+            NR11 => set_bits!(),
             NR12 => todo!(),
             NR13 => todo!(),
             NR14 => todo!(),

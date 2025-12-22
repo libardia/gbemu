@@ -1,3 +1,6 @@
+use crate::mmu::MMU;
+use std::{cell::RefCell, rc::Rc};
+
 const Z_FLAG_MASK: u8 = 0x80;
 const N_FLAG_MASK: u8 = 0x40;
 const H_FLAG_MASK: u8 = 0x20;
@@ -64,15 +67,24 @@ impl Into<u8> for Flags {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
 pub struct CPU {
     r: Regs,
     f: Flags,
 
     ime: bool,
+
+    mmu: Rc<RefCell<MMU>>,
 }
 
 impl CPU {
+    pub fn new(mmu: Rc<RefCell<MMU>>) -> Self {
+        Self {
+            r: Regs::default(),
+            f: Flags::default(),
+            ime: false,
+            mmu,
+        }
+    }
     //TODO: CPU
 }
 

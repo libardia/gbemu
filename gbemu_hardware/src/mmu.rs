@@ -18,15 +18,17 @@ pub const UNINIT_VALUE: u8 = 0xFF;
 const ECHO_RAM_OFFSET: u16 = 0x2000;
 
 pub struct MMU {
-    pub cart: Box<dyn Cart>,
+    cart: Box<dyn Cart>,
 
     // RAM areas
-    pub vram: MappedMemoryRegion,
-    pub wram: MappedMemoryRegion,
-    pub oam: MappedMemoryRegion,
-    pub hram: MappedMemoryRegion,
+    vram: MappedMemoryRegion,
+    wram: MappedMemoryRegion,
+    oam: MappedMemoryRegion,
+    hram: MappedMemoryRegion,
 
-    pub io: HardwareRegs,
+    io: HardwareRegs,
+
+    // Hardware pointers
 }
 
 impl MMU {
