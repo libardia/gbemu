@@ -1,12 +1,11 @@
 use crate::{
-    address_fmt,
+    HardwareInterface, address_fmt,
     cartridge::Cartridge,
     error_panic,
-    memory::{
-        OPEN_BUS_VALUE,
-        regions::{CART_RAM, ROM_SPACE},
-    },
+    memory::OPEN_BUS_VALUE,
+    regions::{CART_RAM, ROM_SPACE},
 };
+use log::debug;
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
@@ -14,20 +13,12 @@ use std::{
 
 const TOTAL_SIZE: usize = 0x8000;
 
+#[derive(Debug, Default)]
 pub struct CartRomOnly {
-    rom: [u8; TOTAL_SIZE],
+    rom: Vec<u8>,
 }
 
-impl Cartridge for CartRomOnly {
-    fn peek(&self, address: u16) -> u8 {
-        // No difference from read()
-        self.read(address)
-    }
-
-    fn poke(&mut self, _: u16, _: u8) {
-        // Ignore
-    }
-
+impl HardwareInterface for CartRomOnly {
     fn read(&self, address: u16) -> u8 {
         if ROM_SPACE.contains(address) {
             // ROM_SPACE begins at 0 so no need to transform the address
@@ -48,22 +39,26 @@ impl Cartridge for CartRomOnly {
     }
 }
 
-impl CartRomOnly {
-    pub fn new(cart_file: &File) -> Result<Self> {
+impl Cartridge for CartRomOnly {
+    fn load_from_file(&mut self, cart_file: &File) -> Result<()> {
         let mut reader = BufReader::new(cart_file);
 
         // Fill the whole rom
-        let mut rom = [0; TOTAL_SIZE];
-        reader.read_exact(&mut rom)?;
+        let mut rom_raw = [0; TOTAL_SIZE];
+        reader.read_exact(&mut rom_raw)?;
 
         // Ensure EOF
-        if reader.read(&mut rom)? != 0 {
+        if reader.read(&mut rom_raw)? != 0 {
             return Err(Error::new(
                 ErrorKind::FileTooLarge,
                 "Simple cartridges (no MBC, ROM only) should be exactly 32 KiB (32,768 bytes)",
             ));
         };
 
-        Ok(Self { rom })
+        self.rom.extend_from_slice(&rom_raw);
+
+        debug!("{:?}", self.rom);
+
+        Ok(())
     }
 }

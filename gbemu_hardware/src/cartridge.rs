@@ -1,17 +1,26 @@
-use crate::cartridge_types::cartridge_romonly::CartRomOnly;
+use crate::{HardwareInterface, byte_fmt, cartridge::cartridge_romonly::CartRomOnly};
 use std::{
     fs::File,
     io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
     path::Path,
 };
 
+mod cartridge_romonly;
+
 const CART_INFO_START: u64 = 0x0147;
 
-pub trait Cartridge {
-    fn peek(&self, address: u16) -> u8;
-    fn poke(&mut self, address: u16, value: u8);
-    fn read(&self, address: u16) -> u8;
-    fn write(&mut self, address: u16, value: u8);
+pub trait Cartridge: HardwareInterface {
+    fn load_from_file(&mut self, cart_file: &File) -> Result<()>;
+}
+
+pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cartridge>> {
+    let mut cart_file = File::open(cart_path)?;
+
+    let rom_info = get_rom_info(&mut cart_file)?;
+    let mut cart = make_cart_from_info(rom_info)?;
+    cart.load_from_file(&cart_file)?;
+
+    Ok(cart)
 }
 
 fn get_rom_info(cart_file: &mut File) -> Result<(u8, u8, u8)> {
@@ -22,24 +31,22 @@ fn get_rom_info(cart_file: &mut File) -> Result<(u8, u8, u8)> {
     Ok((cart_info[0], cart_info[1], cart_info[2]))
 }
 
-pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cartridge>> {
-    let mut cart_file = File::open(cart_path)?;
-
-    let (cart_type, crom, cram) = get_rom_info(&mut cart_file)?;
-    let cart_rom_banks = decode_rom_banks(crom)?;
-    let cart_ram_size = decode_ram_size(cram)?;
-
-    macro_rules! make_result {
+fn make_cart_from_info(rom_info: (u8, u8, u8)) -> Result<Box<dyn Cartridge>> {
+    macro_rules! okbox {
         ($inner:expr) => {
-            Ok(Box::new($inner?))
+            Ok(Box::new($inner))
         };
     }
+
+    let (cart_type, crom, cram) = rom_info;
+    let rom_size = decode_rom_banks(crom)?;
+    let ram_size = decode_ram_size(cram)?;
 
     match cart_type {
         // Note for the marked lines below (*):
         // MBC3 with 64 KiB of SRAM refers to MBC30, used only in Pocket Monsters: Crystal Version
         // (the Japanese version of Pokémon Crystal Version).
-        0x00 => make_result!(CartRomOnly::new(&cart_file)), // ROM ONLY
+        0x00 => okbox!(CartRomOnly::default()), // ROM ONLY
         //TODO: 0x01 => make_result!(/* todo */), // MBC1
         //TODO: 0x02 => make_result!(/* todo */), // MBC1+RAM
         //TODO: 0x03 => make_result!(/* todo */), // MBC1+RAM+BATTERY
@@ -67,7 +74,7 @@ pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cartridge>> {
         //TODO: 0xFF => make_result!(/* todo */), // HuC1+RAM+BATTERY
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported cart type: ${cart_type:0>2X}"),
+            format!("Unsupported cart type: {}", byte_fmt!(cart_type)),
         )),
     }
 }
@@ -86,7 +93,7 @@ fn decode_rom_banks(code: u8) -> Result<usize> {
 
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported cart ROM size: ${code:0>2X}"),
+            format!("Unsupported cart ROM size: {}", byte_fmt!(code)),
         )),
     }
 }
@@ -101,7 +108,7 @@ fn decode_ram_size(code: u8) -> Result<usize> {
 
         _ => Err(Error::new(
             ErrorKind::InvalidData,
-            format!("Unsupported cart RAM size: ${code:0>2X}"),
+            format!("Unsupported cart RAM size: {}", byte_fmt!(code)),
         )),
     }
 }

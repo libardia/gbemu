@@ -14,8 +14,8 @@ macro_rules! address_fmt {
 }
 
 #[macro_export]
-macro_rules! rcref {
-    ($inner:expr) => {
-        std::rc::Rc::new(std::cell::RefCell::new($inner))
+macro_rules! byte_fmt {
+    ($byte:expr) => {
+        format!("${:0>2X}", $byte)
     };
 }

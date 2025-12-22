@@ -89,7 +89,7 @@ mod tests {
             ($r1:ident + $r2:ident) => {
                 paste::paste! {
                     // Get
-                    let rs_g = Regs { $r1: 0xDE, $r2: 0xAD, ..Default::default() };
+                    let rs_g = Regs { $r1: 0xDE, $r2: 0xAD, ..Regs::default() };
                     debug!("raw: {rs_g:x?}");
                     assert_eq!(rs_g.[<get_ $r1 $r2>](), 0xDEAD);
 
