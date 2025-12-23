@@ -1,4 +1,4 @@
-use crate::gb::{hardware::cartridge::cartridge_romonly::CartRomOnly, macros::byte_fmt};
+use crate::{byte_fmt, gb::hardware::cartridge::cartridge_romonly::CartRomOnly};
 use std::{
     fs::File,
     io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},

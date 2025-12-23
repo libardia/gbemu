@@ -1,4 +1,10 @@
-use crate::gb::hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
+use crate::{
+    gb::{
+        hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE},
+        regions::{CART_RAM, ROM_SPACE},
+    },
+    region_guard,
+};
 use log::debug;
 use std::{
     fs::File,
@@ -14,21 +20,25 @@ pub struct CartRomOnly {
 
 impl Cartridge for CartRomOnly {
     fn read_rom(&self, address: u16) -> u8 {
+        region_guard!(address in ROM_SPACE);
         // ROM_SPACE begins at 0 so no need to transform the address
         self.rom[address as usize]
     }
 
     fn read_ram(&self, address: u16) -> u8 {
+        region_guard!(address in CART_RAM);
         // No ram in this cart
         OPEN_BUS_VALUE
     }
 
     fn write_rom(&mut self, address: u16, value: u8) {
-        // Ignore writes
+        region_guard!(address in ROM_SPACE);
+        // Do nothing; ignore writes
     }
 
     fn write_ram(&mut self, address: u16, value: u8) {
-        // Ignore writes
+        region_guard!(address in CART_RAM);
+        // Do nothing; ignore writes
     }
 
     fn load_from_file(&mut self, cart_file: &File) -> Result<()> {
