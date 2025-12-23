@@ -35,21 +35,40 @@ impl Cartridge for CartRomOnly {
         let mut reader = BufReader::new(cart_file);
 
         // Fill the whole rom
-        let mut rom_raw = [0; TOTAL_SIZE];
-        reader.read_exact(&mut rom_raw)?;
+        self.rom.resize(TOTAL_SIZE, 0);
+        reader.read_exact(&mut self.rom)?;
 
         // Ensure EOF
-        if reader.read(&mut rom_raw)? != 0 {
+        if reader.read(&mut self.rom)? != 0 {
             return Err(Error::new(
                 ErrorKind::FileTooLarge,
                 "Simple cartridges (no MBC, ROM only) should be exactly 32 KiB (32,768 bytes)",
             ));
         };
 
-        self.rom.extend_from_slice(&rom_raw);
-
         debug!("{:?}", self.rom);
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use test_log::test;
+
+    fn file(path: &str) -> File {
+        File::open(Path::new(path)).unwrap()
+    }
+
+    #[test]
+    fn test_load_cart() {
+        let f = file("../res/dummy_cartromonly.bin");
+        let mut cart = CartRomOnly::default();
+        cart.load_from_file(&f).unwrap();
+        assert_eq!(cart.rom.len(), TOTAL_SIZE);
+        assert_eq!(cart.rom[0], 0xAA);
+        assert_eq!(cart.rom[TOTAL_SIZE - 1], 0xBB);
     }
 }
