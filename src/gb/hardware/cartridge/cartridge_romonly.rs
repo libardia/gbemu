@@ -1,9 +1,10 @@
-use crate::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
 use log::debug;
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
 };
+
+use crate::gb::hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
 
 const TOTAL_SIZE: usize = 0x8000;
 
@@ -64,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_load_cart() {
-        let f = file("../res/dummy_cartromonly.bin");
+        let f = file("res/dummy_cartromonly.bin");
         let mut cart = CartRomOnly::default();
         cart.load_from_file(&f).unwrap();
         assert_eq!(cart.rom.len(), TOTAL_SIZE);

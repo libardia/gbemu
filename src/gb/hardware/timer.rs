@@ -1,4 +1,4 @@
-use crate::HardwareInterface;
+use crate::gb::hardware::HardwareInterface;
 
 #[derive(Debug, Default)]
 pub struct Timer {

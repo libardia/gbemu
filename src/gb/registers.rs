@@ -1,4 +1,4 @@
-use crate::regions::MemoryRegion;
+use crate::gb::regions::MemoryRegion;
 
 // Input
 pub const IO_JOYP: u16 = 0xFF00;

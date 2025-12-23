@@ -1,4 +1,4 @@
-use crate::memory::UNINIT_VALUE;
+use crate::gb::hardware::memory::UNINIT_VALUE;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct MemoryRegion {

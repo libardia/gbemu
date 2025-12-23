@@ -1,4 +1,4 @@
-use crate::{HardwareInterface, memory::OPEN_BUS_VALUE};
+use crate::gb::hardware::{HardwareInterface, memory::OPEN_BUS_VALUE};
 
 #[derive(Debug, Default)]
 pub struct Input {

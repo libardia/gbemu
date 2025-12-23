@@ -1,6 +1,4 @@
-#![allow(dead_code, unused_variables)]
-
-use crate::{
+use crate::gb::hardware::{
     audio::Audio,
     cartridge::{Cartridge, load_cart},
     graphics::Graphics,
@@ -12,17 +10,10 @@ use crate::{
 };
 use std::{io::Result, path::Path};
 
-mod audio;
-mod cartridge;
-mod graphics;
-mod input;
+mod hardware;
 mod macros;
-mod memory;
-mod processor;
 mod regions;
 mod registers;
-mod serial;
-mod timer;
 
 pub fn start(rom_path: &str) -> Result<()> {
     let cart = load_cart(Path::new(rom_path))?;
@@ -40,11 +31,6 @@ pub struct GameBoy {
     input: Input,
     aud: Audio,
     serial: Serial,
-}
-
-pub trait HardwareInterface {
-    fn read(&self, address: u16) -> u8;
-    fn write(&mut self, address: u16, value: u8);
 }
 
 impl GameBoy {

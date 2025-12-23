@@ -1,5 +1,6 @@
-use crate::{
-    GameBoy, HardwareInterface,
+use crate::gb::{
+    GameBoy,
+    hardware::HardwareInterface,
     regions::{CART_RAM, ECHO_RAM, HIGH_RAM, MappedMemoryRegion, OAM, ROM_SPACE, VRAM, WORK_RAM},
     registers::{IO_AUDIO, IO_GRAPHICS, IO_IF, IO_JOYP, IO_SERIAL, IO_TIMER},
 };

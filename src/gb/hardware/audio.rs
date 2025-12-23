@@ -1,6 +1,5 @@
+use crate::gb::hardware::{HardwareInterface, memory::OPEN_BUS_VALUE};
 use log::error;
-
-use crate::{HardwareInterface, memory::OPEN_BUS_VALUE};
 
 #[derive(Debug, Default)]
 pub struct Audio {

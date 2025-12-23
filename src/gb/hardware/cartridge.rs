@@ -1,11 +1,11 @@
-use crate::{byte_fmt, cartridge::cartridge_romonly::CartRomOnly};
+use crate::gb::{hardware::cartridge::cartridge_romonly::CartRomOnly, macros::byte_fmt};
 use std::{
     fs::File,
     io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
     path::Path,
 };
 
-mod cartridge_romonly;
+pub mod cartridge_romonly;
 
 const CART_INFO_START: u64 = 0x0147;
 
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_get_rom_info() {
-        let mut f = file("../res/dummy_cartromonly.bin");
+        let mut f = file("res/dummy_cartromonly.bin");
         let (ct, rom, ram) = get_rom_info(&mut f).unwrap();
         assert_eq!(ct, 0x11);
         assert_eq!(rom, 0x22);
