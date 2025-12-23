@@ -1,11 +1,11 @@
 use crate::{HardwareInterface, memory::OPEN_BUS_VALUE};
 
 #[derive(Debug, Default)]
-pub struct Graphics {
+pub struct Input {
     // TODO: Graphics
 }
 
-impl HardwareInterface for Graphics {
+impl HardwareInterface for Input {
     fn read(&self, address: u16) -> u8 {
         // TODO: Graphics read
         OPEN_BUS_VALUE

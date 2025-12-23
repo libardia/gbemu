@@ -2,21 +2,27 @@
 #![allow(unused_variables)]
 
 use crate::{
+    audio::Audio,
     cartridge::{Cartridge, load_cart},
     graphics::Graphics,
+    input::Input,
     memory::Memory,
     processor::Processor,
+    serial::Serial,
     timer::Timer,
 };
 use std::{io::Result, path::Path};
 
+mod audio;
 mod cartridge;
 mod graphics;
+mod input;
 mod macros;
 mod memory;
 mod processor;
 mod regions;
 mod registers;
+mod serial;
 mod timer;
 
 pub fn start(rom_path: &str) -> Result<()> {
@@ -29,9 +35,12 @@ pub fn start(rom_path: &str) -> Result<()> {
 pub struct GameBoy {
     cart: Box<dyn Cartridge>,
     cpu: Processor,
-    gfx: Graphics,
     mem: Memory,
+    gfx: Graphics,
     timer: Timer,
+    input: Input,
+    aud: Audio,
+    serial: Serial,
 }
 
 pub trait HardwareInterface {
@@ -44,9 +53,12 @@ impl GameBoy {
         Self {
             cart,
             cpu: Processor::default(),
-            gfx: Graphics::default(),
             mem: Memory::default(),
+            gfx: Graphics::default(),
             timer: Timer::default(),
+            input: Input::default(),
+            aud: Audio::default(),
+            serial: Serial::default(),
         }
     }
 

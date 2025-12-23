@@ -1,4 +1,4 @@
-use crate::{HardwareInterface, byte_fmt, cartridge::cartridge_romonly::CartRomOnly};
+use crate::{byte_fmt, cartridge::cartridge_romonly::CartRomOnly};
 use std::{
     fs::File,
     io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
@@ -9,7 +9,12 @@ mod cartridge_romonly;
 
 const CART_INFO_START: u64 = 0x0147;
 
-pub trait Cartridge: HardwareInterface {
+pub trait Cartridge {
+    fn read_rom(&self, address: u16) -> u8;
+    fn read_ram(&self, address: u16) -> u8;
+    fn write_rom(&mut self, address: u16, value: u8);
+    fn write_ram(&mut self, address: u16, value: u8);
+
     fn load_from_file(&mut self, cart_file: &File) -> Result<()>;
 }
 

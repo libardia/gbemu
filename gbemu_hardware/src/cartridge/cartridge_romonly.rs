@@ -1,10 +1,4 @@
-use crate::{
-    HardwareInterface, address_fmt,
-    cartridge::Cartridge,
-    error_panic,
-    memory::OPEN_BUS_VALUE,
-    regions::{CART_RAM, ROM_SPACE},
-};
+use crate::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
 use log::debug;
 use std::{
     fs::File,
@@ -18,28 +12,25 @@ pub struct CartRomOnly {
     rom: Vec<u8>,
 }
 
-impl HardwareInterface for CartRomOnly {
-    fn read(&self, address: u16) -> u8 {
-        if ROM_SPACE.contains(address) {
-            // ROM_SPACE begins at 0 so no need to transform the address
-            self.rom[address as usize]
-        } else if CART_RAM.contains(address) {
-            // No RAM in this cart
-            OPEN_BUS_VALUE
-        } else {
-            error_panic!(
-                "Tried to read an address outside the cart's range: {}",
-                address_fmt!(address)
-            );
-        }
-    }
-
-    fn write(&mut self, _: u16, _: u8) {
-        // Ignore writes.
-    }
-}
-
 impl Cartridge for CartRomOnly {
+    fn read_rom(&self, address: u16) -> u8 {
+        // ROM_SPACE begins at 0 so no need to transform the address
+        self.rom[address as usize]
+    }
+
+    fn read_ram(&self, address: u16) -> u8 {
+        // No ram in this cart
+        OPEN_BUS_VALUE
+    }
+
+    fn write_rom(&mut self, address: u16, value: u8) {
+        // Ignore writes
+    }
+
+    fn write_ram(&mut self, address: u16, value: u8) {
+        // Ignore writes
+    }
+
     fn load_from_file(&mut self, cart_file: &File) -> Result<()> {
         let mut reader = BufReader::new(cart_file);
 
