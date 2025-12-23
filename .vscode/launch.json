@@ -34,20 +34,5 @@
                 "RUST_LOG": "debug",
             },
         },
-        {
-            "name": "gbemu_hardware: tests",
-            "type": "lldb",
-            "request": "launch",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--lib",
-                ]
-            },
-            "env": {
-                "RUST_BACKTRACE": "1",
-                "RUST_LOG": "debug",
-            },
-        },
     ]
 }

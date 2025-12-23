@@ -1,10 +1,9 @@
+use crate::gb::hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
 use log::debug;
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
 };
-
-use crate::gb::hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE};
 
 const TOTAL_SIZE: usize = 0x8000;
 
