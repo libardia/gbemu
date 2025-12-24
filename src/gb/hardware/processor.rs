@@ -112,6 +112,7 @@ pub struct Processor {
 }
 
 pub fn step(ctx: &mut GameBoy) -> u16 {
+    // TODO: CPU step
     0
 }
 
