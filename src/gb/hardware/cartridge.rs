@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_get_rom_info() {
-        let mut f = file("res/dummy_cartromonly.bin");
+        let mut f = file("res/dummy_cartromonly_read_test.bin");
         let (ct, rom, ram) = get_rom_info(&mut f).unwrap();
         assert_eq!(ct, 0x11);
         assert_eq!(rom, 0x22);

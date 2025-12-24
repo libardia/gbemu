@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_load_cart() {
-        let f = file("res/dummy_cartromonly.bin");
+        let f = file("res/dummy_cartromonly_read_test.bin");
         let mut cart = CartRomOnly::default();
         cart.load_from_file(&f).unwrap();
         assert_eq!(cart.rom.len(), ROM_SPACE.size().into());

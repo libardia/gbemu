@@ -12,10 +12,11 @@
                 "args": [
                     "run",
                     "--bin=gbemu",
+                    "--",
+                    "res/dummy_cartromonly.bin",
                 ]
             },
             "env": {
-                // "RUST_BACKTRACE": "1",
                 "RUST_LOG": "debug",
             },
         },
@@ -30,7 +31,6 @@
                 ]
             },
             "env": {
-                // "RUST_BACKTRACE": "1",
                 "RUST_LOG": "debug",
             },
         },
