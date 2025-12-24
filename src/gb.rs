@@ -1,12 +1,15 @@
-use crate::gb::hardware::{
-    audio::Audio,
-    cartridge::{Cartridge, load_cart},
-    graphics::Graphics,
-    input::Input,
-    memory::Memory,
-    processor::Processor,
-    serial::Serial,
-    timer::Timer,
+use crate::{
+    gb::hardware::{
+        audio::Audio,
+        cartridge::{Cartridge, load_cart},
+        graphics::Graphics,
+        input::Input,
+        memory::Memory,
+        processor::Processor,
+        serial::Serial,
+        timer::Timer,
+    },
+    number_type,
 };
 use std::io::Result;
 
@@ -25,6 +28,9 @@ pub struct GameBoy {
     aud: Audio,
     serial: Serial,
 }
+
+number_type!(MTime: u16);
+number_type!(Dot: u16);
 
 impl GameBoy {
     pub fn new(rom_path: &str) -> Result<Self> {

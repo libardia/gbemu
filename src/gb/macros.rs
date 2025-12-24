@@ -33,3 +33,33 @@ macro_rules! region_guard {
         }
     };
 }
+
+#[macro_export]
+macro_rules! number_type {
+    ($vis:vis $name:ident: $inner:ty) => {
+        #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+        $vis struct $name(pub $inner);
+
+        impl From<$inner> for $name {
+            fn from(value: $inner) -> Self {
+                Self(value)
+            }
+        }
+
+        impl Into<$inner> for $name {
+            fn into(self) -> $inner {
+                self.0
+            }
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    number_type!(PrivTestNumberType: u8);
+
+    fn number_type_cast_compiles() {
+        let n: PrivTestNumberType = 0.into();
+        let b: u8 = n.into();
+    }
+}

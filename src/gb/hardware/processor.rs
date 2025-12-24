@@ -1,3 +1,5 @@
+use crate::gb::GameBoy;
+
 mod decode;
 mod execute;
 mod instructions;
@@ -107,6 +109,10 @@ pub struct Processor {
 
     halt_bug: bool,
     ime: bool,
+}
+
+pub fn step(ctx: &mut GameBoy) -> u16 {
+    0
 }
 
 #[cfg(test)]

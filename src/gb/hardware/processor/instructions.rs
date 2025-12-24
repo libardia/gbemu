@@ -1,4 +1,4 @@
-use crate::{address_fmt, byte_fmt};
+use crate::{address_fmt, byte_fmt, number_type};
 use std::fmt::Debug;
 
 #[allow(non_camel_case_types)]
@@ -146,24 +146,21 @@ pub enum Cond {
     ALWAYS,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Byte(pub u8);
+number_type!(pub Byte: u8);
 impl Debug for Byte {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&byte_fmt!(&self.0))
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Word(pub u16);
+number_type!(pub Word: u16);
 impl Debug for Word {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&address_fmt!(&self.0))
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Offset(pub i8);
+number_type!(pub Offset: i8);
 impl Debug for Offset {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:+}", self.0)
