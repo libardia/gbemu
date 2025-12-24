@@ -11,15 +11,15 @@ const CART_INFO_START: u64 = 0x0147;
 
 pub trait Cartridge {
     fn read_rom(&self, address: u16) -> u8;
-    fn read_ram(&self, address: u16) -> u8;
     fn write_rom(&mut self, address: u16, value: u8);
+    fn read_ram(&self, address: u16) -> u8;
     fn write_ram(&mut self, address: u16, value: u8);
 
     fn load_from_file(&mut self, cart_file: &File) -> Result<()>;
 }
 
-pub fn load_cart(cart_path: &Path) -> Result<Box<dyn Cartridge>> {
-    let mut cart_file = File::open(cart_path)?;
+pub fn load_cart(cart_path: &str) -> Result<Box<dyn Cartridge>> {
+    let mut cart_file = File::open(Path::new(cart_path))?;
 
     let rom_info = get_rom_info(&mut cart_file)?;
     let mut cart = make_cart_from_info(rom_info)?;

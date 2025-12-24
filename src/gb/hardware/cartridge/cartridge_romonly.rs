@@ -5,7 +5,6 @@ use crate::{
     },
     region_guard,
 };
-use log::debug;
 use std::{
     fs::File,
     io::{BufReader, Error, ErrorKind, Read, Result},
@@ -25,15 +24,15 @@ impl Cartridge for CartRomOnly {
         self.rom[address as usize]
     }
 
+    fn write_rom(&mut self, address: u16, value: u8) {
+        region_guard!(address in ROM_SPACE);
+        // Do nothing; ignore writes
+    }
+
     fn read_ram(&self, address: u16) -> u8 {
         region_guard!(address in CART_RAM);
         // No ram in this cart
         OPEN_BUS_VALUE
-    }
-
-    fn write_rom(&mut self, address: u16, value: u8) {
-        region_guard!(address in ROM_SPACE);
-        // Do nothing; ignore writes
     }
 
     fn write_ram(&mut self, address: u16, value: u8) {
@@ -56,8 +55,6 @@ impl Cartridge for CartRomOnly {
             ));
         };
 
-        debug!("{:?}", self.rom);
-
         Ok(())
     }
 }
@@ -77,8 +74,8 @@ mod tests {
         let f = file("res/dummy_cartromonly.bin");
         let mut cart = CartRomOnly::default();
         cart.load_from_file(&f).unwrap();
-        assert_eq!(cart.rom.len(), TOTAL_SIZE);
-        assert_eq!(cart.rom[0], 0xAA);
-        assert_eq!(cart.rom[TOTAL_SIZE - 1], 0xBB);
+        assert_eq!(cart.rom.len(), ROM_SPACE.size().into());
+        assert_eq!(cart.rom[ROM_SPACE.begin as usize], 0xAA);
+        assert_eq!(cart.rom[ROM_SPACE.end as usize], 0xBB);
     }
 }

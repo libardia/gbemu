@@ -8,19 +8,12 @@ use crate::gb::hardware::{
     serial::Serial,
     timer::Timer,
 };
-use std::{io::Result, path::Path};
+use std::io::Result;
 
 mod hardware;
 mod macros;
 mod regions;
 mod registers;
-
-pub fn start(rom_path: &str) -> Result<()> {
-    let cart = load_cart(Path::new(rom_path))?;
-    let mut gb = GameBoy::new(cart);
-    gb.run();
-    Ok(())
-}
 
 pub struct GameBoy {
     cart: Box<dyn Cartridge>,
@@ -34,9 +27,9 @@ pub struct GameBoy {
 }
 
 impl GameBoy {
-    pub fn new(cart: Box<dyn Cartridge>) -> Self {
-        Self {
-            cart,
+    pub fn new(rom_path: &str) -> Result<Self> {
+        Ok(Self {
+            cart: load_cart(rom_path)?,
             cpu: Processor::default(),
             mem: Memory::default(),
             gfx: Graphics::default(),
@@ -44,7 +37,7 @@ impl GameBoy {
             input: Input::default(),
             aud: Audio::default(),
             serial: Serial::default(),
-        }
+        })
     }
 
     pub fn run(&mut self) {

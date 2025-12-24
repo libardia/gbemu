@@ -1,7 +1,14 @@
+mod decode;
+mod execute;
+mod instructions;
+mod optable;
+
 const Z_FLAG_MASK: u8 = 0x80;
 const N_FLAG_MASK: u8 = 0x40;
 const H_FLAG_MASK: u8 = 0x20;
 const C_FLAG_MASK: u8 = 0x10;
+
+/* #region Registers */
 
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Regs {
@@ -34,7 +41,20 @@ impl Regs {
     getset_r16!(b + c);
     getset_r16!(d + e);
     getset_r16!(h + l);
+    getset_r16!(a + f);
+
+    pub fn get_flags(&self) -> Flags {
+        self.f.into()
+    }
+
+    pub fn set_flags(&mut self, flags: Flags) {
+        self.f = flags.into();
+    }
 }
+
+/* #endregion */
+
+/* #region Flags */
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 struct Flags {
@@ -64,16 +84,29 @@ impl Into<u8> for Flags {
     }
 }
 
+/* #endregion */
+
+#[derive(Debug, Default)]
+enum ProcessorMode {
+    #[default]
+    Normal,
+    Halt,
+    Stop,
+}
+
 #[derive(Default, Debug)]
 pub struct Processor {
     r: Regs,
     f: Flags,
 
-    ime: bool,
-}
+    pc: u16,
+    sp: u16,
 
-impl Processor {
-    //TODO: CPU
+    mode: ProcessorMode,
+    meta_inst: bool,
+
+    halt_bug: bool,
+    ime: bool,
 }
 
 #[cfg(test)]
