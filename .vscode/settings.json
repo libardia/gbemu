@@ -1,5 +1,8 @@
 {
     "rgbdsz80.includePath": [
         "gb-bootroms/src"
+    ],
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/rust-tests.yml"
     ]
 }
