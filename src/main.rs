@@ -17,8 +17,13 @@ fn main() {
         .unwrap();
 
     // Log on panic instead of a simple print
-    panic::set_hook(Box::new(|info| {
-        error!("Unrecoverable error: shutting down.");
+    panic::set_hook(Box::new(|info| match info.location() {
+        Some(loc) => error!(
+            "Unrecoverable error at '{}' line {}; shutting down.",
+            loc.file(),
+            loc.line()
+        ),
+        None => error!("Unrecoverable error; shutting down."),
     }));
 
     // Parse commandline arguments
@@ -27,7 +32,7 @@ fn main() {
     let opts = Options::new();
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
-        Err(e) => panic!("{e}"),
+        Err(e) => error_panic!("{e}"),
     };
 
     // Make sure a ROM file is provided
@@ -35,9 +40,5 @@ fn main() {
         error_panic!("No ROM file provided.");
     }
 
-    let res_gb = GameBoy::new(&matches.free[0]);
-    match res_gb {
-        Ok(mut gb) => gb.run(),
-        Err(e) => error_panic!("Couldn't start: {}", e),
-    }
+    GameBoy::new(&matches.free[0]).run();
 }

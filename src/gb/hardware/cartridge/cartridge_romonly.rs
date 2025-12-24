@@ -1,13 +1,14 @@
 use crate::{
+    error_panic,
     gb::{
         hardware::{cartridge::Cartridge, memory::OPEN_BUS_VALUE},
         regions::{CART_RAM, ROM_SPACE},
     },
-    region_guard,
+    region_guard, unwrap_or_log,
 };
 use std::{
     fs::File,
-    io::{BufReader, Error, ErrorKind, Read, Result},
+    io::{BufReader, Read},
 };
 
 const TOTAL_SIZE: usize = 0x8000;
@@ -40,22 +41,19 @@ impl Cartridge for CartRomOnly {
         // Do nothing; ignore writes
     }
 
-    fn load_from_file(&mut self, cart_file: &File) -> Result<()> {
+    fn load_from_file(&mut self, cart_file: &File) {
         let mut reader = BufReader::new(cart_file);
 
         // Fill the whole rom
         self.rom.resize(TOTAL_SIZE, 0);
-        reader.read_exact(&mut self.rom)?;
+        unwrap_or_log!(reader.read_exact(&mut self.rom));
 
         // Ensure EOF
-        if reader.read(&mut self.rom)? != 0 {
-            return Err(Error::new(
-                ErrorKind::FileTooLarge,
-                "Simple cartridges (no MBC, ROM only) should be exactly 32 KiB (32,768 bytes)",
-            ));
+        if unwrap_or_log!(reader.read(&mut self.rom)) != 0 {
+            error_panic!(
+                "Simple cartridges (no MBC, ROM only) should be exactly 32 KiB (32,768 bytes)"
+            );
         };
-
-        Ok(())
     }
 }
 
@@ -73,7 +71,7 @@ mod tests {
     fn test_load_cart() {
         let f = file("res/dummy_cartromonly_read_test.bin");
         let mut cart = CartRomOnly::default();
-        cart.load_from_file(&f).unwrap();
+        cart.load_from_file(&f);
         assert_eq!(cart.rom.len(), ROM_SPACE.size().into());
         assert_eq!(cart.rom[ROM_SPACE.begin as usize], 0xAA);
         assert_eq!(cart.rom[ROM_SPACE.end as usize], 0xBB);

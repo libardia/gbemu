@@ -54,6 +54,15 @@ macro_rules! number_type {
     };
 }
 
+#[macro_export]
+macro_rules! unwrap_or_log {
+    ($thing:expr) => {
+        $thing.unwrap_or_else(|e| {
+            crate::error_panic!("{e}");
+        })
+    };
+}
+
 #[cfg(test)]
 mod tests {
     number_type!(PrivTestNumberType: u8);

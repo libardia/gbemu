@@ -11,7 +11,6 @@ use crate::{
     },
     number_type,
 };
-use std::io::Result;
 
 mod hardware;
 mod macros;
@@ -33,9 +32,9 @@ number_type!(MTime: u16);
 number_type!(Dot: u16);
 
 impl GameBoy {
-    pub fn new(rom_path: &str) -> Result<Self> {
-        Ok(Self {
-            cart: load_cart(rom_path)?,
+    pub fn new(rom_path: &str) -> Self {
+        Self {
+            cart: load_cart(rom_path),
             cpu: Processor::default(),
             mem: Memory::default(),
             gfx: Graphics::default(),
@@ -43,7 +42,7 @@ impl GameBoy {
             input: Input::default(),
             aud: Audio::default(),
             serial: Serial::default(),
-        })
+        }
     }
 
     pub fn run(&mut self) {
