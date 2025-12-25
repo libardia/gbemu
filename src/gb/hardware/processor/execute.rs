@@ -18,20 +18,20 @@ use crate::{
     },
 };
 
-mod load;
+mod op_load;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
         match inst {
             // Load
-            LD_r8_r8(dest, src) => todo!(),
-            LD_r8_mem(dest, src) => todo!(),
-            LD_mem_r8(dest, src) => todo!(),
-            LD_r16_r16(dest, src) => todo!(),
+            LD_r8_r8(dest, src) => op_load::r8_r8(ctx, dest, src),
+            LD_r8_mem(dest, src) => op_load::r8_mem(ctx, dest, src),
+            LD_mem_r8(dest, src) => op_load::mem_r8(ctx, dest, src),
+            LD_r16_r16(dest, src) => op_load::r16_r16(ctx, dest, src),
 
             // Load high
-            LDH_A_mem(src) => todo!(),
-            LDH_mem_A(dest) => todo!(),
+            LDH_A_mem(src) => op_load::high_a_mem(ctx, src),
+            LDH_mem_A(dest) => op_load::high_mem_a(ctx, dest),
 
             // 8-bit arithmetic
             ADD_r8(op) => todo!(),
