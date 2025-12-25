@@ -45,6 +45,18 @@ impl Regs {
     getset_r16!(h + l);
     getset_r16!(a + f);
 
+    pub fn get_hli(&mut self) -> u16 {
+        let before = self.get_hl();
+        self.set_hl(before.wrapping_add(1));
+        before
+    }
+
+    pub fn get_hld(&mut self) -> u16 {
+        let before = self.get_hl();
+        self.set_hl(before.wrapping_sub(1));
+        before
+    }
+
     pub fn get_flags(&self) -> Flags {
         self.f.into()
     }
