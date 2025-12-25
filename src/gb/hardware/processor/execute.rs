@@ -20,9 +20,10 @@ use crate::{
 
 mod op_arith16;
 mod op_arith8;
-mod op_bits;
+mod op_bit;
 mod op_load;
 mod op_logic;
+mod op_shift;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
@@ -58,23 +59,23 @@ impl Processor {
             CPL => op_logic::cpl(ctx),
 
             // Bit flags
-            BIT(bit, target) => op_bits::bit(ctx, bit, target),
-            SET(bit, target) => op_bits::set(ctx, bit, target),
-            RES(bit, target) => op_bits::res(ctx, bit, target),
+            BIT(bit, target) => op_bit::bit(ctx, bit, target),
+            SET(bit, target) => op_bit::set(ctx, bit, target),
+            RES(bit, target) => op_bit::res(ctx, bit, target),
 
             // Bit shifts
-            RL(target) => todo!(),
-            RLA => todo!(),
-            RLC(target) => todo!(),
-            RLCA => todo!(),
-            RR(target) => todo!(),
-            RRA => todo!(),
-            RRC(target) => todo!(),
-            RRCA => todo!(),
-            SLA(target) => todo!(),
-            SRA(target) => todo!(),
-            SRL(target) => todo!(),
-            SWAP(target) => todo!(),
+            RL(target) => op_shift::rl(ctx, target, true, false),
+            RLA => op_shift::rl(ctx, R8::A, true, true),
+            RLC(target) => op_shift::rl(ctx, target, false, false),
+            RLCA => op_shift::rl(ctx, R8::A, false, true),
+            RR(target) => op_shift::rr(ctx, target, true, false),
+            RRA => op_shift::rr(ctx, R8::A, true, true),
+            RRC(target) => op_shift::rr(ctx, target, false, false),
+            RRCA => op_shift::rr(ctx, R8::A, false, true),
+            SLA(target) => op_shift::sl(ctx, target),
+            SRA(target) => op_shift::sr(ctx, target, true),
+            SRL(target) => op_shift::sr(ctx, target, false),
+            SWAP(target) => op_shift::swap(ctx, target),
 
             // Jumps and subroutines
             CALL(cond, address) => todo!(),
