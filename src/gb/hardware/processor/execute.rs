@@ -18,6 +18,7 @@ use crate::{
     },
 };
 
+mod op_arith16;
 mod op_arith8;
 mod op_load;
 
