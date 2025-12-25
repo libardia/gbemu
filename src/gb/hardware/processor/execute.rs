@@ -45,9 +45,9 @@ impl Processor {
             CP_r8(op) => op_arith8::cp(ctx, op),
 
             // 16-bit arithmetic
-            ADD_r16(op) => todo!(),
-            INC_r16(target) => todo!(),
-            DEC_r16(target) => todo!(),
+            ADD_r16(op) => op_arith16::add(ctx, op),
+            INC_r16(target) => op_arith16::inc(ctx, target),
+            DEC_r16(target) => op_arith16::dec(ctx, target),
 
             // Logic
             AND(op) => todo!(),
