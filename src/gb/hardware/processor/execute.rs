@@ -21,6 +21,7 @@ use crate::{
 mod op_arith16;
 mod op_arith8;
 mod op_load;
+mod op_logic;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
@@ -50,10 +51,10 @@ impl Processor {
             DEC_r16(target) => op_arith16::dec(ctx, target),
 
             // Logic
-            AND(op) => todo!(),
-            OR(op) => todo!(),
-            XOR(op) => todo!(),
-            CPL => todo!(),
+            AND(op) => op_logic::and(ctx, op),
+            OR(op) => op_logic::or(ctx, op),
+            XOR(op) => op_logic::xor(ctx, op),
+            CPL => op_logic::cpl(ctx),
 
             // Bit flags
             BIT(bit, target) => todo!(),
