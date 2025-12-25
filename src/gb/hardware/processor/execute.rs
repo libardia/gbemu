@@ -20,6 +20,7 @@ use crate::{
 
 mod op_arith16;
 mod op_arith8;
+mod op_bits;
 mod op_load;
 mod op_logic;
 
@@ -57,9 +58,9 @@ impl Processor {
             CPL => op_logic::cpl(ctx),
 
             // Bit flags
-            BIT(bit, target) => todo!(),
-            SET(bit, target) => todo!(),
-            RES(bit, target) => todo!(),
+            BIT(bit, target) => op_bits::bit(ctx, bit, target),
+            SET(bit, target) => op_bits::set(ctx, bit, target),
+            RES(bit, target) => op_bits::res(ctx, bit, target),
 
             // Bit shifts
             RL(target) => todo!(),
