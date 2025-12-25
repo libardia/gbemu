@@ -18,6 +18,7 @@ use crate::{
     },
 };
 
+mod op_arith8;
 mod op_load;
 
 impl Processor {
@@ -34,13 +35,13 @@ impl Processor {
             LDH_mem_A(dest) => op_load::high_mem_a(ctx, dest),
 
             // 8-bit arithmetic
-            ADD_r8(op) => todo!(),
-            ADC_r8(op) => todo!(),
-            SUB_r8(op) => todo!(),
-            SBC_r8(op) => todo!(),
-            INC_r8(target) => todo!(),
-            DEC_r8(target) => todo!(),
-            CP_r8(op) => todo!(),
+            ADD_r8(op) => op_arith8::add(ctx, op, false),
+            ADC_r8(op) => op_arith8::add(ctx, op, true),
+            SUB_r8(op) => op_arith8::sub(ctx, op, false),
+            SBC_r8(op) => op_arith8::sub(ctx, op, true),
+            INC_r8(target) => op_arith8::inc(ctx, target),
+            DEC_r8(target) => op_arith8::dec(ctx, target),
+            CP_r8(op) => op_arith8::cp(ctx, op),
 
             // 16-bit arithmetic
             ADD_r16(op) => todo!(),
