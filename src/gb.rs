@@ -33,7 +33,8 @@ number_type!(Dot: u16);
 
 impl GameBoy {
     pub fn new(rom_path: &str) -> Self {
-        Self {
+        // Make gb
+        let mut gb = Self {
             cart: load_cart(rom_path),
             cpu: Processor::default(),
             mem: Memory::default(),
@@ -42,7 +43,16 @@ impl GameBoy {
             input: Input::default(),
             aud: Audio::default(),
             serial: Serial::default(),
-        }
+        };
+
+        // Initialize
+        gb.reset();
+
+        gb
+    }
+
+    pub fn reset(&mut self) {
+        // TODO: init
     }
 
     pub fn run(&mut self) {

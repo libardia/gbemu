@@ -21,6 +21,7 @@ use crate::{
 mod op_arith16;
 mod op_arith8;
 mod op_bit;
+mod op_jump;
 mod op_load;
 mod op_logic;
 mod op_shift;
@@ -78,12 +79,12 @@ impl Processor {
             SWAP(target) => op_shift::swap(ctx, target),
 
             // Jumps and subroutines
-            CALL(cond, address) => todo!(),
-            JP(cond, address) => todo!(),
-            JR(cond, off) => todo!(),
-            RET(cond) => todo!(),
-            RETI => todo!(),
-            RST(address) => todo!(),
+            CALL(cond, address) => op_jump::call(ctx, cond, address.0),
+            JP(cond, address) => op_jump::jump(ctx, cond, address),
+            JR(cond, off) => op_jump::jump_rel(ctx, cond, off.0),
+            RET(cond) => op_jump::ret(ctx, cond, false),
+            RETI => op_jump::ret(ctx, Cond::ALWAYS, true),
+            RST(address) => op_jump::rst(ctx, address.0),
 
             // Carry flag
             CCF => todo!(),

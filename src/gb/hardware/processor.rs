@@ -1,4 +1,4 @@
-use crate::gb::GameBoy;
+use crate::gb::{GameBoy, hardware::memory::Memory};
 
 mod decode;
 mod execute;
@@ -123,9 +123,31 @@ pub struct Processor {
     ime: bool,
 }
 
-pub fn step(ctx: &mut GameBoy) -> u16 {
-    // TODO: CPU step
-    0
+impl Processor {
+    pub fn step(ctx: &mut GameBoy) -> u16 {
+        // TODO: CPU step
+        0
+    }
+
+    // Stack
+    fn push_stack(ctx: &mut GameBoy, value: u16) {
+        let high = (value >> 8) as u8;
+        let low = (value & 0xFF) as u8;
+
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
+        Memory::write(ctx, ctx.cpu.sp, high);
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
+        Memory::write(ctx, ctx.cpu.sp, low);
+    }
+
+    fn pop_stack(ctx: &mut GameBoy) -> u16 {
+        let low = Memory::read(ctx, ctx.cpu.sp) as u16;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
+        let high = Memory::read(ctx, ctx.cpu.sp) as u16;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
+
+        (high << 8) | low
+    }
 }
 
 #[cfg(test)]
