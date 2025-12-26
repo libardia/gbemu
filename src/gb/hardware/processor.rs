@@ -101,6 +101,14 @@ impl Into<u8> for Flags {
 /* #endregion */
 
 #[derive(Debug, Default)]
+enum EIState {
+    #[default]
+    Idle,
+    Waiting,
+    Now,
+}
+
+#[derive(Debug, Default)]
 enum ProcessorMode {
     #[default]
     Normal,
@@ -120,6 +128,7 @@ pub struct Processor {
     meta_inst: bool,
 
     halt_bug: bool,
+    ei_state: EIState,
     ime: bool,
 }
 

@@ -24,6 +24,7 @@ mod op_bit;
 mod op_jump;
 mod op_load;
 mod op_logic;
+mod op_misc;
 mod op_shift;
 
 impl Processor {
@@ -87,8 +88,8 @@ impl Processor {
             RST(address) => op_jump::rst(ctx, address.0),
 
             // Carry flag
-            CCF => todo!(),
-            SCF => todo!(),
+            CCF => op_misc::ccf(ctx),
+            SCF => op_misc::scf(ctx),
 
             // Stack manipulation
             ADD_SP_e8(off) => todo!(),
@@ -98,14 +99,14 @@ impl Processor {
             PUSH(target) => todo!(),
 
             // Interrupts
-            DI => todo!(),
-            EI => todo!(),
-            HALT => todo!(),
+            DI => op_misc::di(ctx),
+            EI => op_misc::ei(ctx),
+            HALT => op_misc::halt(ctx),
 
             // Misc
-            DAA => todo!(),
+            DAA => op_misc::daa(ctx),
             NOP => 1, // Do nothing for 1 MTime
-            STOP(_) => todo!(),
+            STOP(_) => op_misc::stop(ctx),
             PREFIX => error_panic!("Tried to execute PREFIX, which is only used as a marker."),
 
             // Meta
@@ -143,8 +144,8 @@ impl Processor {
             R8::L => ctx.cpu.r.l = value,
             R8::MHL => Memory::write(ctx, ctx.cpu.r.get_hl(), value),
             R8::A => ctx.cpu.r.a = value,
-            R8::IMM(value) => error_panic!(
-                "Tried to set a value into the constant {value:?}, which doesn't make sense.",
+            R8::IMM(inner_value) => error_panic!(
+                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
             ),
         }
     }
@@ -167,8 +168,8 @@ impl Processor {
             R16::HL => ctx.cpu.r.set_hl(value),
             R16::SP => ctx.cpu.sp = value,
             R16::AF => ctx.cpu.r.set_af(value),
-            R16::IMM(value) => error_panic!(
-                "Tried to set a value into the constant {value:?}, which doesn't make sense.",
+            R16::IMM(inner_value) => error_panic!(
+                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
             ),
         }
     }
