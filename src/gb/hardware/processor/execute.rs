@@ -26,6 +26,7 @@ mod op_load;
 mod op_logic;
 mod op_misc;
 mod op_shift;
+mod op_stack;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
@@ -92,11 +93,11 @@ impl Processor {
             SCF => op_misc::scf(ctx),
 
             // Stack manipulation
-            ADD_SP_e8(off) => todo!(),
-            LD_a16_SP(address) => todo!(),
-            LD_HL_SPe8(off) => todo!(),
-            POP(target) => todo!(),
-            PUSH(target) => todo!(),
+            ADD_SP_e8(off) => op_stack::offset_sp(ctx, off.0),
+            LD_a16_SP(address) => op_stack::save_sp(ctx, address.0),
+            LD_HL_SPe8(off) => op_stack::offset_sp_to_hl(ctx, off.0),
+            POP(target) => op_stack::pop(ctx, target),
+            PUSH(target) => op_stack::push(ctx, target),
 
             // Interrupts
             DI => op_misc::di(ctx),
@@ -156,7 +157,7 @@ impl Processor {
             R16::DE => ctx.cpu.r.get_de(),
             R16::HL => ctx.cpu.r.get_hl(),
             R16::SP => ctx.cpu.sp,
-            R16::AF => ctx.cpu.r.get_af(),
+            R16::AF => Processor::get_af(ctx),
             R16::IMM(word) => word.0,
         }
     }
@@ -167,7 +168,7 @@ impl Processor {
             R16::DE => ctx.cpu.r.set_de(value),
             R16::HL => ctx.cpu.r.set_hl(value),
             R16::SP => ctx.cpu.sp = value,
-            R16::AF => ctx.cpu.r.set_af(value),
+            R16::AF => Processor::set_af(ctx, value),
             R16::IMM(inner_value) => error_panic!(
                 "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
             ),

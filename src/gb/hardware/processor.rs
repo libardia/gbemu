@@ -21,7 +21,6 @@ struct Regs {
     h: u8,
     l: u8,
     a: u8,
-    f: u8,
 }
 
 macro_rules! getset_r16 {
@@ -43,7 +42,6 @@ impl Regs {
     getset_r16!(b + c);
     getset_r16!(d + e);
     getset_r16!(h + l);
-    getset_r16!(a + f);
 
     pub fn get_hli(&mut self) -> u16 {
         let before = self.get_hl();
@@ -55,14 +53,6 @@ impl Regs {
         let before = self.get_hl();
         self.set_hl(before.wrapping_sub(1));
         before
-    }
-
-    pub fn get_flags(&self) -> Flags {
-        self.f.into()
-    }
-
-    pub fn set_flags(&mut self, flags: Flags) {
-        self.f = flags.into();
     }
 }
 
@@ -136,6 +126,20 @@ impl Processor {
     pub fn step(ctx: &mut GameBoy) -> u16 {
         // TODO: CPU step
         0
+    }
+
+    // AF pseudo-register
+    fn get_af(ctx: &GameBoy) -> u16 {
+        let a = ctx.cpu.r.a;
+        let f: u8 = ctx.cpu.f.into();
+        (a as u16) << 8 | f as u16
+    }
+
+    fn set_af(ctx: &mut GameBoy, value: u16) {
+        let a = ((value & 0xFF00) >> 8) as u8;
+        let f = (value & 0xFF) as u8;
+        ctx.cpu.r.a = a;
+        ctx.cpu.f = f.into();
     }
 
     // Stack
