@@ -1,10 +1,6 @@
 use crate::gb::{
     GameBoy,
-    hardware::{
-        memory::Memory,
-        processor::{EIState, ProcessorMode},
-    },
-    registers::{IO_IE, IO_IF},
+    hardware::processor::{EIState, Processor, ProcessorMode},
 };
 
 /* #region Carry flag */
@@ -40,15 +36,12 @@ pub fn ei(ctx: &mut GameBoy) -> u16 {
 }
 
 pub fn halt(ctx: &mut GameBoy) -> u16 {
-    let int_pending = (Memory::read(ctx, IO_IE) & Memory::read(ctx, IO_IF)) != 0;
-
-    if !ctx.cpu.ime && int_pending {
+    if !ctx.cpu.ime && Processor::interrupt_pending(ctx) {
         // Halt bug is triggered!
         ctx.cpu.halt_bug = true;
-    } else {
-        // Enter halt mode
-        ctx.cpu.mode = ProcessorMode::Halt;
     }
+    // Enter halt mode
+    ctx.cpu.mode = ProcessorMode::Halt;
 
     1
 }

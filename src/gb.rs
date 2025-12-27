@@ -1,4 +1,5 @@
 use crate::{
+    error_panic,
     gb::hardware::{
         audio::Audio,
         cartridge::{Cartridge, load_cart},
@@ -11,6 +12,7 @@ use crate::{
     },
     number_type,
 };
+use getopts::Matches;
 
 mod hardware;
 mod macros;
@@ -26,16 +28,22 @@ pub struct GameBoy {
     input: Input,
     aud: Audio,
     serial: Serial,
+    opts: Matches,
 }
 
 number_type!(MTime: u16);
 number_type!(Dot: u16);
 
 impl GameBoy {
-    pub fn new(rom_path: &str) -> Self {
+    pub fn new(opts: Matches) -> Self {
+        // Make sure a ROM file is provided
+        if opts.free.len() < 1 {
+            error_panic!("No ROM file provided.");
+        }
+
         // Make gb
         let mut gb = Self {
-            cart: load_cart(rom_path),
+            cart: load_cart(&opts.free[0]),
             cpu: Processor::default(),
             mem: Memory::default(),
             gfx: Graphics::default(),
@@ -43,6 +51,7 @@ impl GameBoy {
             input: Input::default(),
             aud: Audio::default(),
             serial: Serial::default(),
+            opts,
         };
 
         // Initialize
@@ -57,5 +66,8 @@ impl GameBoy {
 
     pub fn run(&mut self) {
         //TODO: run
+        loop {
+            Processor::step(self);
+        }
     }
 }

@@ -17,8 +17,13 @@
                 ]
             },
             "env": {
-                "RUST_LOG": "debug",
+                "RUST_LOG": "trace",
             },
+            // "stdio": [
+            //     null,
+            //     "logs/debug.log", // stdout
+            //     "logs/debug.log", // stderr
+            // ],
         },
         {
             "name": "gbemu: tests",

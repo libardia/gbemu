@@ -29,16 +29,15 @@ fn main() {
     // Parse commandline arguments
     let args: Vec<String> = env::args().collect();
     debug!("Raw args: {args:?}");
-    let opts = Options::new();
+    let mut opts = Options::new();
+
+    // Define options
+    opts.optflag("m", "meta", "Enable meta-instructions.");
+
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(e) => error_panic!("{e}"),
     };
 
-    // Make sure a ROM file is provided
-    if matches.free.len() < 1 {
-        error_panic!("No ROM file provided.");
-    }
-
-    GameBoy::new(&matches.free[0]).run();
+    GameBoy::new(matches).run();
 }

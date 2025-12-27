@@ -1,8 +1,12 @@
-use crate::gb::{
-    GameBoy, MTime,
-    hardware::memory::Memory,
-    registers::{IO_IE, IO_IF, IO_JOYP},
+use crate::{
+    address_fmt,
+    gb::{
+        GameBoy, MTime,
+        hardware::memory::Memory,
+        registers::{IO_IE, IO_IF, IO_JOYP},
+    },
 };
+use log::trace;
 
 mod decode;
 mod execute;
@@ -99,7 +103,7 @@ enum EIState {
     #[default]
     Idle,
     Waiting,
-    Now,
+    Armed,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -132,8 +136,8 @@ impl Processor {
         // this is done BEFORE the CPU mode check)
         match ctx.cpu.ei_state {
             EIState::Idle => (), // Do nothing
-            EIState::Waiting => ctx.cpu.ei_state = EIState::Now,
-            EIState::Now => {
+            EIState::Waiting => ctx.cpu.ei_state = EIState::Armed,
+            EIState::Armed => {
                 ctx.cpu.ime = true;
                 ctx.cpu.ei_state = EIState::Idle;
             }
@@ -145,22 +149,27 @@ impl Processor {
                 // HALT mode ends when any interrupt is pending
                 if Processor::interrupt_pending(ctx) {
                     ctx.cpu.mode = ProcessorMode::Normal;
-                } else {
-                    return MTime(1);
                 }
             }
             ProcessorMode::Stop => {
                 // STOP mode ends when any button is pressed (one of the input bits is 0)
                 if (Memory::read(ctx, IO_JOYP) & 0xF) != 0xF {
                     ctx.cpu.mode = ProcessorMode::Normal;
-                } else {
-                    return MTime(1);
                 }
             }
         }
 
-        let inst = Processor::decode(ctx);
-        let time = Processor::execute(ctx, inst);
+        let time = match ctx.cpu.mode {
+            ProcessorMode::Normal => {
+                // TODO: handle interruptions here
+
+                trace!("PC at {}", address_fmt!(ctx.cpu.pc));
+                let inst = Processor::decode(ctx);
+                trace!("execute {inst:?}");
+                Processor::execute(ctx, inst)
+            }
+            _ => 1,
+        };
 
         MTime(time)
     }
