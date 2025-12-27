@@ -1,4 +1,8 @@
-use crate::gb::{GameBoy, hardware::memory::Memory};
+use crate::gb::{
+    GameBoy, MTime,
+    hardware::memory::Memory,
+    registers::{IO_IE, IO_IF, IO_JOYP},
+};
 
 mod decode;
 mod execute;
@@ -98,7 +102,7 @@ enum EIState {
     Now,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 enum ProcessorMode {
     #[default]
     Normal,
@@ -123,9 +127,41 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn step(ctx: &mut GameBoy) -> u16 {
-        // TODO: CPU step
-        0
+    pub fn step(ctx: &mut GameBoy) -> MTime {
+        match ctx.cpu.mode {
+            ProcessorMode::Normal => (), // Do nothing
+            ProcessorMode::Halt => {
+                // HALT mode ends when any interrupt is pending
+                if Processor::interrupt_pending(ctx) {
+                    ctx.cpu.mode = ProcessorMode::Normal;
+                } else {
+                    return MTime(1);
+                }
+            }
+            ProcessorMode::Stop => {
+                // STOP mode ends when any button is pressed (one of the input bits is 0)
+                if (Memory::read(ctx, IO_JOYP) & 0xF) != 0xF {
+                    ctx.cpu.mode = ProcessorMode::Normal;
+                } else {
+                    return MTime(1);
+                }
+            }
+        }
+
+        // Delayed effect of EI
+        match ctx.cpu.ei_state {
+            EIState::Idle => (), // Do nothing
+            EIState::Waiting => ctx.cpu.ei_state = EIState::Now,
+            EIState::Now => {
+                ctx.cpu.ime = true;
+                ctx.cpu.ei_state = EIState::Idle;
+            }
+        }
+
+        let inst = Processor::decode(ctx);
+        let time = Processor::execute(ctx, inst);
+
+        MTime(time)
     }
 
     // AF pseudo-register
@@ -160,6 +196,10 @@ impl Processor {
         ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
 
         (high << 8) | low
+    }
+
+    fn interrupt_pending(ctx: &GameBoy) -> bool {
+        (Memory::read(ctx, IO_IF) & Memory::read(ctx, IO_IE)) != 0
     }
 }
 
