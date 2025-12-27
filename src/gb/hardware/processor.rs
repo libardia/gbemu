@@ -128,6 +128,17 @@ pub struct Processor {
 
 impl Processor {
     pub fn step(ctx: &mut GameBoy) -> MTime {
+        // Delayed effect of EI (this should happen even in the case of [EI, HALT], which is why
+        // this is done BEFORE the CPU mode check)
+        match ctx.cpu.ei_state {
+            EIState::Idle => (), // Do nothing
+            EIState::Waiting => ctx.cpu.ei_state = EIState::Now,
+            EIState::Now => {
+                ctx.cpu.ime = true;
+                ctx.cpu.ei_state = EIState::Idle;
+            }
+        }
+
         match ctx.cpu.mode {
             ProcessorMode::Normal => (), // Do nothing
             ProcessorMode::Halt => {
@@ -145,16 +156,6 @@ impl Processor {
                 } else {
                     return MTime(1);
                 }
-            }
-        }
-
-        // Delayed effect of EI
-        match ctx.cpu.ei_state {
-            EIState::Idle => (), // Do nothing
-            EIState::Waiting => ctx.cpu.ei_state = EIState::Now,
-            EIState::Now => {
-                ctx.cpu.ime = true;
-                ctx.cpu.ei_state = EIState::Idle;
             }
         }
 
