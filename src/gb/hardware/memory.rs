@@ -1,8 +1,13 @@
-use crate::gb::{
-    GameBoy,
-    hardware::HardwareInterface,
-    regions::{CART_RAM, ECHO_RAM, HIGH_RAM, MappedMemoryRegion, OAM, ROM_SPACE, VRAM, WORK_RAM},
-    registers::{IO_AUDIO, IO_GRAPHICS, IO_IF, IO_JOYP, IO_SERIAL, IO_TIMER},
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::HardwareInterface,
+        regions::{
+            CART_RAM, ECHO_RAM, HIGH_RAM, MappedMemoryRegion, OAM, ROM_SPACE, VRAM, WORK_RAM,
+        },
+        registers::{IO_AUDIO, IO_GRAPHICS, IO_IE, IO_IF, IO_JOYP, IO_SERIAL, IO_TIMER},
+    },
+    get_bits_of, set_bits_of,
 };
 
 pub const OPEN_BUS_VALUE: u8 = 0xFF;
@@ -18,8 +23,9 @@ pub struct Memory {
     oam: MappedMemoryRegion,
     hram: MappedMemoryRegion,
 
-    // an IO register that acts like normal RAM
-    if_reg: u8,
+    // these regs are special
+    io_if: u8,
+    io_ie: u8,
 }
 
 impl Default for Memory {
@@ -29,8 +35,8 @@ impl Default for Memory {
             wram: MappedMemoryRegion::new(WORK_RAM),
             oam: MappedMemoryRegion::new(OAM),
             hram: MappedMemoryRegion::new(HIGH_RAM),
-            // TODO: IF register needs to be masked
-            if_reg: UNINIT_VALUE,
+            io_if: UNINIT_VALUE,
+            io_ie: UNINIT_VALUE,
         }
     }
 }
@@ -59,19 +65,16 @@ impl Memory {
                 #WORK_RAM  => ctx.mem.wram.get(address),
                 #ECHO_RAM  => ctx.mem.wram.get(address - ECHO_RAM_OFFSET),
                 #OAM       => ctx.mem.oam.get(address),
-
-                // Unusable ram here; $FEA0 - $FEFF
+                #HIGH_RAM  => ctx.mem.hram.get(address),
 
                 // IO registers
                 IO_JOYP      => ctx.input.read(address),
                 #IO_SERIAL   => ctx.serial.read(address),
                 #IO_TIMER    => ctx.timer.read(address),
-                IO_IF        => ctx.mem.if_reg,
+                IO_IF        => get_bits_of!(ctx.mem.io_if, 0x1F),
                 #IO_AUDIO    => ctx.aud.read(address),
                 #IO_GRAPHICS => ctx.gfx.read(address),
-
-                // High RAM
-                #HIGH_RAM  => ctx.mem.hram.get(address),
+                IO_IE        => get_bits_of!(ctx.mem.io_ie, 0x1F),
 
                 // Anything else is unreadable
                 _ => OPEN_BUS_VALUE,
@@ -88,19 +91,16 @@ impl Memory {
                 #WORK_RAM  => ctx.mem.wram.set(address, value),
                 #ECHO_RAM  => ctx.mem.wram.set(address - ECHO_RAM_OFFSET, value),
                 #OAM       => ctx.mem.oam.set(address, value),
-
-                // Unusable ram here; $FEA0 - $FEFF
+                #HIGH_RAM  => ctx.mem.hram.set(address, value),
 
                 // IO registers
                 IO_JOYP      => ctx.input.write(address, value),
                 #IO_SERIAL   => ctx.serial.write(address, value),
                 #IO_TIMER    => ctx.timer.write(address, value),
-                IO_IF        => ctx.mem.if_reg = value,
+                IO_IF        => ctx.mem.io_if = set_bits_of!(ctx.mem.io_if, value, 0x1F),
                 #IO_AUDIO    => ctx.aud.write(address, value),
                 #IO_GRAPHICS => ctx.gfx.write(address, value),
-
-                // High RAM
-                #HIGH_RAM  => ctx.mem.hram.set(address, value),
+                IO_IE        => ctx.mem.io_ie = set_bits_of!(ctx.mem.io_ie, value, 0x1F),
 
                 // Anything else is unwritable
                 _ => (),
