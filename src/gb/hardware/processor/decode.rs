@@ -1,20 +1,15 @@
-use crate::{
-    address_fmt, cpu_log,
-    gb::{
-        GameBoy,
-        hardware::{
-            memory::Memory,
-            processor::{
-                Processor,
-                instructions::{
-                    Byte,
-                    Instruction::{self, *},
-                    Mem,
-                    MetaInstruction::*,
-                    Offset, R8, R16, Word,
-                },
-                optable::{OP_TABLE, PREFIX_TABLE},
+use crate::gb::{
+    GameBoy,
+    hardware::{
+        memory::Memory,
+        processor::{
+            Processor,
+            instructions::{
+                Byte,
+                Instruction::{self, *},
+                Mem, Offset, R8, R16, Word,
             },
+            optable::{OP_TABLE, PREFIX_TABLE},
         },
     },
 };
@@ -24,29 +19,6 @@ impl Processor {
         let first_byte = Self::next_byte(ctx);
 
         let mut inst = OP_TABLE[first_byte.0 as usize];
-
-        // Check for validity
-        match inst {
-            INVALID(meta_inst) => {
-                if meta_inst == NONE {
-                    cpu_log!(
-                        error_panic,
-                        ctx,
-                        "Byte {first_byte:?} at address {} is an invalid instruction.",
-                        address_fmt!(ctx.cpu.this_inst_pc)
-                    )
-                } else if !ctx.cpu.meta_inst {
-                    cpu_log!(
-                        error_panic,
-                        ctx,
-                        "Byte {first_byte:?} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
-                        address_fmt!(ctx.cpu.this_inst_pc)
-                    )
-                }
-            }
-            _ => (),
-        }
-
         if inst == PREFIX {
             inst = PREFIX_TABLE[Self::next_byte(ctx).0 as usize];
         }
