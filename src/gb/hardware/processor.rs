@@ -1,10 +1,10 @@
 use crate::{
+    cpu_log,
     gb::{
         GameBoy, MTime,
         hardware::{memory::Memory, processor::instructions::Instruction},
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
-    get_bits_of,
 };
 
 mod decode;
@@ -148,6 +148,7 @@ impl Processor {
             EIState::Idle => (), // Do nothing
             EIState::Waiting => ctx.cpu.ei_state = EIState::Armed,
             EIState::Armed => {
+                cpu_log!(debug, ctx, "Interrupts enabled");
                 ctx.cpu.ime = true;
                 ctx.cpu.ei_state = EIState::Idle;
             }
@@ -157,7 +158,7 @@ impl Processor {
             ProcessorMode::Normal => (), // Do nothing
             ProcessorMode::Halt => {
                 // HALT mode ends when any interrupt is pending
-                if Processor::interrupt_pending(ctx) {
+                if Processor::pending_interrupts(ctx) != 0 {
                     ctx.cpu.mode = ProcessorMode::Normal;
                 }
             }
@@ -171,15 +172,19 @@ impl Processor {
 
         let time = match ctx.cpu.mode {
             ProcessorMode::Normal => {
-                Processor::maybe_interrupt(ctx);
+                if Processor::maybe_interrupt(ctx) {
+                    // An interrupt fired; the handoff process takes 5 m-cycles
+                    5
+                } else {
+                    let inst = Processor::decode(ctx);
 
-                let inst = Processor::decode(ctx);
+                    // Record the current instruction, for logging
+                    ctx.cpu.this_inst = inst;
 
-                // Record the current instruction, for logging
-                ctx.cpu.this_inst = inst;
-
-                Processor::execute(ctx, inst)
+                    Processor::execute(ctx, inst)
+                }
             }
+            // STOP or HALT mode just acts as if there was a NOP
             _ => 1,
         };
 
@@ -220,8 +225,8 @@ impl Processor {
         (high << 8) | low
     }
 
-    fn interrupt_pending(ctx: &GameBoy) -> bool {
-        (Memory::read(ctx, IO_IF) & Memory::read(ctx, IO_IE)) != 0
+    fn pending_interrupts(ctx: &GameBoy) -> u8 {
+        Memory::read(ctx, IO_IF) & Memory::read(ctx, IO_IE)
     }
 }
 

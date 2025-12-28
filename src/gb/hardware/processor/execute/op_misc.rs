@@ -1,6 +1,9 @@
-use crate::gb::{
-    GameBoy,
-    hardware::processor::{EIState, Processor, ProcessorMode},
+use crate::{
+    cpu_log,
+    gb::{
+        GameBoy,
+        hardware::processor::{EIState, Processor, ProcessorMode},
+    },
 };
 
 /* #region Carry flag */
@@ -23,6 +26,7 @@ pub fn scf(ctx: &mut GameBoy) -> u16 {
 
 /* #region Interrupts */
 pub fn di(ctx: &mut GameBoy) -> u16 {
+    cpu_log!(debug, ctx, "Interrupts disabled");
     ctx.cpu.ime = false;
 
     1
@@ -30,17 +34,23 @@ pub fn di(ctx: &mut GameBoy) -> u16 {
 
 pub fn ei(ctx: &mut GameBoy) -> u16 {
     // The interrupt flag isn't set until AFTER THE NEXT INSTRUCTION.
+    cpu_log!(
+        debug,
+        ctx,
+        "Interrupts will be enabled after next instruction"
+    );
     ctx.cpu.ei_state = EIState::Waiting;
 
     1
 }
 
 pub fn halt(ctx: &mut GameBoy) -> u16 {
-    if !ctx.cpu.ime && Processor::interrupt_pending(ctx) {
+    if !ctx.cpu.ime && (Processor::pending_interrupts(ctx) != 0) {
         // Halt bug is triggered!
         ctx.cpu.halt_bug = true;
     }
     // Enter halt mode
+    cpu_log!(debug, ctx, "Entering HALT mode");
     ctx.cpu.mode = ProcessorMode::Halt;
 
     1
