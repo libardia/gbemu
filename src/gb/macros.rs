@@ -21,6 +21,20 @@ macro_rules! byte_fmt {
 }
 
 #[macro_export]
+macro_rules! get_bits_of {
+    ($value:expr, $mask:expr) => {
+        (($value) & ($mask))
+    };
+}
+
+#[macro_export]
+macro_rules! set_bits_of {
+    ($target:expr, $value:expr, $mask:expr) => {
+        ((($target) & !($mask)) | (($value) & ($mask)))
+    };
+}
+
+#[macro_export]
 macro_rules! region_guard {
     ($address:tt in $region:ident) => {
         if !$region.contains($address) {
@@ -75,10 +89,22 @@ macro_rules! cpu_log {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     number_type!(PrivTestNumberType: u8);
 
+    #[test]
     fn number_type_cast_compiles() {
         let n: PrivTestNumberType = 0.into();
         let b: u8 = n.into();
+    }
+
+    #[test]
+    fn test_getset_bits() {
+        assert_eq!(get_bits_of!(0b_1110_1011, 0b_0111_0101), 0b_0110_0001);
+        assert_eq!(
+            set_bits_of!(0b_1110_1011, 0b_0000_0100, 0b_0000_1110),
+            0b_1110_0101
+        );
     }
 }

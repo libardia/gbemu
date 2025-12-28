@@ -1,7 +1,10 @@
-use crate::gb::{
-    GameBoy, MTime,
-    hardware::{memory::Memory, processor::instructions::Instruction},
-    registers::{IO_IE, IO_IF, IO_JOYP},
+use crate::{
+    gb::{
+        GameBoy, MTime,
+        hardware::{memory::Memory, processor::instructions::Instruction},
+        registers::{IO_IE, IO_IF, IO_JOYP},
+    },
+    get_bits_of,
 };
 
 mod decode;
@@ -168,7 +171,6 @@ impl Processor {
 
         let time = match ctx.cpu.mode {
             ProcessorMode::Normal => {
-                // TODO: handle interruptions here
                 Processor::maybe_interrupt(ctx);
 
                 let inst = Processor::decode(ctx);

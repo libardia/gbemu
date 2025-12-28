@@ -30,7 +30,7 @@ mod op_stack;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
-        cpu_log!(trace, ctx, "Execute instruction");
+        cpu_log!(trace, ctx, "Execute");
         match inst {
             // Load
             LD_r8_r8(dest, src) => op_load::r8_r8(ctx, dest, src),
