@@ -1,16 +1,13 @@
-use crate::{
-    address_fmt,
-    gb::{
-        GameBoy, MTime,
-        hardware::memory::Memory,
-        registers::{IO_IE, IO_IF, IO_JOYP},
-    },
+use crate::gb::{
+    GameBoy, MTime,
+    hardware::{memory::Memory, processor::instructions::Instruction},
+    registers::{IO_IE, IO_IF, IO_JOYP},
 };
-use log::trace;
 
 mod decode;
 mod execute;
 mod instructions;
+mod interrupts;
 mod optable;
 
 const Z_FLAG_MASK: u8 = 0x80;
@@ -116,22 +113,32 @@ enum ProcessorMode {
 
 #[derive(Default, Debug)]
 pub struct Processor {
+    // Regs & flags
     r: Regs,
     f: Flags,
-
     pc: u16,
     sp: u16,
 
+    // Internal
     mode: ProcessorMode,
-    meta_inst: bool,
+    ime: bool,
 
+    // Helper
+    meta_inst: bool,
     halt_bug: bool,
     ei_state: EIState,
-    ime: bool,
+
+    // Logging
+    this_inst: Instruction,
+    this_inst_pc: u16,
 }
 
 impl Processor {
     pub fn step(ctx: &mut GameBoy) -> MTime {
+        // Record the current PC and reset the current instruction, for logging
+        ctx.cpu.this_inst_pc = ctx.cpu.pc;
+        ctx.cpu.this_inst = Instruction::UNKNOWN;
+
         // Delayed effect of EI (this should happen even in the case of [EI, HALT], which is why
         // this is done BEFORE the CPU mode check)
         match ctx.cpu.ei_state {
@@ -162,10 +169,13 @@ impl Processor {
         let time = match ctx.cpu.mode {
             ProcessorMode::Normal => {
                 // TODO: handle interruptions here
+                Processor::maybe_interrupt(ctx);
 
-                trace!("PC at {}", address_fmt!(ctx.cpu.pc));
                 let inst = Processor::decode(ctx);
-                trace!("execute {inst:?}");
+
+                // Record the current instruction, for logging
+                ctx.cpu.this_inst = inst;
+
                 Processor::execute(ctx, inst)
             }
             _ => 1,

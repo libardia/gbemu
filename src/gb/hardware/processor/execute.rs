@@ -1,5 +1,5 @@
 use crate::{
-    error_panic,
+    cpu_log,
     gb::{
         GameBoy,
         hardware::{
@@ -30,6 +30,7 @@ mod op_stack;
 
 impl Processor {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) -> u16 {
+        cpu_log!(trace, ctx, "Execute instruction");
         match inst {
             // Load
             LD_r8_r8(dest, src) => op_load::r8_r8(ctx, dest, src),
@@ -108,15 +109,24 @@ impl Processor {
             DAA => op_misc::daa(ctx),
             NOP => 1, // Do nothing for 1 MTime
             STOP(_) => op_misc::stop(ctx),
-            PREFIX => error_panic!("Tried to execute PREFIX, which is only used as a marker."),
+            PREFIX => cpu_log!(
+                error_panic,
+                ctx,
+                "Tried to execute PREFIX, which is only used as a marker."
+            ),
 
             // Meta
+            UNKNOWN => cpu_log!(
+                error_panic,
+                ctx,
+                "Tried to execute the UNKNOWN placeholder instruction."
+            ),
             INVALID(meta) => match meta {
                 SHOW_CPU if ctx.cpu.meta_inst => todo!(),
                 TERMINATE if ctx.cpu.meta_inst => todo!(),
                 DUMP if ctx.cpu.meta_inst => todo!(),
 
-                _ => error_panic!("Tried to execute an invalid instruction."),
+                _ => cpu_log!(error_panic, ctx, "Tried to execute an invalid instruction."),
             },
         }
     }
@@ -145,7 +155,9 @@ impl Processor {
             R8::L => ctx.cpu.r.l = value,
             R8::MHL => Memory::write(ctx, ctx.cpu.r.get_hl(), value),
             R8::A => ctx.cpu.r.a = value,
-            R8::IMM(inner_value) => error_panic!(
+            R8::IMM(inner_value) => cpu_log!(
+                error_panic,
+                ctx,
                 "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
             ),
         }
@@ -169,7 +181,9 @@ impl Processor {
             R16::HL => ctx.cpu.r.set_hl(value),
             R16::SP => ctx.cpu.sp = value,
             R16::AF => Processor::set_af(ctx, value),
-            R16::IMM(inner_value) => error_panic!(
+            R16::IMM(inner_value) => cpu_log!(
+                error_panic,
+                ctx,
                 "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
             ),
         }

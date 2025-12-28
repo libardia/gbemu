@@ -1,5 +1,5 @@
 use crate::{
-    address_fmt, error_panic,
+    address_fmt, cpu_log,
     gb::{
         GameBoy,
         hardware::{
@@ -21,7 +21,6 @@ use crate::{
 
 impl Processor {
     pub fn decode(ctx: &mut GameBoy) -> Instruction {
-        let starting_pc = ctx.cpu.pc;
         let first_byte = Self::next_byte(ctx);
 
         let mut inst = OP_TABLE[first_byte.0 as usize];
@@ -30,14 +29,18 @@ impl Processor {
         match inst {
             INVALID(meta_inst) => {
                 if meta_inst == NONE {
-                    error_panic!(
+                    cpu_log!(
+                        error_panic,
+                        ctx,
                         "Byte {first_byte:?} at address {} is an invalid instruction.",
-                        address_fmt!(starting_pc)
+                        address_fmt!(ctx.cpu.this_inst_pc)
                     )
                 } else if !ctx.cpu.meta_inst {
-                    error_panic!(
+                    cpu_log!(
+                        error_panic,
+                        ctx,
                         "Byte {first_byte:?} at address {} is an invalid instruction (but would be {meta_inst:?} if meta instructions were enabled).",
-                        address_fmt!(starting_pc)
+                        address_fmt!(ctx.cpu.this_inst_pc)
                     )
                 }
             }

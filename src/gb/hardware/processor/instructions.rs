@@ -2,7 +2,7 @@ use crate::{address_fmt, byte_fmt, number_type};
 use std::fmt::Debug;
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // Load
     LD_r8_r8(R8, R8),
@@ -85,6 +85,9 @@ pub enum Instruction {
     // Meta
     PREFIX,
     INVALID(MetaInstruction),
+
+    #[default]
+    UNKNOWN,
 }
 
 #[allow(non_camel_case_types)]

@@ -14,10 +14,12 @@
                     "--bin=gbemu",
                     "--",
                     "res/dummy_cartromonly.bin",
+                    // "D:/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb",
                 ]
             },
             "env": {
-                "RUST_LOG": "trace",
+                "RUST_LOG": "debug",
+                // "RUST_LOG": "trace",
             },
             // "stdio": [
             //     null,

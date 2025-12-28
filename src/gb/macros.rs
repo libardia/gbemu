@@ -63,6 +63,16 @@ macro_rules! unwrap_or_log {
     };
 }
 
+#[macro_export]
+macro_rules! cpu_log {
+    (error_panic, $ctx:expr, $($arg:tt)*) => {
+        crate::error_panic!("[ {} > {:?} ] {}", crate::address_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
+    };
+    ($level:ident, $ctx:expr, $($arg:tt)*) => {
+        log::$level!("[ {} > {:?} ] {}", crate::address_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
+    };
+}
+
 #[cfg(test)]
 mod tests {
     number_type!(PrivTestNumberType: u8);
