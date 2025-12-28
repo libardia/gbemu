@@ -23,7 +23,7 @@ macro_rules! byte_fmt {
 #[macro_export]
 macro_rules! get_bits_of {
     ($value:expr, $mask:expr) => {
-        (($value) & ($mask))
+        ((($value) & ($mask)) | !($mask))
     };
 }
 
@@ -101,10 +101,18 @@ mod tests {
 
     #[test]
     fn test_getset_bits() {
-        assert_eq!(get_bits_of!(0b_1110_1011, 0b_0111_0101), 0b_0110_0001);
-        assert_eq!(
-            set_bits_of!(0b_1110_1011, 0b_0000_0100, 0b_0000_1110),
-            0b_1110_0101
-        );
+        // Get
+        let n1 = 0b_1101_0011_u8; // Orig
+        let m1 = 0b_1110_0110_u8; // Mask
+        let r1 = 0b_1101_1011_u8; // Result
+
+        // Set
+        let n2 = 0b_1111_0000_u8; // Orig
+        let o1 = 0b_0010_0100_u8; // Overlay
+        let m2 = 0b_0111_0010_u8; // Mask
+        let r2 = 0b_1010_0000_u8; // Result
+
+        assert_eq!(get_bits_of!(n1, m1), r1);
+        assert_eq!(set_bits_of!(n2, o1, m2), r2);
     }
 }
