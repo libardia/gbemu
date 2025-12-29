@@ -10,6 +10,17 @@ macro_rules! wrapping_add_warn {
 }
 
 #[macro_export]
+macro_rules! wrapping_add_signed_warn {
+    ($orig:expr, $add:expr, $($arg:tt)*) => {{
+        let (result, overflow) = $orig.overflowing_add_signed($add);
+        if overflow {
+            log::warn!($($arg)*);
+        }
+        result
+    }};
+}
+
+#[macro_export]
 macro_rules! wrapping_sub_warn {
     ($orig:expr, $sub:expr, $($arg:tt)*) => {{
         let (result, overflow) = $orig.overflowing_sub($sub);

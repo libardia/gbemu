@@ -6,7 +6,7 @@ use crate::{
             processor::{Flags, Processor, instructions::R16},
         },
     },
-    wrapping_add_warn,
+    wrapping_add_signed_warn, wrapping_add_warn,
 };
 
 pub fn offset_sp(ctx: &mut GameBoy, off: i8) -> u16 {
@@ -19,7 +19,8 @@ pub fn offset_sp(ctx: &mut GameBoy, off: i8) -> u16 {
     weird_flags(ctx, off);
 
     // Okay, now do the real thing lol
-    ctx.cpu.sp = ctx.cpu.sp.wrapping_add_signed(off as i16);
+    ctx.cpu.sp =
+        wrapping_add_signed_warn!(ctx.cpu.sp, off as i16, "Relative change caused SP to wrap!");
     4
 }
 
@@ -29,7 +30,11 @@ pub fn offset_sp_to_hl(ctx: &mut GameBoy, off: i8) -> u16 {
     weird_flags(ctx, off);
 
     // Now do the real thing
-    ctx.cpu.r.set_hl(ctx.cpu.sp.wrapping_add_signed(off as i16));
+    ctx.cpu.r.set_hl(wrapping_add_signed_warn!(
+        ctx.cpu.sp,
+        off as i16,
+        "Value of SP wrapped before set to HL"
+    ));
     3
 }
 

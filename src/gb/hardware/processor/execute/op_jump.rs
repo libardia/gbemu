@@ -1,9 +1,12 @@
-use crate::gb::{
-    GameBoy,
-    hardware::processor::{
-        Processor,
-        instructions::{Cond, Mem},
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::processor::{
+            Processor,
+            instructions::{Cond, Mem},
+        },
     },
+    wrapping_add_signed_warn,
 };
 
 pub fn jump(ctx: &mut GameBoy, cond: Cond, address: Mem) -> u16 {
@@ -23,7 +26,8 @@ pub fn jump(ctx: &mut GameBoy, cond: Cond, address: Mem) -> u16 {
 
 pub fn jump_rel(ctx: &mut GameBoy, cond: Cond, off: i8) -> u16 {
     if Processor::test_condition(ctx, cond) {
-        ctx.cpu.pc = ctx.cpu.pc.wrapping_add_signed(off as i16);
+        ctx.cpu.pc =
+            wrapping_add_signed_warn!(ctx.cpu.pc, off as i16, "Relative jump caused PC to wrap!");
         // 3 cycles if jump
         3
     } else {
