@@ -112,15 +112,10 @@ impl Processor {
             PREFIX => cpu_log!(
                 error_panic,
                 ctx,
-                "Tried to execute PREFIX, which is only used as a marker."
+                "Tried to execute {inst:?}, which is only used as a marker."
             ),
 
             // Meta
-            UNKNOWN => cpu_log!(
-                error_panic,
-                ctx,
-                "Tried to execute the UNKNOWN placeholder instruction."
-            ),
             INVALID(meta) => match meta {
                 SHOW_CPU if ctx.cpu.meta_inst => todo!(),
                 TERMINATE if ctx.cpu.meta_inst => todo!(),
@@ -128,6 +123,11 @@ impl Processor {
 
                 _ => cpu_log!(error_panic, ctx, "Tried to execute an invalid instruction."),
             },
+            UNKNOWN => cpu_log!(
+                error_panic,
+                ctx,
+                "Tried to execute the \"{inst:?}\" placeholder instruction."
+            ),
         }
     }
 

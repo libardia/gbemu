@@ -45,7 +45,7 @@ impl Processor {
                     Processor::push_stack(ctx, ctx.cpu.pc);
                     ctx.cpu.pc = handler_address;
 
-                    // Return early: an interrupt was fired
+                    // Break the loop and return early: an interrupt was fired
                     return true;
                 }
             }

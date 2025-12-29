@@ -1,4 +1,4 @@
-use crate::{word_fmt, byte_fmt, number_type};
+use crate::{byte_fmt, number_type, word_fmt};
 use std::fmt::Debug;
 
 #[allow(non_camel_case_types)]
