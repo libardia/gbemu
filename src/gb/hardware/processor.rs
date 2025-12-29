@@ -5,6 +5,7 @@ use crate::{
         hardware::{memory::Memory, processor::instructions::Instruction},
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
+    word_fmt, wrapping_add_warn, wrapping_sub_warn,
 };
 
 mod decode;
@@ -53,13 +54,13 @@ impl Regs {
 
     pub fn get_hli(&mut self) -> u16 {
         let before = self.get_hl();
-        self.set_hl(before.wrapping_add(1));
+        self.set_hl(wrapping_add_warn!(before, 1, "HLI caused HL to overflow!"));
         before
     }
 
     pub fn get_hld(&mut self) -> u16 {
         let before = self.get_hl();
-        self.set_hl(before.wrapping_sub(1));
+        self.set_hl(wrapping_sub_warn!(before, 1, "HLD caused HL to underflow!"));
         before
     }
 }
@@ -207,20 +208,35 @@ impl Processor {
 
     // Stack
     fn push_stack(ctx: &mut GameBoy, value: u16) {
+        cpu_log!(
+            trace,
+            ctx,
+            "Push {} to stack (SP = {})",
+            word_fmt!(value),
+            word_fmt!(ctx.cpu.sp)
+        );
+
         let high = (value >> 8) as u8;
         let low = (value & 0xFF) as u8;
 
-        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
+        ctx.cpu.sp = wrapping_sub_warn!(ctx.cpu.sp, 1, "SP underflow!");
         Memory::write(ctx, ctx.cpu.sp, high);
-        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
+        ctx.cpu.sp = wrapping_sub_warn!(ctx.cpu.sp, 1, "SP underflow!");
         Memory::write(ctx, ctx.cpu.sp, low);
     }
 
     fn pop_stack(ctx: &mut GameBoy) -> u16 {
+        cpu_log!(
+            trace,
+            ctx,
+            "Pop from stack (SP = {})",
+            word_fmt!(ctx.cpu.sp)
+        );
+
         let low = Memory::read(ctx, ctx.cpu.sp) as u16;
-        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
+        ctx.cpu.sp = wrapping_add_warn!(ctx.cpu.sp, 1, "SP overflow!");
         let high = Memory::read(ctx, ctx.cpu.sp) as u16;
-        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
+        ctx.cpu.sp = wrapping_add_warn!(ctx.cpu.sp, 1, "SP overflow!");
 
         (high << 8) | low
     }

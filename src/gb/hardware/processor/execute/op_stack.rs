@@ -1,9 +1,12 @@
-use crate::gb::{
-    GameBoy,
-    hardware::{
-        memory::Memory,
-        processor::{Flags, Processor, instructions::R16},
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::{
+            memory::Memory,
+            processor::{Flags, Processor, instructions::R16},
+        },
     },
+    wrapping_add_warn,
 };
 
 pub fn offset_sp(ctx: &mut GameBoy, off: i8) -> u16 {
@@ -32,7 +35,15 @@ pub fn offset_sp_to_hl(ctx: &mut GameBoy, off: i8) -> u16 {
 
 pub fn save_sp(ctx: &mut GameBoy, address: u16) -> u16 {
     Memory::write(ctx, address, (ctx.cpu.sp & 0xFF) as u8);
-    Memory::write(ctx, address.wrapping_add(1), (ctx.cpu.sp >> 8) as u8);
+    Memory::write(
+        ctx,
+        wrapping_add_warn!(
+            address,
+            1,
+            "Writing second byte of SP caused memory address overflow"
+        ),
+        (ctx.cpu.sp >> 8) as u8,
+    );
 
     // Always takes 5 cycles
     5

@@ -1,6 +1,9 @@
-use crate::gb::{
-    GameBoy,
-    hardware::processor::{Flags, Processor, instructions::R8},
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::processor::{Flags, Processor, instructions::R8},
+    },
+    wrapping_add_warn, wrapping_sub_warn,
 };
 
 pub fn add(ctx: &mut GameBoy, op: R8, with_carry: bool) -> u16 {
@@ -46,7 +49,7 @@ pub fn cp(ctx: &mut GameBoy, op: R8) -> u16 {
 
 pub fn inc(ctx: &mut GameBoy, target: R8) -> u16 {
     let before = Processor::get_r8(ctx, target);
-    let after = before.wrapping_add(1);
+    let after = wrapping_add_warn!(before, 1, "Increment caused r8 {target:?} to overflow");
     Processor::set_r8(ctx, target, after);
 
     ctx.cpu.f.z = after == 0;
@@ -61,7 +64,7 @@ pub fn inc(ctx: &mut GameBoy, target: R8) -> u16 {
 
 pub fn dec(ctx: &mut GameBoy, target: R8) -> u16 {
     let before = Processor::get_r8(ctx, target);
-    let after = before.wrapping_sub(1);
+    let after = wrapping_sub_warn!(before, 1, "Decrement caused r8 {target:?} to underflow");
     Processor::set_r8(ctx, target, after);
 
     ctx.cpu.f.z = after == 0;

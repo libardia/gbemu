@@ -158,7 +158,7 @@ impl Processor {
             R8::IMM(inner_value) => cpu_log!(
                 error_panic,
                 ctx,
-                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
+                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense."
             ),
         }
     }
@@ -184,7 +184,7 @@ impl Processor {
             R16::IMM(inner_value) => cpu_log!(
                 error_panic,
                 ctx,
-                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense.",
+                "Tried to set a value into the constant {inner_value:?}, which doesn't make sense."
             ),
         }
     }

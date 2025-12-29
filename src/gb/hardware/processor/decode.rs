@@ -1,17 +1,20 @@
-use crate::gb::{
-    GameBoy,
-    hardware::{
-        memory::Memory,
-        processor::{
-            Processor,
-            instructions::{
-                Byte,
-                Instruction::{self, *},
-                Mem, Offset, R8, R16, Word,
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::{
+            memory::Memory,
+            processor::{
+                Processor,
+                instructions::{
+                    Byte,
+                    Instruction::{self, *},
+                    Mem, Offset, R8, R16, Word,
+                },
+                optable::{OP_TABLE, PREFIX_TABLE},
             },
-            optable::{OP_TABLE, PREFIX_TABLE},
         },
     },
+    wrapping_add_warn,
 };
 
 impl Processor {
@@ -69,7 +72,7 @@ impl Processor {
             // Don't increment PC, whoops!
             ctx.cpu.halt_bug = false
         } else {
-            ctx.cpu.pc = ctx.cpu.pc.wrapping_add(1);
+            ctx.cpu.pc = wrapping_add_warn!(ctx.cpu.pc, 1, "PC overflow!");
         }
         byte
     }

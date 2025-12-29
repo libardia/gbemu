@@ -106,4 +106,12 @@ impl Memory {
                 _ => (),
         }
     }
+
+    pub fn write_masked(ctx: &mut GameBoy, address: u16, value: u8, mask: u8) {
+        Memory::write(
+            ctx,
+            address,
+            set_bits_of!(Memory::read(ctx, address), value, mask),
+        );
+    }
 }

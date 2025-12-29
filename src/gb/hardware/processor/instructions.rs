@@ -1,4 +1,4 @@
-use crate::{address_fmt, byte_fmt, number_type};
+use crate::{word_fmt, byte_fmt, number_type};
 use std::fmt::Debug;
 
 #[allow(non_camel_case_types)]
@@ -159,7 +159,7 @@ impl Debug for Byte {
 number_type!(pub Word: u16);
 impl Debug for Word {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&address_fmt!(&self.0))
+        f.write_str(&word_fmt!(&self.0))
     }
 }
 

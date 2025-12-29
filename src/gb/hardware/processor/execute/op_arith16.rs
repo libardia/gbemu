@@ -1,6 +1,9 @@
-use crate::gb::{
-    GameBoy,
-    hardware::processor::{Processor, instructions::R16},
+use crate::{
+    gb::{
+        GameBoy,
+        hardware::processor::{Processor, instructions::R16},
+    },
+    wrapping_add_warn, wrapping_sub_warn,
 };
 
 pub fn add(ctx: &mut GameBoy, op: R16) -> u16 {
@@ -19,7 +22,7 @@ pub fn add(ctx: &mut GameBoy, op: R16) -> u16 {
 
 pub fn inc(ctx: &mut GameBoy, target: R16) -> u16 {
     let before = Processor::get_r16(ctx, target);
-    let after = before.wrapping_add(1);
+    let after = wrapping_add_warn!(before, 1, "Increment caused r16 {target:?} to overflow");
     Processor::set_r16(ctx, target, after);
 
     // Always 2 cycles
@@ -28,7 +31,7 @@ pub fn inc(ctx: &mut GameBoy, target: R16) -> u16 {
 
 pub fn dec(ctx: &mut GameBoy, target: R16) -> u16 {
     let before = Processor::get_r16(ctx, target);
-    let after = before.wrapping_sub(1);
+    let after = wrapping_sub_warn!(before, 1, "Decrement caused r16 {target:?} to underflow");
     Processor::set_r16(ctx, target, after);
 
     // Always 2 cycles

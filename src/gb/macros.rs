@@ -1,4 +1,26 @@
 #[macro_export]
+macro_rules! wrapping_add_warn {
+    ($orig:expr, $add:expr, $($arg:tt)*) => {{
+        let (result, overflow) = $orig.overflowing_add($add);
+        if overflow {
+            log::warn!($($arg)*);
+        }
+        result
+    }};
+}
+
+#[macro_export]
+macro_rules! wrapping_sub_warn {
+    ($orig:expr, $sub:expr, $($arg:tt)*) => {{
+        let (result, overflow) = $orig.overflowing_sub($sub);
+        if overflow {
+            log::warn!($($arg)*);
+        }
+        result
+    }};
+}
+
+#[macro_export]
 macro_rules! error_panic {
     ($($arg:tt)*) => {{
         log::error!($($arg)*);
@@ -7,7 +29,7 @@ macro_rules! error_panic {
 }
 
 #[macro_export]
-macro_rules! address_fmt {
+macro_rules! word_fmt {
     ($address:expr) => {
         format!("${:0>4X}", $address)
     };
@@ -40,9 +62,9 @@ macro_rules! region_guard {
         if !$region.contains($address) {
             crate::error_panic!(
                 "Region gaurd failed! Address should be {}-{} but was {}.",
-                crate::address_fmt!($region.begin),
-                crate::address_fmt!($region.end),
-                crate::address_fmt!($address)
+                crate::word_fmt!($region.begin),
+                crate::word_fmt!($region.end),
+                crate::word_fmt!($address)
             );
         }
     };
@@ -80,10 +102,10 @@ macro_rules! unwrap_or_log {
 #[macro_export]
 macro_rules! cpu_log {
     (error_panic, $ctx:expr, $($arg:tt)*) => {
-        crate::error_panic!("[ {} > {:?} ] {}", crate::address_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
+        crate::error_panic!("[ {} > {:?} ] {}", crate::word_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
     };
     ($level:ident, $ctx:expr, $($arg:tt)*) => {
-        log::$level!("[ {} > {:?} ] {}", crate::address_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
+        log::$level!("[ {} > {:?} ] {}", crate::word_fmt!($ctx.cpu.this_inst_pc), $ctx.cpu.this_inst, format!($($arg)*))
     };
 }
 

@@ -1,6 +1,10 @@
 use crate::{
     cpu_log,
-    gb::{GameBoy, hardware::processor::Processor},
+    gb::{
+        GameBoy,
+        hardware::{memory::Memory, processor::Processor},
+        registers::IO_IF,
+    },
 };
 
 const VBLANK: u8 = 0x1;
@@ -25,17 +29,25 @@ const INT_ORDER: [(u8, u16, &str); 5] = [
 
 impl Processor {
     pub fn maybe_interrupt(ctx: &mut GameBoy) -> bool {
-        let pending = Processor::pending_interrupts(ctx);
-        for (int_mask, handler_address, name) in INT_ORDER {
-            if pending & int_mask != 0 {
-                cpu_log!(debug, ctx, "Interrupt fired: {}", name);
+        if ctx.cpu.ime {
+            let pending = Processor::pending_interrupts(ctx);
+            for (int_mask, handler_address, name) in INT_ORDER {
+                if pending & int_mask != 0 {
+                    cpu_log!(debug, ctx, "Interrupt fired: {}", name);
 
-                // Push PC on the stack and jump to the handler
-                Processor::push_stack(ctx, ctx.cpu.pc);
-                ctx.cpu.pc = handler_address;
+                    // Reset the corresponding IF bit
+                    Memory::write_masked(ctx, IO_IF, 0, int_mask);
 
-                // Return early: an interrupt was fired
-                return true;
+                    // Disable interrupts
+                    ctx.cpu.ime = false;
+
+                    // Push PC on the stack and jump to the handler
+                    Processor::push_stack(ctx, ctx.cpu.pc);
+                    ctx.cpu.pc = handler_address;
+
+                    // Return early: an interrupt was fired
+                    return true;
+                }
             }
         }
 

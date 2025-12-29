@@ -4,6 +4,7 @@ use crate::{
         GameBoy,
         hardware::processor::{EIState, Processor, ProcessorMode},
     },
+    wrapping_add_warn, wrapping_sub_warn,
 };
 
 /* #region Carry flag */
@@ -69,7 +70,7 @@ pub fn daa(ctx: &mut GameBoy) -> u16 {
         if f.c {
             adj += 0x60;
         }
-        ctx.cpu.r.a = ctx.cpu.r.a.wrapping_sub(adj);
+        ctx.cpu.r.a = wrapping_sub_warn!(ctx.cpu.r.a, adj, "DAA caused reg A to underflow");
     } else {
         if f.h || (ctx.cpu.r.a & 0xF) > 0x9 {
             adj += 0x6;
@@ -78,7 +79,7 @@ pub fn daa(ctx: &mut GameBoy) -> u16 {
             adj += 0x60;
             f.c = true;
         }
-        ctx.cpu.r.a = ctx.cpu.r.a.wrapping_add(adj);
+        ctx.cpu.r.a = wrapping_add_warn!(ctx.cpu.r.a, adj, "DAA caused reg A to overflow");
     }
 
     f.z = ctx.cpu.r.a == 0;
