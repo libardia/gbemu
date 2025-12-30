@@ -1,3 +1,5 @@
+use getopts::Matches;
+
 use crate::{
     cpu_log,
     gb::{
@@ -5,6 +7,7 @@ use crate::{
         hardware::{memory::Memory, processor::instructions::Instruction},
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
+    options::META_INST,
     word_fmt, wrapping_add_warn, wrapping_sub_warn,
 };
 
@@ -138,6 +141,37 @@ pub struct Processor {
 }
 
 impl Processor {
+    pub fn init(ctx: &mut GameBoy, skip_boot: bool) {
+        // TODO: cpu init
+        ctx.cpu.meta_inst = ctx.opts.opt_defined(META_INST.long_name);
+
+        if skip_boot {
+            // Register values
+            ctx.cpu.r = Regs {
+                b: 0x00,
+                c: 0x13,
+                d: 0x00,
+                e: 0xD8,
+                h: 0x01,
+                l: 0x4D,
+                a: 0x01,
+            };
+
+            // Flags
+            let checksum_not_zero = ctx.cart.read_rom(0x014D) != 0;
+            ctx.cpu.f = Flags {
+                z: true,
+                n: false,
+                h: checksum_not_zero,
+                c: checksum_not_zero,
+            };
+
+            // PC and SP
+            ctx.cpu.pc = 0x0100;
+            ctx.cpu.sp = 0xFFFE;
+        }
+    }
+
     pub fn step(ctx: &mut GameBoy) -> MTime {
         // Record the current PC and reset the current instruction, for logging
         ctx.cpu.this_inst_pc = ctx.cpu.pc;

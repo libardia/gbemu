@@ -11,8 +11,10 @@ use crate::{
         timer::Timer,
     },
     number_type,
+    options::DO_BOOT,
 };
 use getopts::Matches;
+use log::info;
 
 mod hardware;
 mod macros;
@@ -29,6 +31,8 @@ pub struct GameBoy {
     aud: Audio,
     serial: Serial,
     opts: Matches,
+
+    exit: bool,
 }
 
 number_type!(MTime: u16);
@@ -41,6 +45,8 @@ impl GameBoy {
             error_panic!("No ROM file provided.");
         }
 
+        let skip_boot = !opts.opt_defined(DO_BOOT.long_name);
+
         // Make gb
         let mut gb = Self {
             cart: load_cart(&opts.free[0]),
@@ -52,22 +58,33 @@ impl GameBoy {
             aud: Audio::default(),
             serial: Serial::default(),
             opts,
+
+            exit: false,
         };
 
         // Initialize
-        gb.reset();
+        // TODO: init cart
+        Processor::init(&mut gb, skip_boot);
+        Memory::init(&mut gb, skip_boot);
+        // TODO: init graphics
+        // TODO: init timer
+        // TODO: init input
+        // TODO: init audio
+        // TODO: init serial
 
         gb
     }
 
-    pub fn reset(&mut self) {
-        // TODO: init
-    }
-
     pub fn run(&mut self) {
         //TODO: run
-        loop {
-            Processor::step(self);
+        while !self.exit {
+            let time = Processor::step(self);
         }
+
+        info!("Main loop ended. Shutting down.");
+    }
+
+    pub fn stop(&mut self) {
+        self.exit = true;
     }
 }
