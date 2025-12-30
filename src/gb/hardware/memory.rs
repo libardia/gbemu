@@ -59,7 +59,7 @@ macro_rules! address_dispatch {
 }
 
 impl Memory {
-    pub fn init(ctx: &GameBoy, skip_boot: bool) {
+    pub fn init(ctx: &GameBoy) {
         // TODO: init memory
         // TODO: randomize ROM maybe?
     }

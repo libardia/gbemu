@@ -1,5 +1,3 @@
-use getopts::Matches;
-
 use crate::{
     cpu_log,
     gb::{
@@ -141,11 +139,11 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn init(ctx: &mut GameBoy, skip_boot: bool) {
+    pub fn init(ctx: &mut GameBoy) {
         // TODO: cpu init
         ctx.cpu.meta_inst = ctx.opts.opt_defined(META_INST.long_name);
 
-        if skip_boot {
+        if ctx.skip_boot {
             // Register values
             ctx.cpu.r = Regs {
                 b: 0x00,
