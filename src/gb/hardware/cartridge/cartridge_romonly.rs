@@ -19,6 +19,10 @@ pub struct CartRomOnly {
 }
 
 impl Cartridge for CartRomOnly {
+    fn init(&mut self) {
+        // Nothing to do here
+    }
+
     fn read_rom(&self, address: u16) -> u8 {
         region_guard!(address in ROM_SPACE);
         // ROM_SPACE begins at 0 so no need to transform the address

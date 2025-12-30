@@ -3,7 +3,8 @@ use crate::{
     gb::{
         GameBoy, MTime,
         hardware::{
-            cartridge::HEADER_CHECKSUM, memory::Memory, processor::instructions::Instruction,
+            HardwareInit, cartridge::HEADER_CHECKSUM, memory::Memory,
+            processor::instructions::Instruction,
         },
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
@@ -138,8 +139,8 @@ pub struct Processor {
     this_inst_pc: u16,
 }
 
-impl Processor {
-    pub fn init(ctx: &mut GameBoy) {
+impl HardwareInit for Processor {
+    fn init(ctx: &mut GameBoy) {
         // TODO: cpu init when not skipping boot?
 
         if ctx.skip_boot {
@@ -168,7 +169,9 @@ impl Processor {
             ctx.cpu.sp = 0xFFFE;
         }
     }
+}
 
+impl Processor {
     pub fn step(ctx: &mut GameBoy) -> MTime {
         // Record the current PC and reset the current instruction, for logging
         ctx.cpu.this_inst_pc = ctx.cpu.pc;

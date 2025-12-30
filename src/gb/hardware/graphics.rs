@@ -1,6 +1,6 @@
 use crate::gb::{
     GameBoy,
-    hardware::{HardwareInterface, memory::OPEN_BUS_VALUE},
+    hardware::{HardwareInit, HardwareInterface, memory::OPEN_BUS_VALUE},
 };
 
 #[derive(Debug, Default)]
@@ -8,11 +8,13 @@ pub struct Graphics {
     // TODO: Graphics
 }
 
-impl HardwareInterface for Graphics {
+impl HardwareInit for Graphics {
     fn init(ctx: &mut GameBoy) {
-        todo!()
+        // TODO: Graphics init
     }
+}
 
+impl HardwareInterface for Graphics {
     fn read(ctx: &GameBoy, address: u16) -> u8 {
         // TODO: Graphics read
         OPEN_BUS_VALUE

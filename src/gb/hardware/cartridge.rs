@@ -21,6 +21,8 @@ pub const HEADER_CHECKSUM: u16 = 0x014D;
 pub const HEADER_GLOBAL_CHECKSUM: MemoryRegion = MemoryRegion::new(0x014E, 0x014F);
 
 pub trait Cartridge {
+    fn init(&mut self);
+
     fn read_rom(&self, address: u16) -> u8;
     fn write_rom(&mut self, address: u16, value: u8);
     fn read_ram(&self, address: u16) -> u8;

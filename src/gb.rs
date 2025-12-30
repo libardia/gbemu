@@ -1,6 +1,7 @@
 use crate::{
     error_panic,
     gb::hardware::{
+        HardwareInit,
         audio::Audio,
         cartridge::{Cartridge, load_cart},
         graphics::Graphics,
@@ -67,22 +68,22 @@ impl GameBoy {
         };
 
         // Initialize
-        // TODO: init cart
+        gb.cart.init();
         Processor::init(&mut gb);
         Memory::init(&mut gb);
-        // TODO: init graphics
-        // TODO: init timer
-        // TODO: init input
-        // TODO: init audio
-        // TODO: init serial
+        Graphics::init(&mut gb);
+        Timer::init(&mut gb);
+        Input::init(&mut gb);
+        Audio::init(&mut gb);
+        Serial::init(&mut gb);
 
         gb
     }
 
     pub fn run(&mut self) {
-        //TODO: run
         while !self.exit {
             let time = Processor::step(self);
+            //TODO: run: update everything else
         }
 
         info!("Main loop ended. Shutting down.");
