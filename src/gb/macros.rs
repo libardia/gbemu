@@ -85,7 +85,7 @@ macro_rules! region_guard {
 macro_rules! impossible_address {
     ($source:expr, $address:expr) => {
         crate::error_panic!(
-            "{}: Tried to access address {} which this does not contain.",
+            "{}: Tried to access address {} which this does interface not contain.",
             $source,
             crate::word_fmt!($address),
         )
