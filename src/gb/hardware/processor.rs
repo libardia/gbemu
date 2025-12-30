@@ -2,7 +2,9 @@ use crate::{
     cpu_log,
     gb::{
         GameBoy, MTime,
-        hardware::{memory::Memory, processor::instructions::Instruction},
+        hardware::{
+            cartridge::HEADER_CHECKSUM, memory::Memory, processor::instructions::Instruction,
+        },
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
     options::META_INST,
@@ -140,7 +142,7 @@ pub struct Processor {
 
 impl Processor {
     pub fn init(ctx: &mut GameBoy) {
-        // TODO: cpu init
+        // TODO: cpu init when not skipping boot?
         ctx.cpu.meta_inst = ctx.opts.opt_defined(META_INST.long_name);
 
         if ctx.skip_boot {
@@ -156,7 +158,7 @@ impl Processor {
             };
 
             // Flags
-            let checksum_not_zero = ctx.cart.read_rom(0x014D) != 0;
+            let checksum_not_zero = ctx.cart.read_rom(HEADER_CHECKSUM) != 0;
             ctx.cpu.f = Flags {
                 z: true,
                 n: false,

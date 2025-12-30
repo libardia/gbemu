@@ -1,5 +1,7 @@
 use crate::{
-    byte_fmt, error_panic, gb::hardware::cartridge::cartridge_romonly::CartRomOnly, unwrap_or_log,
+    byte_fmt, error_panic,
+    gb::{hardware::cartridge::cartridge_romonly::CartRomOnly, regions::MemoryRegion},
+    unwrap_or_log,
 };
 use std::{
     fs::File,
@@ -9,7 +11,14 @@ use std::{
 
 pub mod cartridge_romonly;
 
-const CART_INFO_START: u64 = 0x0147;
+pub const CART_ENTRY: u16 = 0x0100;
+pub const HEADER_LOGO: MemoryRegion = MemoryRegion::new(0x0104, 0x0133);
+pub const HEADER_TITLE: MemoryRegion = MemoryRegion::new(0x0134, 0x0143);
+pub const HEADER_CART_TYPE: u16 = 0x0147;
+pub const HEADER_ROM_SIZE: u16 = 0x0148;
+pub const HEADER_RAM_SIZE: u16 = 0x0149;
+pub const HEADER_CHECKSUM: u16 = 0x014D;
+pub const HEADER_GLOBAL_CHECKSUM: MemoryRegion = MemoryRegion::new(0x014E, 0x014F);
 
 pub trait Cartridge {
     fn read_rom(&self, address: u16) -> u8;
@@ -30,7 +39,7 @@ pub fn load_cart(cart_path: &str) -> Box<dyn Cartridge> {
 
 fn get_rom_info(cart_file: &mut File) -> (u8, u8, u8) {
     let mut cart_info = [0; 3];
-    unwrap_or_log!(cart_file.seek(SeekFrom::Start(CART_INFO_START)));
+    unwrap_or_log!(cart_file.seek(SeekFrom::Start(HEADER_CART_TYPE as u64)));
     unwrap_or_log!(cart_file.read_exact(&mut cart_info));
     unwrap_or_log!(cart_file.rewind());
     (cart_info[0], cart_info[1], cart_info[2])

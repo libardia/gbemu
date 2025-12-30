@@ -59,9 +59,15 @@ macro_rules! address_dispatch {
 }
 
 impl Memory {
-    pub fn init(ctx: &GameBoy) {
+    pub fn init(ctx: &mut GameBoy) {
         // TODO: init memory
         // TODO: randomize ROM maybe?
+        ctx.mem.boot_mode = !ctx.skip_boot;
+
+        if ctx.skip_boot {
+            ctx.mem.io_if = 0xE1;
+            ctx.mem.io_ie = 0x00;
+        }
     }
 
     pub fn read(ctx: &GameBoy, address: u16) -> u8 {
