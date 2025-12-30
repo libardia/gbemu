@@ -20,12 +20,12 @@ impl HardwareInit for Graphics {
 impl HardwareInterface for Graphics {
     fn read(ctx: &GameBoy, address: u16) -> u8 {
         // TODO: Graphics read
-        warn_unimplemented_read!("Graphics", address);
+        warn_unimplemented_read!(ctx, "Graphics", address);
         OPEN_BUS_VALUE
     }
 
     fn write(ctx: &mut GameBoy, address: u16, value: u8) {
         // TODO: Graphics write
-        warn_unimplemented_write!("Graphics", address, value)
+        warn_unimplemented_write!(ctx, "Graphics", address, value)
     }
 }

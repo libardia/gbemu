@@ -20,12 +20,12 @@ impl HardwareInit for Serial {
 impl HardwareInterface for Serial {
     fn read(ctx: &GameBoy, address: u16) -> u8 {
         // TODO: dummy Serial read
-        warn_unimplemented_read!("Serial", address);
+        warn_unimplemented_read!(ctx, "Serial", address);
         OPEN_BUS_VALUE
     }
 
     fn write(ctx: &mut GameBoy, address: u16, value: u8) {
         // TODO: dummy Serial write
-        warn_unimplemented_write!("Serial", address, value);
+        warn_unimplemented_write!(ctx, "Serial", address, value);
     }
 }

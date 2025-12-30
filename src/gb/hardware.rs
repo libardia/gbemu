@@ -20,8 +20,10 @@ pub trait HardwareInterface {
 
 #[macro_export]
 macro_rules! warn_unimplemented_read {
-    ($interface:expr, $address:expr) => {
-        log::warn!(
+    ($ctx:expr, $interface:expr, $address:expr) => {
+        crate::cpu_log!(
+            warn,
+            $ctx,
             "Read from {0} register at {1}. {0} is not implemented yet, so {2} was returned!",
             $interface,
             crate::word_fmt!($address),
@@ -32,8 +34,10 @@ macro_rules! warn_unimplemented_read {
 
 #[macro_export]
 macro_rules! warn_unimplemented_write {
-    ($interface:expr, $address:expr, $value:expr) => {
-        log::warn!(
+    ($ctx:expr, $interface:expr, $address:expr, $value:expr) => {
+        crate::cpu_log!(
+            warn,
+            $ctx,
             "Wrote {1} to {0} register at {2}. {0} is not implemented yet!",
             $interface,
             crate::byte_fmt!($value),

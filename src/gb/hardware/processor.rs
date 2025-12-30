@@ -135,8 +135,8 @@ pub struct Processor {
     ei_state: EIState,
 
     // Logging
-    this_inst: Instruction,
-    this_inst_pc: u16,
+    pub this_inst: Instruction,
+    pub this_inst_pc: u16,
 }
 
 impl HardwareInit for Processor {

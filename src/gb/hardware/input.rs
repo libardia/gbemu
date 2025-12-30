@@ -20,12 +20,12 @@ impl HardwareInit for Input {
 impl HardwareInterface for Input {
     fn read(ctx: &GameBoy, address: u16) -> u8 {
         // TODO: Input read
-        warn_unimplemented_read!("Input", address);
+        warn_unimplemented_read!(ctx, "Input", address);
         OPEN_BUS_VALUE
     }
 
     fn write(ctx: &mut GameBoy, address: u16, value: u8) {
         // TODO: Input write
-        warn_unimplemented_write!("Input", address, value);
+        warn_unimplemented_write!(ctx, "Input", address, value);
     }
 }
