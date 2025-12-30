@@ -118,9 +118,9 @@ impl Processor {
 
             // Meta
             INVALID(meta) => match meta {
-                SHOW_CPU if ctx.cpu.meta_inst => todo!(),
-                TERMINATE if ctx.cpu.meta_inst => op_meta::terminate(ctx),
-                DUMP if ctx.cpu.meta_inst => todo!(),
+                SHOW_CPU if ctx.meta_inst => todo!(),
+                TERMINATE if ctx.meta_inst => op_meta::terminate(ctx),
+                DUMP if ctx.meta_inst => todo!(),
 
                 _ => cpu_log!(error_panic, ctx, "Tried to execute an invalid instruction."),
             },

@@ -1,6 +1,9 @@
 #![allow(dead_code, unused_variables)]
 
-use crate::{gb::GameBoy, options::ALL_SIMPLE_OPTIONS};
+use crate::{
+    gb::GameBoy,
+    options::{ALL_SIMPLE_OPTIONS, HELP},
+};
 use ftail::Ftail;
 use getopts::Options;
 use log::{LevelFilter, debug, error};
@@ -36,6 +39,14 @@ fn main() {
         Ok(m) => m,
         Err(e) => error_panic!("{e}"),
     };
+
+    if has_opt!(matches, HELP) {
+        print!(
+            "{}",
+            opts.usage(&format!("Usage: gbemu [options] ROM_FILE"))
+        );
+        return;
+    }
 
     GameBoy::new(matches).run();
 }

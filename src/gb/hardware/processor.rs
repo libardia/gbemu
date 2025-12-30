@@ -7,7 +7,6 @@ use crate::{
         },
         registers::{IO_IE, IO_IF, IO_JOYP},
     },
-    options::META_INST,
     word_fmt, wrapping_add_warn, wrapping_sub_warn,
 };
 
@@ -131,7 +130,6 @@ pub struct Processor {
     ime: bool,
 
     // Helper
-    meta_inst: bool,
     halt_bug: bool,
     ei_state: EIState,
 
@@ -143,7 +141,6 @@ pub struct Processor {
 impl Processor {
     pub fn init(ctx: &mut GameBoy) {
         // TODO: cpu init when not skipping boot?
-        ctx.cpu.meta_inst = ctx.opts.opt_defined(META_INST.long_name);
 
         if ctx.skip_boot {
             // Register values

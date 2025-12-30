@@ -17,6 +17,14 @@ macro_rules! simple_options {
 }
 
 simple_options!(
+    HELP,      "h", "help",    "Show this help menu.";
     META_INST, "m", "meta",    "Enable meta-instructions.";
     DO_BOOT,   "b", "do-boot", "If set, runs the boot ROM before cartridge ROM. Skips the boot ROM otherwise.";
 );
+
+#[macro_export]
+macro_rules! has_opt {
+    ($matches:expr, $op:ident) => {
+        $matches.opt_present($op.long_name)
+    };
+}

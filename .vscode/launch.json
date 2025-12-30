@@ -14,8 +14,8 @@
                     "--bin=gbemu",
                     "--",
                     "-m",
-                    "res/dummy_cartromonly.bin",
-                    // "D:/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb",
+                    // "res/dummy_cartromonly.bin",
+                    "D:/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb",
                 ]
             },
             "env": {

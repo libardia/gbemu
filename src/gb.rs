@@ -10,7 +10,7 @@ use crate::{
         serial::Serial,
         timer::Timer,
     },
-    number_type,
+    has_opt, number_type,
     options::{DO_BOOT, META_INST},
 };
 use getopts::Matches;
@@ -50,8 +50,8 @@ impl GameBoy {
 
         // Make gb
         let mut gb = Self {
-            skip_boot: !opts.opt_defined(DO_BOOT.long_name),
-            meta_inst: opts.opt_defined(META_INST.long_name),
+            skip_boot: !has_opt!(opts, DO_BOOT),
+            meta_inst: has_opt!(opts, META_INST),
             exit: false,
 
             cart: load_cart(&opts.free[0]),
