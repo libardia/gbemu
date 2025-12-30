@@ -1,7 +1,10 @@
 use crate::{
     gb::{
         GameBoy,
-        hardware::HardwareInterface,
+        hardware::{
+            HardwareInterface, audio::Audio, graphics::Graphics, input::Input, serial::Serial,
+            timer::Timer,
+        },
         regions::{
             CART_RAM, ECHO_RAM, HIGH_RAM, MappedMemoryRegion, OAM, ROM_SPACE, VRAM, WORK_RAM,
         },
@@ -83,12 +86,12 @@ impl Memory {
                 #HIGH_RAM  => ctx.mem.hram.get(address),
 
                 // IO registers
-                IO_JOYP      => ctx.input.read(address),
-                #IO_SERIAL   => ctx.serial.read(address),
-                #IO_TIMER    => ctx.timer.read(address),
+                IO_JOYP      => Input::read(ctx, address),
+                #IO_SERIAL   => Serial::read(ctx, address),
+                #IO_TIMER    => Timer::read(ctx, address),
                 IO_IF        => get_bits_of!(ctx.mem.io_if, 0x1F),
-                #IO_AUDIO    => ctx.aud.read(address),
-                #IO_GRAPHICS => ctx.gfx.read(address),
+                #IO_AUDIO    => Audio::read(ctx, address),
+                #IO_GRAPHICS => Graphics::read(ctx, address),
                 IO_IE        => ctx.mem.io_ie,
 
                 // Anything else is unreadable
@@ -109,12 +112,12 @@ impl Memory {
                 #HIGH_RAM  => ctx.mem.hram.set(address, value),
 
                 // IO registers
-                IO_JOYP      => ctx.input.write(address, value),
-                #IO_SERIAL   => ctx.serial.write(address, value),
-                #IO_TIMER    => ctx.timer.write(address, value),
+                IO_JOYP      => Input::write(ctx, address, value),
+                #IO_SERIAL   => Serial::write(ctx, address, value),
+                #IO_TIMER    => Timer::write(ctx, address, value),
                 IO_IF        => ctx.mem.io_if = set_bits_of!(ctx.mem.io_if, value, 0x1F),
-                #IO_AUDIO    => ctx.aud.write(address, value),
-                #IO_GRAPHICS => ctx.gfx.write(address, value),
+                #IO_AUDIO    => Audio::write(ctx, address, value),
+                #IO_GRAPHICS => Graphics::write(ctx, address, value),
                 IO_BANK      => if value != 0 { ctx.mem.boot_mode = false },
                 IO_IE        => ctx.mem.io_ie = value,
 

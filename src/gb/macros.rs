@@ -82,6 +82,17 @@ macro_rules! region_guard {
 }
 
 #[macro_export]
+macro_rules! impossible_address {
+    ($source:expr, $address:expr) => {
+        crate::error_panic!(
+            "{}: Tried to access address {} which this does not contain.",
+            $source,
+            crate::word_fmt!($address),
+        )
+    };
+}
+
+#[macro_export]
 macro_rules! number_type {
     ($vis:vis $name:ident: $inner:ty) => {
         #[derive(Clone, Copy, PartialEq, Eq, Hash)]
