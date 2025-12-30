@@ -64,3 +64,31 @@ impl HardwareInterface for Serial {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use log::debug;
+    use test_log::test;
+
+    #[test]
+    fn test_read_sc() {
+        for i in 0..=0b11 {
+            let enabled = (i & 0b01) != 0;
+            let is_master_clock = (i & 0b10) != 0;
+            let s = Serial {
+                enabled,
+                is_master_clock,
+                serial_data: 0,
+            };
+            debug!("Testing SC on {s:?}");
+
+            let expected = ((enabled as u8) << SC_ENABLE_POS)
+                | ((is_master_clock as u8) << SC_CLOCK_SELECT_POS)
+                | SC_UNUSED_BITS;
+
+            debug!("Expecting: {:0>8b}", expected);
+            assert_eq!(make_reg_SC!(s), expected);
+        }
+    }
+}
