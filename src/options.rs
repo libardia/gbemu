@@ -17,6 +17,6 @@ macro_rules! simple_options {
 }
 
 simple_options!(
-    META_INST, "m", "meta", "Enable meta-instructions.";
-    DO_BOOT, "b", "do-boot", "If set, runs the boot ROM before cartridge ROM. Skips the boot ROM otherwise.";
+    META_INST, "m", "meta",    "Enable meta-instructions.";
+    DO_BOOT,   "b", "do-boot", "If set, runs the boot ROM before cartridge ROM. Skips the boot ROM otherwise.";
 );
