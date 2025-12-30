@@ -92,7 +92,8 @@ def_regions! {
 }
 
 def_regions! {
-    HEADER: 0x0100, 0x014F;
+    BOOT_ROM_AREA: 0x0000, 0x00FF;
+    HEADER:        0x0100, 0x014F;
 }
 
 #[cfg(test)]

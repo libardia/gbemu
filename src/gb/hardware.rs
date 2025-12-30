@@ -17,3 +17,27 @@ pub trait HardwareInterface {
     fn read(ctx: &GameBoy, address: u16) -> u8;
     fn write(ctx: &mut GameBoy, address: u16, value: u8);
 }
+
+#[macro_export]
+macro_rules! warn_unimplemented_read {
+    ($interface:expr, $address:expr) => {
+        log::warn!(
+            "Read from {0} register at {1}. {0} is not implemented yet, so {2} was returned!",
+            $interface,
+            crate::word_fmt!($address),
+            crate::byte_fmt!(crate::gb::hardware::memory::OPEN_BUS_VALUE),
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! warn_unimplemented_write {
+    ($interface:expr, $address:expr, $value:expr) => {
+        log::warn!(
+            "Wrote {1} to {0} register at {2}. {0} is not implemented yet!",
+            $interface,
+            crate::byte_fmt!($value),
+            crate::word_fmt!($address),
+        )
+    };
+}
