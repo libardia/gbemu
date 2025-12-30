@@ -5,7 +5,7 @@ use crate::{
         regions::{
             CART_RAM, ECHO_RAM, HIGH_RAM, MappedMemoryRegion, OAM, ROM_SPACE, VRAM, WORK_RAM,
         },
-        registers::{IO_AUDIO, IO_GRAPHICS, IO_IE, IO_IF, IO_JOYP, IO_SERIAL, IO_TIMER},
+        registers::{IO_AUDIO, IO_BANK, IO_GRAPHICS, IO_IE, IO_IF, IO_JOYP, IO_SERIAL, IO_TIMER},
     },
     get_bits_of, set_bits_of,
 };
@@ -26,6 +26,9 @@ pub struct Memory {
     // these regs are special
     io_if: u8,
     io_ie: u8,
+
+    // State
+    boot_mode: bool,
 }
 
 impl Default for Memory {
@@ -37,6 +40,7 @@ impl Default for Memory {
             hram: MappedMemoryRegion::new(HIGH_RAM),
             io_if: UNINIT_VALUE,
             io_ie: UNINIT_VALUE,
+            boot_mode: false,
         }
     }
 }
@@ -55,6 +59,11 @@ macro_rules! address_dispatch {
 }
 
 impl Memory {
+    pub fn init(ctx: &GameBoy, skip_boot: bool) {
+        // TODO: init memory
+        // TODO: randomize ROM maybe?
+    }
+
     pub fn read(ctx: &GameBoy, address: u16) -> u8 {
         address_dispatch! {
             on address:
@@ -74,7 +83,7 @@ impl Memory {
                 IO_IF        => get_bits_of!(ctx.mem.io_if, 0x1F),
                 #IO_AUDIO    => ctx.aud.read(address),
                 #IO_GRAPHICS => ctx.gfx.read(address),
-                IO_IE        => get_bits_of!(ctx.mem.io_ie, 0x1F),
+                IO_IE        => ctx.mem.io_ie,
 
                 // Anything else is unreadable
                 _ => OPEN_BUS_VALUE,
@@ -100,7 +109,8 @@ impl Memory {
                 IO_IF        => ctx.mem.io_if = set_bits_of!(ctx.mem.io_if, value, 0x1F),
                 #IO_AUDIO    => ctx.aud.write(address, value),
                 #IO_GRAPHICS => ctx.gfx.write(address, value),
-                IO_IE        => ctx.mem.io_ie = set_bits_of!(ctx.mem.io_ie, value, 0x1F),
+                IO_BANK      => if value != 0 { ctx.mem.boot_mode = false },
+                IO_IE        => ctx.mem.io_ie = value,
 
                 // Anything else is unwritable
                 _ => (),
