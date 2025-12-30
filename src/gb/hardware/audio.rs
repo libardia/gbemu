@@ -1,9 +1,9 @@
 use crate::{
     gb::{
-        hardware::{memory::OPEN_BUS_VALUE, HardwareInit, HardwareInterface},
         GameBoy,
+        hardware::{HardwareInit, HardwareInterface, memory::OPEN_BUS_VALUE},
     },
-    warn_unimplemented_read, warn_unimplemented_write,
+    warn_unimplemented_interface, warn_unimplemented_read, warn_unimplemented_write,
 };
 
 #[derive(Debug, Default)]
@@ -13,6 +13,7 @@ pub struct Audio {
 
 impl HardwareInit for Audio {
     fn init(ctx: &mut GameBoy) {
+        warn_unimplemented_interface!("Audio");
         // TODO: dummy Audio init
     }
 }

@@ -19,6 +19,13 @@ pub trait HardwareInterface {
 }
 
 #[macro_export]
+macro_rules! warn_unimplemented_interface {
+    ($interface:expr) => {
+        log::warn!("{} is not currently implemented.", $interface)
+    };
+}
+
+#[macro_export]
 macro_rules! warn_unimplemented_read {
     ($ctx:expr, $interface:expr, $address:expr) => {
         crate::cpu_log!(

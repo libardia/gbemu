@@ -3,7 +3,7 @@ use crate::{
         GameBoy,
         hardware::{HardwareInit, HardwareInterface, memory::OPEN_BUS_VALUE},
     },
-    warn_unimplemented_read, warn_unimplemented_write,
+    warn_unimplemented_interface, warn_unimplemented_read, warn_unimplemented_write,
 };
 
 #[derive(Debug, Default)]
@@ -13,6 +13,7 @@ pub struct Input {
 
 impl HardwareInit for Input {
     fn init(ctx: &mut GameBoy) {
+        warn_unimplemented_interface!("Input");
         // TODO: Input init
     }
 }
