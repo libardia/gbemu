@@ -24,6 +24,7 @@ mod op_bit;
 mod op_jump;
 mod op_load;
 mod op_logic;
+mod op_meta;
 mod op_misc;
 mod op_shift;
 mod op_stack;
@@ -118,7 +119,7 @@ impl Processor {
             // Meta
             INVALID(meta) => match meta {
                 SHOW_CPU if ctx.cpu.meta_inst => todo!(),
-                TERMINATE if ctx.cpu.meta_inst => todo!(),
+                TERMINATE if ctx.cpu.meta_inst => op_meta::terminate(ctx),
                 DUMP if ctx.cpu.meta_inst => todo!(),
 
                 _ => cpu_log!(error_panic, ctx, "Tried to execute an invalid instruction."),
