@@ -1,12 +1,13 @@
 #![allow(dead_code, unused_variables)]
 
-use crate::gb::GameBoy;
+use crate::{gb::GameBoy, options::ALL_SIMPLE_OPTIONS};
 use ftail::Ftail;
 use getopts::Options;
 use log::{LevelFilter, debug, error};
 use std::{env, fs, panic, path::Path};
 
 mod gb;
+mod options;
 
 fn main() {
     init_logging("logs");
@@ -27,7 +28,9 @@ fn main() {
     let mut opts = Options::new();
 
     // Define options
-    opts.optflag("m", "meta", "Enable meta-instructions.");
+    for odef in ALL_SIMPLE_OPTIONS {
+        opts.optflag(odef.short_name, odef.long_name, odef.desc);
+    }
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
