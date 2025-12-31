@@ -10,7 +10,7 @@ use crate::{
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
-#[derive(Debug, Default, FromPrimitive, Clone, Copy)]
+#[derive(Debug, Default, FromPrimitive, Clone, Copy, PartialEq, Eq)]
 enum TACClock {
     #[default]
     Every256 = 0b00,
@@ -45,7 +45,6 @@ define_reg_bits!(
             field: tac_clock_select: TACClock;
             to_u8: c => { c as u8 };
             from_u8: c => { TACClock::from_u8(c >> TAC_CLOCK_SELECT_POS).unwrap() };
-
 );
 
 impl HardwareInit for Timer {
@@ -96,9 +95,9 @@ mod tests {
 
     #[test]
     fn test_read_tac() {
-        for i in 0..=0b111 {
+        for i in 0..=0b111u8 {
             let tac_enable = (i & 0b100) != 0;
-            let tac_clock_select = TACClock::from_i32(i & 0b011).unwrap();
+            let tac_clock_select = TACClock::from_u8(i & 0b011).unwrap();
             let t = Timer {
                 system_timer: 0,
                 tima: 0,
@@ -115,6 +114,47 @@ mod tests {
 
             debug!("Expecting: {expected:0>8b}");
             assert_eq!(make_reg_TAC!(t), expected);
+        }
+    }
+
+    #[test]
+    fn test_write_tac() {
+        let mut t = Timer {
+            system_timer: 0,
+            tima: 0,
+            tma: 0,
+            tac_enable: true,
+            tac_clock_select: TACClock::Every64,
+        };
+
+        for i in 0..=0b111u8 {
+            let b0 = (i & 0b100) >> 2;
+            let b12 = i & 0b011;
+
+            let value = (b0 << TAC_ENABLE_POS) | (b12 << TAC_CLOCK_SELECT_POS) | TAC_UNUSED_BITS;
+
+            debug!("Before: {t:?}");
+            debug!("Value:  {value:0>8b}");
+            decomp_reg_TAC!(t, value);
+            debug!("After:  {t:?}");
+
+            assert_eq!(t.tac_enable, b0 != 0);
+            assert_eq!(t.tac_clock_select, TACClock::from_u8(b12).unwrap());
+        }
+    }
+
+    #[test]
+    fn test_tacclock_from_primitive() {
+        let test_defs = [
+            (0b00, TACClock::Every256),
+            (0b01, TACClock::Every4),
+            (0b10, TACClock::Every16),
+            (0b11, TACClock::Every64),
+        ];
+        for (value, tac_clock) in test_defs {
+            let from_u8: TACClock = TACClock::from_u8(value).unwrap();
+            log::debug!("{:0>2b} => {:?}, should be {:?}", value, from_u8, tac_clock);
+            assert_eq!(from_u8, tac_clock);
         }
     }
 }

@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_read_sc() {
-        for i in 0..=0b11 {
+        for i in 0..=0b11u8 {
             let enabled = (i & 0b01) != 0;
             let is_master_clock = (i & 0b10) != 0;
             let s = Serial {
@@ -106,7 +106,7 @@ mod tests {
             is_master_clock: true,
             serial_data: 0,
         };
-        for i in 0..=0b11 {
+        for i in 0..=0b11u8 {
             let b0 = i & 0b01;
             let b1 = (i & 0b10) >> 1;
             let value = (b0 << SC_ENABLE_POS) | (b1 << SC_CLOCK_SELECT_POS) | SC_UNUSED_BITS;
