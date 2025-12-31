@@ -1,13 +1,13 @@
 use crate::{
-    define_reg_bits,
+    byte_fmt, define_reg_bits,
     gb::{
         GameBoy,
         hardware::{HardwareInit, HardwareInterface},
         registers::{IO_SB, IO_SC},
     },
-    impossible_address, warn_unimplemented_interface, warn_unimplemented_read,
-    warn_unimplemented_write,
+    impossible_address, warn_unimplemented_interface, word_fmt,
 };
+use log::warn;
 
 #[derive(Debug, Default)]
 pub struct Serial {
@@ -45,7 +45,10 @@ impl HardwareInit for Serial {
 
 impl HardwareInterface for Serial {
     fn read(ctx: &GameBoy, address: u16) -> u8 {
-        warn_unimplemented_read!(ctx, "Serial", address);
+        warn!(
+            "Read from a serial data register at {}; serial data is currently non-functional.",
+            word_fmt!(address)
+        );
         match address {
             IO_SB => ctx.serial.serial_data,
             IO_SC => make_reg_SC!(ctx.serial),
@@ -55,7 +58,11 @@ impl HardwareInterface for Serial {
     }
 
     fn write(ctx: &mut GameBoy, address: u16, value: u8) {
-        warn_unimplemented_write!(ctx, "Serial", address, value);
+        warn!(
+            "Wrote {} to a serial data register at {}; serial data is currently non-functional.",
+            byte_fmt!(value),
+            word_fmt!(address)
+        );
         match address {
             IO_SB => ctx.serial.serial_data = value,
             IO_SC => decomp_reg_SC!(ctx.serial, value),
@@ -87,8 +94,23 @@ mod tests {
                 | ((is_master_clock as u8) << SC_CLOCK_SELECT_POS)
                 | SC_UNUSED_BITS;
 
-            debug!("Expecting: {:0>8b}", expected);
+            debug!("Expecting: {expected:0>8b}");
             assert_eq!(make_reg_SC!(s), expected);
+        }
+    }
+
+    #[test]
+    fn test_write_sc() {
+        let mut s = Serial::default();
+        for i in 0..=0b11 {
+            let b0 = i & 0b01;
+            let b1 = (i & 0b10) >> 1;
+            let value = (b0 << SC_ENABLE_POS) | (b1 << SC_CLOCK_SELECT_POS) | SC_UNUSED_BITS;
+
+            decomp_reg_SC!(s, value);
+
+            assert_eq!(s.enabled, b0 != 0);
+            assert_eq!(s.is_master_clock, b1 != 0);
         }
     }
 }
