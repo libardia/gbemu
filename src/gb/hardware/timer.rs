@@ -108,9 +108,7 @@ mod tests {
 
             debug!("{i:0>3b} => {t:?}");
 
-            let expected = ((tac_enable as u8) << TAC_ENABLE_POS)
-                | ((tac_clock_select as u8) << TAC_CLOCK_SELECT_POS)
-                | TAC_UNUSED_BITS;
+            let expected = 0b11111000 | ((tac_enable as u8) << 2) | (tac_clock_select as u8);
 
             debug!("Expecting: {expected:0>8b}");
             assert_eq!(make_reg_TAC!(t), expected);
@@ -128,10 +126,10 @@ mod tests {
         };
 
         for i in 0..=0b111u8 {
-            let b0 = (i & 0b100) >> 2;
+            let b0 = i & 0b100;
             let b12 = i & 0b011;
 
-            let value = (b0 << TAC_ENABLE_POS) | (b12 << TAC_CLOCK_SELECT_POS) | TAC_UNUSED_BITS;
+            let value = 0b11111000 | b0 | b12;
 
             debug!("Before: {t:?}");
             debug!("Value:  {value:0>8b}");

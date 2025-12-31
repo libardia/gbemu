@@ -90,9 +90,7 @@ mod tests {
             };
             debug!("Testing SC on {s:?}");
 
-            let expected = ((enabled as u8) << SC_ENABLE_POS)
-                | ((is_master_clock as u8) << SC_CLOCK_SELECT_POS)
-                | SC_UNUSED_BITS;
+            let expected = ((enabled as u8) << 7) | 0b01111110 | (is_master_clock as u8);
 
             debug!("Expecting: {expected:0>8b}");
             assert_eq!(make_reg_SC!(s), expected);
@@ -107,9 +105,9 @@ mod tests {
             serial_data: 0,
         };
         for i in 0..=0b11u8 {
-            let b0 = i & 0b01;
-            let b1 = (i & 0b10) >> 1;
-            let value = (b0 << SC_ENABLE_POS) | (b1 << SC_CLOCK_SELECT_POS) | SC_UNUSED_BITS;
+            let b0 = i & 0b10;
+            let b1 = i & 0b01;
+            let value = (b0 << 6) | 0b01111110 | b1;
 
             debug!("Before: {s:?}");
             debug!("Value:  {value:0>8b}");
