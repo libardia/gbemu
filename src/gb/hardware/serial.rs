@@ -101,13 +101,20 @@ mod tests {
 
     #[test]
     fn test_write_sc() {
-        let mut s = Serial::default();
+        let mut s = Serial {
+            enabled: true,
+            is_master_clock: true,
+            serial_data: 0,
+        };
         for i in 0..=0b11 {
             let b0 = i & 0b01;
             let b1 = (i & 0b10) >> 1;
             let value = (b0 << SC_ENABLE_POS) | (b1 << SC_CLOCK_SELECT_POS) | SC_UNUSED_BITS;
 
+            debug!("Before: {s:?}");
+            debug!("Value:  {value:0>8b}");
             decomp_reg_SC!(s, value);
+            debug!("After:  {s:?}");
 
             assert_eq!(s.enabled, b0 != 0);
             assert_eq!(s.is_master_clock, b1 != 0);
