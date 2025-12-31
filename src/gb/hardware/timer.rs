@@ -44,7 +44,7 @@ define_reg_bits!(
             pos: 0;
             field: tac_clock_select: TACClock;
             to_u8: c => { c as u8 };
-            from_u8: c => { TACClock::from_u8(c >> TAC_CLOCK_SELECT_POS).unwrap() };
+            from_u8: c => { TACClock::from_u8(c).unwrap() };
 );
 
 impl HardwareInit for Timer {
