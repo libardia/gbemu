@@ -1,16 +1,10 @@
 #![allow(dead_code, unused_variables)]
 
-use crate::{
-    gb::GameBoy,
-    options::{ALL_SIMPLE_OPTIONS, HELP},
-};
 use ftail::Ftail;
-use getopts::Options;
 use log::{LevelFilter, debug, error};
 use std::{env, fs, panic, path::Path};
 
 mod gb;
-mod options;
 
 fn main() {
     init_logging("logs");
@@ -28,27 +22,6 @@ fn main() {
     // Parse commandline arguments
     let args: Vec<String> = env::args().collect();
     debug!("Raw args: {args:?}");
-    let mut opts = Options::new();
-
-    // Define options
-    for odef in ALL_SIMPLE_OPTIONS {
-        opts.optflag(odef.short_name, odef.long_name, odef.desc);
-    }
-
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(e) => error_panic!("{e}"),
-    };
-
-    if has_opt!(matches, HELP) {
-        print!(
-            "{}",
-            opts.usage(&format!("Usage: gbemu [options] ROM_FILE"))
-        );
-        return;
-    }
-
-    GameBoy::new(matches).run();
 }
 
 fn init_logging(base_dir: &str) {
