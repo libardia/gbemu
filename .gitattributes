@@ -1,3 +1,4 @@
 reference/** linguist-vendored
 res/** linguist-vendored
 gb-bootroms/** linguist-vendored
+gb-test-roms/** linguist-vendored
