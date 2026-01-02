@@ -6,7 +6,6 @@ use std::{env, fs, panic, path::Path};
 
 mod gb;
 mod logging;
-mod opdef;
 
 fn main() {
     init_logging("logs");
