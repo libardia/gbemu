@@ -16,8 +16,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        cd lib
+        git submodule update --init --recursive
+
     - name: Build
       run: cargo build --verbose
+    
     - name: Run tests
       env:
         RUST_LOG: debug
