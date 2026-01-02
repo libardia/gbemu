@@ -4,3 +4,6 @@
 [submodule "gb-test-roms"]
 	path = gb-test-roms
 	url = git@github.com:retrio/gb-test-roms.git
+[submodule "lib/rust-immut"]
+	path = lib/rust-immut
+	url = git@github.com:libardia/rust-immut.git
