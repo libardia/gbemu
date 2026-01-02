@@ -1,9 +1,10 @@
 #![allow(dead_code, unused_variables)]
 
-use crate::{gb::GameBoy, logging::error_panic, opdef::define_options, options::Options};
 use ftail::Ftail;
 use log::{LevelFilter, debug, error};
 use std::{env, fs, panic, path::Path};
+
+use crate::{gb::GameBoy, logging::error_panic, opdef::define_options, options::Options};
 
 mod gb;
 mod immut;
