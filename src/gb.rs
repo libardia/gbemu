@@ -1,11 +1,10 @@
 use derive_new::new;
-
-use crate::{immut::Immutable, options::Options};
+use immut::Immutable;
 
 #[derive(new)]
 pub struct GameBoy {
     #[new(into)]
-    options: Immutable<Options>,
+    options: Immutable<u8>, // TODO: placeholder
 }
 
 impl GameBoy {

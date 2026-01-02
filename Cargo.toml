@@ -10,3 +10,4 @@ paste = "1.0.15"
 getopts = "0.2.24"
 ftail = "0.3.1"
 derive-new = "0.7.0"
+immut = { path = "lib/rust-immut" }

@@ -178,6 +178,7 @@ dependencies = [
  "derive-new",
  "ftail",
  "getopts",
+ "immut",
  "log",
  "paste",
  "test-log",
@@ -215,6 +216,10 @@ checksum = "f31827a206f56af32e590ba56d5d2d085f558508192593743f16b2306495269f"
 dependencies = [
  "cc",
 ]
+
+[[package]]
+name = "immut"
+version = "0.1.0"
 
 [[package]]
 name = "is_terminal_polyfill"
