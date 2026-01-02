@@ -21,7 +21,7 @@ jobs:
       shell: bash
       run: |
         cd lib
-        git submodule update --init --recursive
+        git submodule update
 
     - name: Build
       run: cargo build --verbose
