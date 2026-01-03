@@ -7,3 +7,6 @@
 [submodule "lib/rust-immut"]
 	path = lib/rust-immut
 	url = https://github.com/libardia/rust-immut.git
+[submodule "lib/rust-options"]
+	path = lib/rust-options
+	url = https://github.com/libardia/rust-options.git
