@@ -12,10 +12,10 @@
                 "args": [
                     "run",
                     "--bin=gbemu",
-                    "--",
-                    "-mb",
+                    // "--",
+                    // "-mb",
                     // "res/dummy_cartromonly.bin",
-                    "D:/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb",
+                    // "D:/Emulation/ROMs/GB/Tetris (World) (Rev 1).gb",
                 ]
             },
             "env": {
@@ -28,19 +28,19 @@
             //     "logs/debug.log", // stderr
             // ],
         },
-        {
-            "name": "gbemu: tests",
-            "type": "lldb",
-            "request": "launch",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--bin=gbemu",
-                ]
-            },
-            "env": {
-                "RUST_LOG": "debug",
-            },
-        },
+        // {
+        //     "name": "gbemu: tests",
+        //     "type": "lldb",
+        //     "request": "launch",
+        //     "cargo": {
+        //         "args": [
+        //             "test",
+        //             "--bin=gbemu",
+        //         ]
+        //     },
+        //     "env": {
+        //         "RUST_LOG": "debug",
+        //     },
+        // },
     ]
 }
