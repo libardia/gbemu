@@ -17,7 +17,7 @@ pub struct CPU {
 }
 
 macro_rules! r16 {
-    ($r1:ident, $r2:ident) => {
+    ($r1:ident + $r2:ident) => {
         paste::paste! {
             pub fn [<get_ $r1 $r2>](&self) -> u16 {
                 (self.$r1 as u16) << 8 | self.$r2 as u16
@@ -58,10 +58,10 @@ impl CPU {
         cpu
     }
 
-    r16!(a, f);
-    r16!(b, c);
-    r16!(d, e);
-    r16!(h, l);
+    r16!(a + f);
+    r16!(b + c);
+    r16!(d + e);
+    r16!(h + l);
 
     flag!(z, 7);
     flag!(n, 6);
@@ -74,7 +74,7 @@ mod tests {
     use crate::gb::cpu::CPU;
 
     macro_rules! r16_test {
-        ($r1:ident, $r2:ident) => {
+        ($r1:ident + $r2:ident) => {
             paste::paste! {
                 #[test]
                 fn [<r16_ $r1 $r2 _test>]() {
@@ -97,8 +97,8 @@ mod tests {
         };
     }
 
-    r16_test!(a, f);
-    r16_test!(b, c);
-    r16_test!(d, e);
-    r16_test!(h, l);
+    r16_test!(a + f);
+    r16_test!(b + c);
+    r16_test!(d + e);
+    r16_test!(h + l);
 }

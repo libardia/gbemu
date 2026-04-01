@@ -1,3 +1,8 @@
+// Invalid instruction codes:
+// $D3, $DB, $DD
+// $E3, $E4, $EB, $EC, $ED
+// $F4, $FC, $FD
+
 #[allow(non_camel_case_types)]
 enum Instruction {
     NOP = 0x00,         // NOP
@@ -243,6 +248,7 @@ enum Instruction {
     LD_SP_HL = 0xF9,    // LD SP, HL
     LD_A_ma16 = 0xFA,   // LD A, [a16]
     EI = 0xFB,          // EI
+    INVAILD = 0xFD,     // [INVALID INSTRUCTION]
     CP_A_n8 = 0xFE,     // CP A, n8
     RST_v38 = 0xFF,     // RST $38
 }
