@@ -3,9 +3,6 @@ pub mod instructions;
 #[derive(Default)]
 pub struct CPU {
     // Registers
-    pub a: u8,
-    pub f: u8,
-
     pub b: u8,
     pub c: u8,
 
@@ -14,6 +11,9 @@ pub struct CPU {
 
     pub h: u8,
     pub l: u8,
+
+    pub a: u8,
+    pub f: u8,
 }
 
 macro_rules! r16 {
@@ -58,10 +58,10 @@ impl CPU {
         cpu
     }
 
-    r16!(a + f);
     r16!(b + c);
     r16!(d + e);
     r16!(h + l);
+    r16!(a + f);
 
     flag!(z, 7);
     flag!(n, 6);
@@ -97,8 +97,8 @@ mod tests {
         };
     }
 
-    r16_test!(a + f);
     r16_test!(b + c);
     r16_test!(d + e);
     r16_test!(h + l);
+    r16_test!(a + f);
 }
