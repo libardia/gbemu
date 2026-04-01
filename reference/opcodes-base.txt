@@ -1,245 +1,245 @@
-00	NOP	4	- - - -
-01	LD BC, n16	12	- - - -
-02	LD [BC], A	8	- - - -
-03	INC BC	8	- - - -
-04	INC B	4	Z 0 H -
-05	DEC B	4	Z 1 H -
-06	LD B, n8	8	- - - -
-07	RLCA	4	0 0 0 C
-08	LD [a16], SP	20	- - - -
-09	ADD HL, BC	8	- 0 H C
-0A	LD A, [BC]	8	- - - -
-0B	DEC BC	8	- - - -
-0C	INC C	4	Z 0 H -
-0D	DEC C	4	Z 1 H -
-0E	LD C, n8	8	- - - -
-0F	RRCA	4	0 0 0 C
-10	STOP n8	4	- - - -
-11	LD DE, n16	12	- - - -
-12	LD [DE], A	8	- - - -
-13	INC DE	8	- - - -
-14	INC D	4	Z 0 H -
-15	DEC D	4	Z 1 H -
-16	LD D, n8	8	- - - -
-17	RLA	4	0 0 0 C
-18	JR e8	12	- - - -
-19	ADD HL, DE	8	- 0 H C
-1A	LD A, [DE]	8	- - - -
-1B	DEC DE	8	- - - -
-1C	INC E	4	Z 0 H -
-1D	DEC E	4	Z 1 H -
-1E	LD E, n8	8	- - - -
-1F	RRA	4	0 0 0 C
-20	JR NZ, e8	12/8	- - - -
-21	LD HL, n16	12	- - - -
-22	LD [HL+], A	8	- - - -
-23	INC HL	8	- - - -
-24	INC H	4	Z 0 H -
-25	DEC H	4	Z 1 H -
-26	LD H, n8	8	- - - -
-27	DAA	4	Z - 0 C
-28	JR Z, e8	12/8	- - - -
-29	ADD HL, HL	8	- 0 H C
-2A	LD A, [HL+]	8	- - - -
-2B	DEC HL	8	- - - -
-2C	INC L	4	Z 0 H -
-2D	DEC L	4	Z 1 H -
-2E	LD L, n8	8	- - - -
-2F	CPL	4	- 1 1 -
-30	JR NC, e8	12/8	- - - -
-31	LD SP, n16	12	- - - -
-32	LD [HL-], A	8	- - - -
-33	INC SP	8	- - - -
-34	INC [HL]	12	Z 0 H -
-35	DEC [HL]	12	Z 1 H -
-36	LD [HL], n8	12	- - - -
-37	SCF	4	- 0 0 1
-38	JR C, e8	12/8	- - - -
-39	ADD HL, SP	8	- 0 H C
-3A	LD A, [HL-]	8	- - - -
-3B	DEC SP	8	- - - -
-3C	INC A	4	Z 0 H -
-3D	DEC A	4	Z 1 H -
-3E	LD A, n8	8	- - - -
-3F	CCF	4	- 0 0 C
-40	LD B, B	4	- - - -
-41	LD B, C	4	- - - -
-42	LD B, D	4	- - - -
-43	LD B, E	4	- - - -
-44	LD B, H	4	- - - -
-45	LD B, L	4	- - - -
-46	LD B, [HL]	8	- - - -
-47	LD B, A	4	- - - -
-48	LD C, B	4	- - - -
-49	LD C, C	4	- - - -
-4A	LD C, D	4	- - - -
-4B	LD C, E	4	- - - -
-4C	LD C, H	4	- - - -
-4D	LD C, L	4	- - - -
-4E	LD C, [HL]	8	- - - -
-4F	LD C, A	4	- - - -
-50	LD D, B	4	- - - -
-51	LD D, C	4	- - - -
-52	LD D, D	4	- - - -
-53	LD D, E	4	- - - -
-54	LD D, H	4	- - - -
-55	LD D, L	4	- - - -
-56	LD D, [HL]	8	- - - -
-57	LD D, A	4	- - - -
-58	LD E, B	4	- - - -
-59	LD E, C	4	- - - -
-5A	LD E, D	4	- - - -
-5B	LD E, E	4	- - - -
-5C	LD E, H	4	- - - -
-5D	LD E, L	4	- - - -
-5E	LD E, [HL]	8	- - - -
-5F	LD E, A	4	- - - -
-60	LD H, B	4	- - - -
-61	LD H, C	4	- - - -
-62	LD H, D	4	- - - -
-63	LD H, E	4	- - - -
-64	LD H, H	4	- - - -
-65	LD H, L	4	- - - -
-66	LD H, [HL]	8	- - - -
-67	LD H, A	4	- - - -
-68	LD L, B	4	- - - -
-69	LD L, C	4	- - - -
-6A	LD L, D	4	- - - -
-6B	LD L, E	4	- - - -
-6C	LD L, H	4	- - - -
-6D	LD L, L	4	- - - -
-6E	LD L, [HL]	8	- - - -
-6F	LD L, A	4	- - - -
-70	LD [HL], B	8	- - - -
-71	LD [HL], C	8	- - - -
-72	LD [HL], D	8	- - - -
-73	LD [HL], E	8	- - - -
-74	LD [HL], H	8	- - - -
-75	LD [HL], L	8	- - - -
-76	HALT	4	- - - -
-77	LD [HL], A	8	- - - -
-78	LD A, B	4	- - - -
-79	LD A, C	4	- - - -
-7A	LD A, D	4	- - - -
-7B	LD A, E	4	- - - -
-7C	LD A, H	4	- - - -
-7D	LD A, L	4	- - - -
-7E	LD A, [HL]	8	- - - -
-7F	LD A, A	4	- - - -
-80	ADD A, B	4	Z 0 H C
-81	ADD A, C	4	Z 0 H C
-82	ADD A, D	4	Z 0 H C
-83	ADD A, E	4	Z 0 H C
-84	ADD A, H	4	Z 0 H C
-85	ADD A, L	4	Z 0 H C
-86	ADD A, [HL]	8	Z 0 H C
-87	ADD A, A	4	Z 0 H C
-88	ADC A, B	4	Z 0 H C
-89	ADC A, C	4	Z 0 H C
-8A	ADC A, D	4	Z 0 H C
-8B	ADC A, E	4	Z 0 H C
-8C	ADC A, H	4	Z 0 H C
-8D	ADC A, L	4	Z 0 H C
-8E	ADC A, [HL]	8	Z 0 H C
-8F	ADC A, A	4	Z 0 H C
-90	SUB A, B	4	Z 1 H C
-91	SUB A, C	4	Z 1 H C
-92	SUB A, D	4	Z 1 H C
-93	SUB A, E	4	Z 1 H C
-94	SUB A, H	4	Z 1 H C
-95	SUB A, L	4	Z 1 H C
-96	SUB A, [HL]	8	Z 1 H C
-97	SUB A, A	4	1 1 0 0
-98	SBC A, B	4	Z 1 H C
-99	SBC A, C	4	Z 1 H C
-9A	SBC A, D	4	Z 1 H C
-9B	SBC A, E	4	Z 1 H C
-9C	SBC A, H	4	Z 1 H C
-9D	SBC A, L	4	Z 1 H C
-9E	SBC A, [HL]	8	Z 1 H C
-9F	SBC A, A	4	Z 1 H -
-A0	AND A, B	4	Z 0 1 0
-A1	AND A, C	4	Z 0 1 0
-A2	AND A, D	4	Z 0 1 0
-A3	AND A, E	4	Z 0 1 0
-A4	AND A, H	4	Z 0 1 0
-A5	AND A, L	4	Z 0 1 0
-A6	AND A, [HL]	8	Z 0 1 0
-A7	AND A, A	4	Z 0 1 0
-A8	XOR A, B	4	Z 0 0 0
-A9	XOR A, C	4	Z 0 0 0
-AA	XOR A, D	4	Z 0 0 0
-AB	XOR A, E	4	Z 0 0 0
-AC	XOR A, H	4	Z 0 0 0
-AD	XOR A, L	4	Z 0 0 0
-AE	XOR A, [HL]	8	Z 0 0 0
-AF	XOR A, A	4	1 0 0 0
-B0	OR A, B	4	Z 0 0 0
-B1	OR A, C	4	Z 0 0 0
-B2	OR A, D	4	Z 0 0 0
-B3	OR A, E	4	Z 0 0 0
-B4	OR A, H	4	Z 0 0 0
-B5	OR A, L	4	Z 0 0 0
-B6	OR A, [HL]	8	Z 0 0 0
-B7	OR A, A	4	Z 0 0 0
-B8	CP A, B	4	Z 1 H C
-B9	CP A, C	4	Z 1 H C
-BA	CP A, D	4	Z 1 H C
-BB	CP A, E	4	Z 1 H C
-BC	CP A, H	4	Z 1 H C
-BD	CP A, L	4	Z 1 H C
-BE	CP A, [HL]	8	Z 1 H C
-BF	CP A, A	4	1 1 0 0
-C0	RET NZ	20/8	- - - -
-C1	POP BC	12	- - - -
-C2	JP NZ, a16	16/12	- - - -
-C3	JP a16	16	- - - -
-C4	CALL NZ, a16	24/12	- - - -
-C5	PUSH BC	16	- - - -
-C6	ADD A, n8	8	Z 0 H C
-C7	RST $00	16	- - - -
-C8	RET Z	20/8	- - - -
-C9	RET	16	- - - -
-CA	JP Z, a16	16/12	- - - -
-CB	PREFIX	4	- - - -
-CC	CALL Z, a16	24/12	- - - -
-CD	CALL a16	24	- - - -
-CE	ADC A, n8	8	Z 0 H C
-CF	RST $08	16	- - - -
-D0	RET NC	20/8	- - - -
-D1	POP DE	12	- - - -
-D2	JP NC, a16	16/12	- - - -
-D4	CALL NC, a16	24/12	- - - -
-D5	PUSH DE	16	- - - -
-D6	SUB A, n8	8	Z 1 H C
-D7	RST $10	16	- - - -
-D8	RET C	20/8	- - - -
-D9	RETI	16	- - - -
-DA	JP C, a16	16/12	- - - -
-DC	CALL C, a16	24/12	- - - -
-DE	SBC A, n8	8	Z 1 H C
-DF	RST $18	16	- - - -
-E0	LDH [a8], A	12	- - - -
-E1	POP HL	12	- - - -
-E2	LDH [C], A	8	- - - -
-E5	PUSH HL	16	- - - -
-E6	AND A, n8	8	Z 0 1 0
-E7	RST $20	16	- - - -
-E8	ADD SP, e8	16	0 0 H C
-E9	JP HL	4	- - - -
-EA	LD [a16], A	16	- - - -
-EE	XOR A, n8	8	Z 0 0 0
-EF	RST $28	16	- - - -
-F0	LDH A, [a8]	12	- - - -
-F1	POP AF	12	Z N H C
-F2	LDH A, [C]	8	- - - -
-F3	DI	4	- - - -
-F5	PUSH AF	16	- - - -
-F6	OR A, n8	8	Z 0 0 0
-F7	RST $30	16	- - - -
-F8	LD HL, SP + e8	12	0 0 H C
-F9	LD SP, HL	8	- - - -
-FA	LD A, [a16]	16	- - - -
-FB	EI	4	- - - -
-FE	CP A, n8	8	Z 1 H C
-FF	RST $38	16	- - - -
+00	NOP	NOP	4	- - - -
+01	LD BC, n16	LD_BC_n16	12	- - - -
+02	LD [BC], A	LD_mBC_A	8	- - - -
+03	INC BC	INC_BC	8	- - - -
+04	INC B	INC_B	4	Z 0 H -
+05	DEC B	DEC_B	4	Z 1 H -
+06	LD B, n8	LD_B_n8	8	- - - -
+07	RLCA	RLCA	4	0 0 0 C
+08	LD [a16], SP	LD_ma16_SP	20	- - - -
+09	ADD HL, BC	ADD_HL_BC	8	- 0 H C
+0A	LD A, [BC]	LD_A_mBC	8	- - - -
+0B	DEC BC	DEC_BC	8	- - - -
+0C	INC C	INC_C	4	Z 0 H -
+0D	DEC C	DEC_C	4	Z 1 H -
+0E	LD C, n8	LD_C_n8	8	- - - -
+0F	RRCA	RRCA	4	0 0 0 C
+10	STOP n8	STOP_n8	4	- - - -
+11	LD DE, n16	LD_DE_n16	12	- - - -
+12	LD [DE], A	LD_mDE_A	8	- - - -
+13	INC DE	INC_DE	8	- - - -
+14	INC D	INC_D	4	Z 0 H -
+15	DEC D	DEC_D	4	Z 1 H -
+16	LD D, n8	LD_D_n8	8	- - - -
+17	RLA	RLA	4	0 0 0 C
+18	JR e8	JR_e8	12	- - - -
+19	ADD HL, DE	ADD_HL_DE	8	- 0 H C
+1A	LD A, [DE]	LD_A_mDE	8	- - - -
+1B	DEC DE	DEC_DE	8	- - - -
+1C	INC E	INC_E	4	Z 0 H -
+1D	DEC E	DEC_E	4	Z 1 H -
+1E	LD E, n8	LD_E_n8	8	- - - -
+1F	RRA	RRA	4	0 0 0 C
+20	JR NZ, e8	JR_NZ_e8	12/8	- - - -
+21	LD HL, n16	LD_HL_n16	12	- - - -
+22	LD [HL+], A	LD_mHLi_A	8	- - - -
+23	INC HL	INC_HL	8	- - - -
+24	INC H	INC_H	4	Z 0 H -
+25	DEC H	DEC_H	4	Z 1 H -
+26	LD H, n8	LD_H_n8	8	- - - -
+27	DAA	DAA	4	Z - 0 C
+28	JR Z, e8	JR_Z_e8	12/8	- - - -
+29	ADD HL, HL	ADD_HL_HL	8	- 0 H C
+2A	LD A, [HL+]	LD_A_mHLi	8	- - - -
+2B	DEC HL	DEC_HL	8	- - - -
+2C	INC L	INC_L	4	Z 0 H -
+2D	DEC L	DEC_L	4	Z 1 H -
+2E	LD L, n8	LD_L_n8	8	- - - -
+2F	CPL	CPL	4	- 1 1 -
+30	JR NC, e8	JR_NC_e8	12/8	- - - -
+31	LD SP, n16	LD_SP_n16	12	- - - -
+32	LD [HL-], A	LD_mHLd_A	8	- - - -
+33	INC SP	INC_SP	8	- - - -
+34	INC [HL]	INC_mHL	12	Z 0 H -
+35	DEC [HL]	DEC_mHL	12	Z 1 H -
+36	LD [HL], n8	LD_mHL_n8	12	- - - -
+37	SCF	SCF	4	- 0 0 1
+38	JR C, e8	JR_C_e8	12/8	- - - -
+39	ADD HL, SP	ADD_HL_SP	8	- 0 H C
+3A	LD A, [HL-]	LD_A_mHLd	8	- - - -
+3B	DEC SP	DEC_SP	8	- - - -
+3C	INC A	INC_A	4	Z 0 H -
+3D	DEC A	DEC_A	4	Z 1 H -
+3E	LD A, n8	LD_A_n8	8	- - - -
+3F	CCF	CCF	4	- 0 0 C
+40	LD B, B	LD_B_B	4	- - - -
+41	LD B, C	LD_B_C	4	- - - -
+42	LD B, D	LD_B_D	4	- - - -
+43	LD B, E	LD_B_E	4	- - - -
+44	LD B, H	LD_B_H	4	- - - -
+45	LD B, L	LD_B_L	4	- - - -
+46	LD B, [HL]	LD_B_mHL	8	- - - -
+47	LD B, A	LD_B_A	4	- - - -
+48	LD C, B	LD_C_B	4	- - - -
+49	LD C, C	LD_C_C	4	- - - -
+4A	LD C, D	LD_C_D	4	- - - -
+4B	LD C, E	LD_C_E	4	- - - -
+4C	LD C, H	LD_C_H	4	- - - -
+4D	LD C, L	LD_C_L	4	- - - -
+4E	LD C, [HL]	LD_C_mHL	8	- - - -
+4F	LD C, A	LD_C_A	4	- - - -
+50	LD D, B	LD_D_B	4	- - - -
+51	LD D, C	LD_D_C	4	- - - -
+52	LD D, D	LD_D_D	4	- - - -
+53	LD D, E	LD_D_E	4	- - - -
+54	LD D, H	LD_D_H	4	- - - -
+55	LD D, L	LD_D_L	4	- - - -
+56	LD D, [HL]	LD_D_mHL	8	- - - -
+57	LD D, A	LD_D_A	4	- - - -
+58	LD E, B	LD_E_B	4	- - - -
+59	LD E, C	LD_E_C	4	- - - -
+5A	LD E, D	LD_E_D	4	- - - -
+5B	LD E, E	LD_E_E	4	- - - -
+5C	LD E, H	LD_E_H	4	- - - -
+5D	LD E, L	LD_E_L	4	- - - -
+5E	LD E, [HL]	LD_E_mHL	8	- - - -
+5F	LD E, A	LD_E_A	4	- - - -
+60	LD H, B	LD_H_B	4	- - - -
+61	LD H, C	LD_H_C	4	- - - -
+62	LD H, D	LD_H_D	4	- - - -
+63	LD H, E	LD_H_E	4	- - - -
+64	LD H, H	LD_H_H	4	- - - -
+65	LD H, L	LD_H_L	4	- - - -
+66	LD H, [HL]	LD_H_mHL	8	- - - -
+67	LD H, A	LD_H_A	4	- - - -
+68	LD L, B	LD_L_B	4	- - - -
+69	LD L, C	LD_L_C	4	- - - -
+6A	LD L, D	LD_L_D	4	- - - -
+6B	LD L, E	LD_L_E	4	- - - -
+6C	LD L, H	LD_L_H	4	- - - -
+6D	LD L, L	LD_L_L	4	- - - -
+6E	LD L, [HL]	LD_L_mHL	8	- - - -
+6F	LD L, A	LD_L_A	4	- - - -
+70	LD [HL], B	LD_mHL_B	8	- - - -
+71	LD [HL], C	LD_mHL_C	8	- - - -
+72	LD [HL], D	LD_mHL_D	8	- - - -
+73	LD [HL], E	LD_mHL_E	8	- - - -
+74	LD [HL], H	LD_mHL_H	8	- - - -
+75	LD [HL], L	LD_mHL_L	8	- - - -
+76	HALT	HALT	4	- - - -
+77	LD [HL], A	LD_mHL_A	8	- - - -
+78	LD A, B	LD_A_B	4	- - - -
+79	LD A, C	LD_A_C	4	- - - -
+7A	LD A, D	LD_A_D	4	- - - -
+7B	LD A, E	LD_A_E	4	- - - -
+7C	LD A, H	LD_A_H	4	- - - -
+7D	LD A, L	LD_A_L	4	- - - -
+7E	LD A, [HL]	LD_A_mHL	8	- - - -
+7F	LD A, A	LD_A_A	4	- - - -
+80	ADD A, B	ADD_A_B	4	Z 0 H C
+81	ADD A, C	ADD_A_C	4	Z 0 H C
+82	ADD A, D	ADD_A_D	4	Z 0 H C
+83	ADD A, E	ADD_A_E	4	Z 0 H C
+84	ADD A, H	ADD_A_H	4	Z 0 H C
+85	ADD A, L	ADD_A_L	4	Z 0 H C
+86	ADD A, [HL]	ADD_A_mHL	8	Z 0 H C
+87	ADD A, A	ADD_A_A	4	Z 0 H C
+88	ADC A, B	ADC_A_B	4	Z 0 H C
+89	ADC A, C	ADC_A_C	4	Z 0 H C
+8A	ADC A, D	ADC_A_D	4	Z 0 H C
+8B	ADC A, E	ADC_A_E	4	Z 0 H C
+8C	ADC A, H	ADC_A_H	4	Z 0 H C
+8D	ADC A, L	ADC_A_L	4	Z 0 H C
+8E	ADC A, [HL]	ADC_A_mHL	8	Z 0 H C
+8F	ADC A, A	ADC_A_A	4	Z 0 H C
+90	SUB A, B	SUB_A_B	4	Z 1 H C
+91	SUB A, C	SUB_A_C	4	Z 1 H C
+92	SUB A, D	SUB_A_D	4	Z 1 H C
+93	SUB A, E	SUB_A_E	4	Z 1 H C
+94	SUB A, H	SUB_A_H	4	Z 1 H C
+95	SUB A, L	SUB_A_L	4	Z 1 H C
+96	SUB A, [HL]	SUB_A_mHL	8	Z 1 H C
+97	SUB A, A	SUB_A_A	4	1 1 0 0
+98	SBC A, B	SBC_A_B	4	Z 1 H C
+99	SBC A, C	SBC_A_C	4	Z 1 H C
+9A	SBC A, D	SBC_A_D	4	Z 1 H C
+9B	SBC A, E	SBC_A_E	4	Z 1 H C
+9C	SBC A, H	SBC_A_H	4	Z 1 H C
+9D	SBC A, L	SBC_A_L	4	Z 1 H C
+9E	SBC A, [HL]	SBC_A_mHL	8	Z 1 H C
+9F	SBC A, A	SBC_A_A	4	Z 1 H -
+A0	AND A, B	AND_A_B	4	Z 0 1 0
+A1	AND A, C	AND_A_C	4	Z 0 1 0
+A2	AND A, D	AND_A_D	4	Z 0 1 0
+A3	AND A, E	AND_A_E	4	Z 0 1 0
+A4	AND A, H	AND_A_H	4	Z 0 1 0
+A5	AND A, L	AND_A_L	4	Z 0 1 0
+A6	AND A, [HL]	AND_A_mHL	8	Z 0 1 0
+A7	AND A, A	AND_A_A	4	Z 0 1 0
+A8	XOR A, B	XOR_A_B	4	Z 0 0 0
+A9	XOR A, C	XOR_A_C	4	Z 0 0 0
+AA	XOR A, D	XOR_A_D	4	Z 0 0 0
+AB	XOR A, E	XOR_A_E	4	Z 0 0 0
+AC	XOR A, H	XOR_A_H	4	Z 0 0 0
+AD	XOR A, L	XOR_A_L	4	Z 0 0 0
+AE	XOR A, [HL]	XOR_A_mHL	8	Z 0 0 0
+AF	XOR A, A	XOR_A_A	4	1 0 0 0
+B0	OR A, B	OR_A_B	4	Z 0 0 0
+B1	OR A, C	OR_A_C	4	Z 0 0 0
+B2	OR A, D	OR_A_D	4	Z 0 0 0
+B3	OR A, E	OR_A_E	4	Z 0 0 0
+B4	OR A, H	OR_A_H	4	Z 0 0 0
+B5	OR A, L	OR_A_L	4	Z 0 0 0
+B6	OR A, [HL]	OR_A_mHL	8	Z 0 0 0
+B7	OR A, A	OR_A_A	4	Z 0 0 0
+B8	CP A, B	CP_A_B	4	Z 1 H C
+B9	CP A, C	CP_A_C	4	Z 1 H C
+BA	CP A, D	CP_A_D	4	Z 1 H C
+BB	CP A, E	CP_A_E	4	Z 1 H C
+BC	CP A, H	CP_A_H	4	Z 1 H C
+BD	CP A, L	CP_A_L	4	Z 1 H C
+BE	CP A, [HL]	CP_A_mHL	8	Z 1 H C
+BF	CP A, A	CP_A_A	4	1 1 0 0
+C0	RET NZ	RET_NZ	20/8	- - - -
+C1	POP BC	POP_BC	12	- - - -
+C2	JP NZ, a16	JP_NZ_a16	16/12	- - - -
+C3	JP a16	JP_a16	16	- - - -
+C4	CALL NZ, a16	CALL_NZ_a16	24/12	- - - -
+C5	PUSH BC	PUSH_BC	16	- - - -
+C6	ADD A, n8	ADD_A_n8	8	Z 0 H C
+C7	RST $00	RST_v00	16	- - - -
+C8	RET Z	RET_Z	20/8	- - - -
+C9	RET	RET	16	- - - -
+CA	JP Z, a16	JP_Z_a16	16/12	- - - -
+CB	PREFIX	PREFIX	4	- - - -
+CC	CALL Z, a16	CALL_Z_a16	24/12	- - - -
+CD	CALL a16	CALL_a16	24	- - - -
+CE	ADC A, n8	ADC_A_n8	8	Z 0 H C
+CF	RST $08	RST_v08	16	- - - -
+D0	RET NC	RET_NC	20/8	- - - -
+D1	POP DE	POP_DE	12	- - - -
+D2	JP NC, a16	JP_NC_a16	16/12	- - - -
+D4	CALL NC, a16	CALL_NC_a16	24/12	- - - -
+D5	PUSH DE	PUSH_DE	16	- - - -
+D6	SUB A, n8	SUB_A_n8	8	Z 1 H C
+D7	RST $10	RST_v10	16	- - - -
+D8	RET C	RET_C	20/8	- - - -
+D9	RETI	RETI	16	- - - -
+DA	JP C, a16	JP_C_a16	16/12	- - - -
+DC	CALL C, a16	CALL_C_a16	24/12	- - - -
+DE	SBC A, n8	SBC_A_n8	8	Z 1 H C
+DF	RST $18	RST_v18	16	- - - -
+E0	LDH [a8], A	LDH_ma8_A	12	- - - -
+E1	POP HL	POP_HL	12	- - - -
+E2	LDH [C], A	LDH_mC_A	8	- - - -
+E5	PUSH HL	PUSH_HL	16	- - - -
+E6	AND A, n8	AND_A_n8	8	Z 0 1 0
+E7	RST $20	RST_v20	16	- - - -
+E8	ADD SP, e8	ADD_SP_e8	16	0 0 H C
+E9	JP HL	JP_HL	4	- - - -
+EA	LD [a16], A	LD_ma16_A	16	- - - -
+EE	XOR A, n8	XOR_A_n8	8	Z 0 0 0
+EF	RST $28	RST_v28	16	- - - -
+F0	LDH A, [a8]	LDH_A_ma8	12	- - - -
+F1	POP AF	POP_AF	12	Z N H C
+F2	LDH A, [C]	LDH_A_mC	8	- - - -
+F3	DI	DI	4	- - - -
+F5	PUSH AF	PUSH_AF	16	- - - -
+F6	OR A, n8	OR_A_n8	8	Z 0 0 0
+F7	RST $30	RST_v30	16	- - - -
+F8	LD HL, SP+e8	LD_HL_SPe8	12	0 0 H C
+F9	LD SP, HL	LD_SP_HL	8	- - - -
+FA	LD A, [a16]	LD_A_ma16	16	- - - -
+FB	EI	EI	4	- - - -
+FE	CP A, n8	CP_A_n8	8	Z 1 H C
+FF	RST $38	RST_v38	16	- - - -
