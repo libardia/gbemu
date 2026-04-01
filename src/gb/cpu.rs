@@ -1,3 +1,5 @@
+pub mod instructions;
+
 #[derive(Default)]
 pub struct CPU {
     // Registers
@@ -52,7 +54,7 @@ macro_rules! flag {
 impl CPU {
     pub fn new() -> Self {
         let cpu = Default::default();
-        // TODO: initializtion
+        // TODO: init
         cpu
     }
 
