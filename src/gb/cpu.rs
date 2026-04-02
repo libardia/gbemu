@@ -7,40 +7,40 @@ use crate::gb::{
     mmu::MMU,
 };
 
-pub mod instructions;
-pub mod optables;
+mod instructions;
+mod optables;
 
 #[derive(Default)]
 pub struct CPU {
     // Registers
-    pub b: u8,
-    pub c: u8,
+    b: u8,
+    c: u8,
 
-    pub d: u8,
-    pub e: u8,
+    d: u8,
+    e: u8,
 
-    pub h: u8,
-    pub l: u8,
+    h: u8,
+    l: u8,
 
-    pub a: u8,
-    pub f: u8,
+    a: u8,
+    f: u8,
 
     // Internal
-    pub pc: u16,
-    pub sp: u16,
+    pc: u16,
+    sp: u16,
 
-    pub prefix_mode: bool,
-    pub halt_bug: bool,
+    prefix_mode: bool,
+    halt_bug: bool,
 }
 
 macro_rules! r16 {
     ($r1:ident + $r2:ident) => {
         paste::paste! {
-            pub fn [<get_ $r1 $r2>](&self) -> u16 {
+            fn [<get_ $r1 $r2>](&self) -> u16 {
                 (self.$r1 as u16) << 8 | self.$r2 as u16
             }
 
-            pub fn [<set_ $r1 $r2>](&mut self, value: u16) {
+            fn [<set_ $r1 $r2>](&mut self, value: u16) {
                 self.$r1 = (value >> 8) as u8;
                 self.$r2 = (value & 0xFF) as u8
             }
@@ -53,11 +53,11 @@ macro_rules! flag {
         paste::paste! {
             const [<FLAG_ $f:upper _MASK>]: u8 = 1 << $bit;
 
-            pub fn [<get_flag_ $f>](&self) -> bool {
+            fn [<get_flag_ $f>](&self) -> bool {
                 self.f & Self::[<FLAG_ $f:upper _MASK>] != 0
             }
 
-            pub fn [<set_flag_ $f>](&mut self, value: bool) {
+            fn [<set_flag_ $f>](&mut self, value: bool) {
                 if value {
                     self.f |= Self::[<FLAG_ $f:upper _MASK>];
                 } else {
@@ -85,7 +85,7 @@ impl CPU {
     flag!(h, 5);
     flag!(c, 4);
 
-    pub fn next_byte(ctx: &mut GameBoy) -> u8 {
+    fn next_byte(ctx: &mut GameBoy) -> u8 {
         let byte = MMU::read(ctx, ctx.cpu.pc);
         if ctx.cpu.halt_bug {
             // PC doesn't increment, whoops!
@@ -96,7 +96,7 @@ impl CPU {
         byte
     }
 
-    pub fn decode(ctx: &mut GameBoy) -> Instruction {
+    fn decode(ctx: &mut GameBoy) -> Instruction {
         let byte = CPU::next_byte(ctx) as usize;
         if ctx.cpu.prefix_mode {
             ctx.cpu.prefix_mode = false;
