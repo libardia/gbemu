@@ -1,4 +1,14 @@
+use crate::gb::{
+    GameBoy,
+    cpu::{
+        instructions::Instruction,
+        optables::{OPTABLE, PREFIX_OPTABLE},
+    },
+    mmu::MMU,
+};
+
 pub mod instructions;
+pub mod optables;
 
 #[derive(Default)]
 pub struct CPU {
@@ -14,6 +24,13 @@ pub struct CPU {
 
     pub a: u8,
     pub f: u8,
+
+    // Internal
+    pub pc: u16,
+    pub sp: u16,
+
+    pub prefix_mode: bool,
+    pub halt_bug: bool,
 }
 
 macro_rules! r16 {
@@ -67,11 +84,32 @@ impl CPU {
     flag!(n, 6);
     flag!(h, 5);
     flag!(c, 4);
+
+    pub fn next_byte(ctx: &mut GameBoy) -> u8 {
+        let byte = MMU::read(ctx, ctx.cpu.pc);
+        if ctx.cpu.halt_bug {
+            // PC doesn't increment, whoops!
+            ctx.cpu.halt_bug = false
+        } else {
+            ctx.cpu.pc = ctx.cpu.pc.wrapping_add(1)
+        }
+        byte
+    }
+
+    pub fn decode(ctx: &mut GameBoy) -> Instruction {
+        let byte = CPU::next_byte(ctx) as usize;
+        if ctx.cpu.prefix_mode {
+            ctx.cpu.prefix_mode = false;
+            PREFIX_OPTABLE[byte]
+        } else {
+            OPTABLE[byte]
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::gb::cpu::CPU;
+    use super::*;
 
     macro_rules! r16_test {
         ($r1:ident + $r2:ident) => {
@@ -101,4 +139,47 @@ mod tests {
     r16_test!(d + e);
     r16_test!(h + l);
     r16_test!(a + f);
+
+    #[test]
+    pub fn decode_test() {
+        let mut gb = GameBoy::new();
+
+        let address = 0xCA; // Address $00CA
+        let byte = 0xFE; // Instruction CP_A_n8
+
+        gb.cpu.pc = address;
+        MMU::write(&mut gb, address, byte);
+
+        assert_eq!(gb.cpu.pc, address);
+        let inst = CPU::decode(&mut gb);
+        assert_eq!(gb.cpu.pc, address + 1);
+        assert_eq!(inst, Instruction::CP_A_n8)
+    }
+
+    #[test]
+    pub fn decode_prefix_test() {
+        let mut gb = GameBoy::new();
+
+        let address = 0xBE; // Address $00CA
+        let prefix = 0xCB; // Instruction prefix
+        let byte = 0xEF; // Instruction SET_5_A
+
+        gb.cpu.pc = address;
+        MMU::write(&mut gb, address, prefix);
+        MMU::write(&mut gb, address + 1, byte);
+
+        assert!(!gb.cpu.prefix_mode);
+        assert_eq!(gb.cpu.pc, address);
+        let inst = CPU::decode(&mut gb);
+        assert_eq!(gb.cpu.pc, address + 1);
+        assert_eq!(inst, Instruction::PREFIX);
+
+        // "Execution" of the prefix instruction really is just a NOP and setting prefix mode
+        gb.cpu.prefix_mode = true;
+
+        let inst = CPU::decode(&mut gb);
+        assert_eq!(gb.cpu.pc, address + 2);
+        assert_eq!(inst, Instruction::SET_5_A);
+        assert!(!gb.cpu.prefix_mode);
+    }
 }

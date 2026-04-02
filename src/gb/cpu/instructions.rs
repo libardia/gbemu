@@ -1,5 +1,6 @@
 #[allow(non_camel_case_types)]
-enum Instruction {
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Instruction {
     /* #region Load instructions */
     LD_B_B,    // $40: LD B, B
     LD_B_C,    // $41: LD B, C
