@@ -1,5 +1,8 @@
-#![allow(dead_code)]
+use crate::gb::GameBoy;
 
 mod gb;
 
-fn main() {}
+fn main() {
+    let mut gb = GameBoy::new();
+    gb.run();
+}

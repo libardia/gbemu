@@ -75,6 +75,11 @@ impl CPU {
         cpu
     }
 
+    pub fn step(ctx: &mut GameBoy) {
+        let inst = CPU::decode(ctx);
+        // TODO: execute inst
+    }
+
     r16!(b + c);
     r16!(d + e);
     r16!(h + l);
@@ -85,8 +90,18 @@ impl CPU {
     flag!(h, 5);
     flag!(c, 4);
 
+    fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
+        ctx.long_tick(); // Read takes 1 m-cycle
+        MMU::read(ctx, address)
+    }
+
+    fn write_tick(ctx: &mut GameBoy, address: u16, byte: u8) {
+        ctx.long_tick(); // Write takes 1 m-cycle
+        MMU::write(ctx, address, byte);
+    }
+
     fn next_byte(ctx: &mut GameBoy) -> u8 {
-        let byte = MMU::read(ctx, ctx.cpu.pc);
+        let byte = CPU::read_tick(ctx, ctx.cpu.pc);
         if ctx.cpu.halt_bug {
             // PC doesn't increment, whoops!
             ctx.cpu.halt_bug = false
