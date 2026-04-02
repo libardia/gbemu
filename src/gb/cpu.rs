@@ -7,6 +7,7 @@ use crate::gb::{
     mmu::MMU,
 };
 
+mod execute;
 mod instructions;
 mod optables;
 
@@ -40,9 +41,9 @@ macro_rules! r16 {
                 (self.$r1 as u16) << 8 | self.$r2 as u16
             }
 
-            fn [<set_ $r1 $r2>](&mut self, value: u16) {
-                self.$r1 = (value >> 8) as u8;
-                self.$r2 = (value & 0xFF) as u8
+            fn [<set_ $r1 $r2>](&mut self, word: u16) {
+                self.$r1 = (word >> 8) as u8;
+                self.$r2 = (word & 0xFF) as u8
             }
         }
     };
@@ -78,12 +79,25 @@ impl CPU {
     pub fn step(ctx: &mut GameBoy) {
         let inst = CPU::decode(ctx);
         // TODO: execute inst
+        CPU::execute(ctx, inst);
     }
 
     r16!(b + c);
     r16!(d + e);
     r16!(h + l);
     r16!(a + f);
+
+    fn get_hli(&mut self) -> u16 {
+        let hl = self.get_hl();
+        self.set_hl(hl.wrapping_add(1));
+        hl
+    }
+
+    fn get_hld(&mut self) -> u16 {
+        let hl = self.get_hl();
+        self.set_hl(hl.wrapping_sub(1));
+        hl
+    }
 
     flag!(z, 7);
     flag!(n, 6);
@@ -109,6 +123,12 @@ impl CPU {
             ctx.cpu.pc = ctx.cpu.pc.wrapping_add(1)
         }
         byte
+    }
+
+    fn next_word(ctx: &mut GameBoy) -> u16 {
+        let lower = CPU::next_byte(ctx);
+        let upper = CPU::next_byte(ctx);
+        (upper as u16) << 8 | lower as u16
     }
 
     fn decode(ctx: &mut GameBoy) -> Instruction {
