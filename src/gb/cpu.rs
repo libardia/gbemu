@@ -140,6 +140,14 @@ impl CPU {
             OPTABLE[byte]
         }
     }
+
+    /* #region For test purposes */
+    #[cfg(test)]
+    pub fn set_instruction_at(ctx: &mut GameBoy, address: u16, byte: u8) {
+        MMU::force_write(ctx, address, byte);
+        ctx.cpu.pc = address;
+    }
+    /* #endregion */
 }
 
 #[cfg(test)]

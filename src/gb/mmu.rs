@@ -20,4 +20,16 @@ impl MMU {
     pub fn write(ctx: &mut GameBoy, address: u16, byte: u8) {
         ctx.mmu.mem[address as usize] = byte;
     }
+
+    /* #region For test purposes */
+    #[cfg(test)]
+    pub fn force_read(ctx: &mut GameBoy, address: u16) -> u8 {
+        ctx.mmu.mem[address as usize]
+    }
+
+    #[cfg(test)]
+    pub fn force_write(ctx: &mut GameBoy, address: u16, byte: u8) {
+        ctx.mmu.mem[address as usize] = byte;
+    }
+    /* #endregion */
 }

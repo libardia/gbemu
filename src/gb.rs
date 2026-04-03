@@ -6,6 +6,8 @@ mod mmu;
 pub struct GameBoy {
     cpu: CPU,
     mmu: MMU,
+
+    debug_timer: u64,
 }
 
 impl GameBoy {
@@ -13,6 +15,8 @@ impl GameBoy {
         Self {
             cpu: CPU::new(),
             mmu: MMU::new(),
+
+            debug_timer: Default::default(),
         }
     }
 
@@ -31,5 +35,7 @@ impl GameBoy {
         }
     }
 
-    fn tick(&mut self) {}
+    fn tick(&mut self) {
+        self.debug_timer += 1;
+    }
 }
