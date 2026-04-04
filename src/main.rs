@@ -5,8 +5,11 @@ use log::{LevelFilter, debug, error};
 
 use crate::gb::GameBoy;
 
-mod gb;
-mod macros;
+pub mod gb;
+pub mod macros;
+
+#[cfg(test)]
+mod testutil;
 
 fn main() {
     init_logging("logs");

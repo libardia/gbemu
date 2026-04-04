@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use log::debug;
 
 use crate::{
@@ -14,41 +12,41 @@ use crate::{
     hex,
 };
 
-mod execute;
-mod instructions;
-mod optables;
+pub mod execute;
+pub mod instructions;
+pub mod optables;
 
 #[derive(Debug, Default)]
 pub struct CPU {
     // Registers
-    b: u8,
-    c: u8,
+    pub b: u8,
+    pub c: u8,
 
-    d: u8,
-    e: u8,
+    pub d: u8,
+    pub e: u8,
 
-    h: u8,
-    l: u8,
+    pub h: u8,
+    pub l: u8,
 
-    a: u8,
-    f: u8,
+    pub a: u8,
+    pub f: u8,
 
     // Internal
-    pc: u16,
-    sp: u16,
+    pub pc: u16,
+    pub sp: u16,
 
-    prefix_mode: bool,
-    halt_bug: bool,
+    pub prefix_mode: bool,
+    pub halt_bug: bool,
 }
 
 macro_rules! r16 {
     ($r1:ident + $r2:ident) => {
         paste::paste! {
-            fn [<get_ $r1 $r2>](&self) -> u16 {
+            pub fn [<get_ $r1 $r2>](&self) -> u16 {
                 (self.$r1 as u16) << 8 | self.$r2 as u16
             }
 
-            fn [<set_ $r1 $r2>](&mut self, word: u16) {
+            pub fn [<set_ $r1 $r2>](&mut self, word: u16) {
                 self.$r1 = (word >> 8) as u8;
                 self.$r2 = (word & 0xFF) as u8
             }
@@ -59,13 +57,13 @@ macro_rules! r16 {
 macro_rules! flag {
     ($f:ident, $bit:literal) => {
         paste::paste! {
-            const [<FLAG_ $f:upper _MASK>]: u8 = 1 << $bit;
+            pub const [<FLAG_ $f:upper _MASK>]: u8 = 1 << $bit;
 
-            fn [<get_flag_ $f>](&self) -> bool {
+            pub fn [<get_flag_ $f>](&self) -> bool {
                 self.f & Self::[<FLAG_ $f:upper _MASK>] != 0
             }
 
-            fn [<set_flag_ $f>](&mut self, value: bool) {
+            pub fn [<set_flag_ $f>](&mut self, value: bool) {
                 if value {
                     self.f |= Self::[<FLAG_ $f:upper _MASK>];
                 } else {
@@ -96,13 +94,13 @@ impl CPU {
     r16!(h + l);
     r16!(a + f);
 
-    fn get_hli(&mut self) -> u16 {
+    pub fn get_hli(&mut self) -> u16 {
         let hl = self.get_hl();
         self.set_hl(hl.wrapping_add(1));
         hl
     }
 
-    fn get_hld(&mut self) -> u16 {
+    pub fn get_hld(&mut self) -> u16 {
         let hl = self.get_hl();
         self.set_hl(hl.wrapping_sub(1));
         hl
@@ -113,17 +111,17 @@ impl CPU {
     flag!(h, 5);
     flag!(c, 4);
 
-    fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
+    pub fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
         ctx.long_tick(); // Read takes 1 m-cycle
         MMU::read(ctx, address)
     }
 
-    fn write_tick(ctx: &mut GameBoy, address: u16, byte: u8) {
+    pub fn write_tick(ctx: &mut GameBoy, address: u16, byte: u8) {
         ctx.long_tick(); // Write takes 1 m-cycle
         MMU::write(ctx, address, byte);
     }
 
-    fn next_byte(ctx: &mut GameBoy) -> u8 {
+    pub fn next_byte(ctx: &mut GameBoy) -> u8 {
         let byte = CPU::read_tick(ctx, ctx.cpu.pc);
         if ctx.cpu.halt_bug {
             // PC doesn't increment, whoops!
@@ -134,13 +132,13 @@ impl CPU {
         byte
     }
 
-    fn next_word(ctx: &mut GameBoy) -> u16 {
+    pub fn next_word(ctx: &mut GameBoy) -> u16 {
         let lower = CPU::next_byte(ctx);
         let upper = CPU::next_byte(ctx);
         (upper as u16) << 8 | lower as u16
     }
 
-    fn decode(ctx: &mut GameBoy) -> Instruction {
+    pub fn decode(ctx: &mut GameBoy) -> Instruction {
         let byte = CPU::next_byte(ctx) as usize;
         debug!("Byte: {}", hex!(byte, 2));
         if ctx.cpu.prefix_mode {

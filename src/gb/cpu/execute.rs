@@ -3,10 +3,10 @@ use crate::gb::{
     cpu::{CPU, execute::load::*, instructions::Instruction},
 };
 
-mod load;
+pub mod load;
 
 impl CPU {
-    pub(super) fn execute(ctx: &mut GameBoy, inst: Instruction) {
+    pub fn execute(ctx: &mut GameBoy, inst: Instruction) {
         macro_rules! todo_inst {
             () => {
                 todo!("instruction {inst:?}")

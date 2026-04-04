@@ -7,12 +7,12 @@ pub mod region;
 
 #[derive(Debug, Default)]
 pub struct MMU {
-    vram: MappedMemoryRegion,
-    wram: MappedMemoryRegion,
-    oam: MappedMemoryRegion,
-    hram: MappedMemoryRegion,
+    pub vram: MappedMemoryRegion,
+    pub wram: MappedMemoryRegion,
+    pub oam: MappedMemoryRegion,
+    pub hram: MappedMemoryRegion,
 
-    boot_mode: bool,
+    pub boot_mode: bool,
 }
 
 macro_rules! address_dispatch {
@@ -29,7 +29,7 @@ macro_rules! address_dispatch {
 }
 
 impl MMU {
-    const ECHO_RAM_OFFSET: u16 = ECHO_RAM_BEGIN - WORK_RAM_BEGIN;
+    pub const ECHO_RAM_OFFSET: u16 = ECHO_RAM_BEGIN - WORK_RAM_BEGIN;
 
     pub fn new() -> Self {
         Self {

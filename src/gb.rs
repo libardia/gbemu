@@ -1,14 +1,14 @@
 use crate::gb::{cpu::CPU, mmu::MMU};
 
-mod cpu;
-mod mmu;
+pub mod cpu;
+pub mod mmu;
 
 #[derive(Debug)]
 pub struct GameBoy {
-    cpu: CPU,
-    mmu: MMU,
+    pub cpu: CPU,
+    pub mmu: MMU,
 
-    debug_timer: u64,
+    pub debug_timer: u64,
 }
 
 impl GameBoy {
