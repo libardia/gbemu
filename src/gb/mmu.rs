@@ -1,35 +1,114 @@
-use crate::gb::GameBoy;
+use crate::{
+    gb::{GameBoy, mmu::region::*},
+    hex,
+};
 
-#[derive(Default)]
+pub mod region;
+
+#[derive(Debug, Default)]
 pub struct MMU {
-    mem: Vec<u8>,
+    vram: MappedMemoryRegion,
+    wram: MappedMemoryRegion,
+    oam: MappedMemoryRegion,
+    hram: MappedMemoryRegion,
+
+    boot_mode: bool,
+}
+
+macro_rules! address_dispatch {
+    {
+        on $address:ident:
+            $($(#$reg:ident)?$($value:ident)? => $op:expr,)+
+            $(_ => $op_other:expr,)?
+    } => {
+        match $address {
+            $($(_ if $reg.contains($address))? $($value)? => $op,)+
+            $(_ => $op_other,)?
+        }
+    };
 }
 
 impl MMU {
+    const ECHO_RAM_OFFSET: u16 = ECHO_RAM_BEGIN - WORK_RAM_BEGIN;
+
     pub fn new() -> Self {
-        let mut mmu = MMU::default();
-        // TODO: init
-        mmu.mem = vec![0xFF; 0x10000];
-        mmu
+        Self {
+            vram: MappedMemoryRegion::new(VRAM),
+            wram: MappedMemoryRegion::new(WORK_RAM),
+            oam: MappedMemoryRegion::new(OAM),
+            hram: MappedMemoryRegion::new(HIGH_RAM),
+
+            boot_mode: false,
+        }
     }
 
-    pub fn read(ctx: &mut GameBoy, address: u16) -> u8 {
-        ctx.mmu.mem[address as usize]
+    pub fn read(ctx: &GameBoy, address: u16) -> u8 {
+        if ctx.mmu.boot_mode {
+            if BOOT_ROM.contains(address) {
+                // TODO Return early (BOOT ROM "maps over" everything else)
+                todo!("boot ROM doesn't exist yet");
+            }
+        }
+
+        address_dispatch! {
+            on address:
+                // ROM and RAM
+                #ROM_SPACE => todo!("read from ROM_SPACE"),
+                #VRAM      => ctx.mmu.vram.get(address),
+                #CART_RAM  => todo!("read from CART_RAM"),
+                #WORK_RAM  => ctx.mmu.wram.get(address),
+                #ECHO_RAM  => ctx.mmu.wram.get(address - Self::ECHO_RAM_OFFSET),
+                #OAM       => ctx.mmu.oam.get(address),
+                #HIGH_RAM  => ctx.mmu.hram.get(address),
+
+                // TODO IO registers
+                // IO_JOYP      => Input::read(ctx, address),
+                // #IO_SERIAL   => Serial::read(ctx, address),
+                // #IO_TIMER    => Timer::read(ctx, address),
+                // IO_IF        => get_bits_of!(ctx.mem.io_if, 0x1F),
+                // #IO_AUDIO    => Audio::read(ctx, address),
+                // #IO_GRAPHICS => Graphics::read(ctx, address),
+                // IO_IE        => ctx.mem.io_ie,
+
+                // Anything else is unreadable
+                _ => 0xFF,
+        }
     }
 
     pub fn write(ctx: &mut GameBoy, address: u16, byte: u8) {
-        ctx.mmu.mem[address as usize] = byte;
-    }
+        if ctx.mmu.boot_mode {
+            if BOOT_ROM.contains(address) {
+                panic!(
+                    "Something tried to write {} to address {} in the boot rom. Something has gone very wrong!",
+                    hex!(byte, 2),
+                    hex!(address, 4)
+                );
+            }
+        }
 
-    /* #region For test purposes */
-    #[cfg(test)]
-    pub fn force_read(ctx: &mut GameBoy, address: u16) -> u8 {
-        ctx.mmu.mem[address as usize]
-    }
+        address_dispatch! {
+            on address:
+                // ROM and RAM
+                #ROM_SPACE => todo!("write to ROM_SPACE"),
+                #VRAM      => ctx.mmu.vram.set(address, byte),
+                #CART_RAM  => todo!("write to CART_RAM"),
+                #WORK_RAM  => ctx.mmu.wram.set(address, byte),
+                #ECHO_RAM  => ctx.mmu.wram.set(address - Self::ECHO_RAM_OFFSET, byte),
+                #OAM       => ctx.mmu.oam.set(address, byte),
+                #HIGH_RAM  => ctx.mmu.hram.set(address, byte),
 
-    #[cfg(test)]
-    pub fn force_write(ctx: &mut GameBoy, address: u16, byte: u8) {
-        ctx.mmu.mem[address as usize] = byte;
+                // TODO IO registers
+                // IO_JOYP      => Input::write(ctx, address, value),
+                // #IO_SERIAL   => Serial::write(ctx, address, value),
+                // #IO_TIMER    => Timer::write(ctx, address, value),
+                // IO_IF        => ctx.mem.io_if = set_bits_of!(ctx.mem.io_if, value, 0x1F),
+                // #IO_AUDIO    => Audio::write(ctx, address, value),
+                // #IO_GRAPHICS => Graphics::write(ctx, address, value),
+                // IO_BANK      => if value != 0 { ctx.mem.boot_mode = false },
+                // IO_IE        => ctx.mem.io_ie = value,
+
+                // Anything else is unwritable
+                _ => (),
+        }
     }
-    /* #endregion */
 }

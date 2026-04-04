@@ -1,17 +1,24 @@
-use crate::gb::{
-    GameBoy,
-    cpu::{
-        instructions::Instruction,
-        optables::{OPTABLE, PREFIX_OPTABLE},
+#![allow(dead_code)]
+
+use log::debug;
+
+use crate::{
+    gb::{
+        GameBoy,
+        cpu::{
+            instructions::Instruction,
+            optables::{OPTABLE, PREFIX_OPTABLE},
+        },
+        mmu::{MMU, region::WORK_RAM_BEGIN},
     },
-    mmu::MMU,
+    hex,
 };
 
 mod execute;
 mod instructions;
 mod optables;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CPU {
     // Registers
     b: u8,
@@ -71,14 +78,16 @@ macro_rules! flag {
 
 impl CPU {
     pub fn new() -> Self {
-        let cpu = Default::default();
+        let mut cpu = CPU::default();
         // TODO: init
+        // TODO: REMOVE THIS WHEN ROM IS READY
+        cpu.pc = WORK_RAM_BEGIN;
         cpu
     }
 
     pub fn step(ctx: &mut GameBoy) {
         let inst = CPU::decode(ctx);
-        // TODO: execute inst
+        debug!("Instruction: {inst:?}");
         CPU::execute(ctx, inst);
     }
 
@@ -133,6 +142,7 @@ impl CPU {
 
     fn decode(ctx: &mut GameBoy) -> Instruction {
         let byte = CPU::next_byte(ctx) as usize;
+        debug!("Byte: {}", hex!(byte, 2));
         if ctx.cpu.prefix_mode {
             ctx.cpu.prefix_mode = false;
             PREFIX_OPTABLE[byte]
@@ -140,14 +150,6 @@ impl CPU {
             OPTABLE[byte]
         }
     }
-
-    /* #region For test purposes */
-    #[cfg(test)]
-    pub fn set_instruction_at(ctx: &mut GameBoy, address: u16, byte: u8) {
-        MMU::force_write(ctx, address, byte);
-        ctx.cpu.pc = address;
-    }
-    /* #endregion */
 }
 
 #[cfg(test)]
@@ -187,7 +189,7 @@ mod tests {
     pub fn decode_test() {
         let mut gb = GameBoy::new();
 
-        let address = 0xCA; // Address $00CA
+        let address = 0xC0CA; // Put instruction in work ram
         let byte = 0xFE; // Instruction CP_A_n8
 
         gb.cpu.pc = address;
@@ -203,7 +205,7 @@ mod tests {
     pub fn decode_prefix_test() {
         let mut gb = GameBoy::new();
 
-        let address = 0xBE; // Address $00CA
+        let address = 0xC0BE; // Put instruction in work ram
         let prefix = 0xCB; // Instruction prefix
         let byte = 0xEF; // Instruction SET_5_A
 
