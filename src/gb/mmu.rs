@@ -1,3 +1,5 @@
+use log::warn;
+
 use crate::{
     gb::{GameBoy, mmu::region::*},
     hex,
@@ -7,6 +9,8 @@ pub mod region;
 
 #[derive(Debug, Default)]
 pub struct MMU {
+    pub rom: MappedMemoryRegion,
+
     pub vram: MappedMemoryRegion,
     pub wram: MappedMemoryRegion,
     pub oam: MappedMemoryRegion,
@@ -33,20 +37,22 @@ impl MMU {
 
     pub fn new() -> Self {
         Self {
+            rom: MappedMemoryRegion::new(BOOT_ROM),
+
             vram: MappedMemoryRegion::new(VRAM),
             wram: MappedMemoryRegion::new(WORK_RAM),
             oam: MappedMemoryRegion::new(OAM),
             hram: MappedMemoryRegion::new(HIGH_RAM),
 
-            boot_mode: false,
+            boot_mode: true,
         }
     }
 
     pub fn read(ctx: &GameBoy, address: u16) -> u8 {
         if ctx.mmu.boot_mode {
             if BOOT_ROM.contains(address) {
-                // TODO Return early (BOOT ROM "maps over" everything else)
-                todo!("boot ROM doesn't exist yet");
+                // Return early (boot rom "maps over" everything else)
+                return ctx.mmu.rom.get(address);
             }
         }
 
@@ -71,18 +77,25 @@ impl MMU {
                 // IO_IE        => ctx.mem.io_ie,
 
                 // Anything else is unreadable
-                _ => 0xFF,
+                _ => {
+                    warn!(
+                        "read from invalid address {}, $FF will be returned",
+                        hex!(address, 4),
+                    );
+                    0xFF
+                },
         }
     }
 
     pub fn write(ctx: &mut GameBoy, address: u16, byte: u8) {
         if ctx.mmu.boot_mode {
             if BOOT_ROM.contains(address) {
-                panic!(
-                    "Something tried to write {} to address {} in the boot rom. Something has gone very wrong!",
+                warn!(
+                    "ignored write {} to address {} in the boot rom",
                     hex!(byte, 2),
-                    hex!(address, 4)
+                    hex!(address, 4),
                 );
+                return;
             }
         }
 
@@ -108,7 +121,11 @@ impl MMU {
                 // IO_IE        => ctx.mem.io_ie = value,
 
                 // Anything else is unwritable
-                _ => (),
+                _ => warn!(
+                    "ignored write {} to address {}",
+                    hex!(byte, 2),
+                    hex!(address, 4)
+                ),
         }
     }
 }

@@ -7,7 +7,7 @@ use crate::{
             instructions::Instruction,
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
-        mmu::{MMU, region::WORK_RAM_BEGIN},
+        mmu::MMU,
     },
     hex,
 };
@@ -76,10 +76,8 @@ macro_rules! flag {
 
 impl CPU {
     pub fn new() -> Self {
-        let mut cpu = CPU::default();
+        let cpu = CPU::default();
         // TODO: init
-        // TODO: REMOVE THIS WHEN ROM IS READY
-        cpu.pc = WORK_RAM_BEGIN;
         cpu
     }
 
@@ -112,12 +110,12 @@ impl CPU {
     flag!(c, 4);
 
     pub fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
-        ctx.long_tick(); // Read takes 1 m-cycle
+        ctx.m_tick(); // Read takes 1 m-cycle
         MMU::read(ctx, address)
     }
 
     pub fn write_tick(ctx: &mut GameBoy, address: u16, byte: u8) {
-        ctx.long_tick(); // Write takes 1 m-cycle
+        ctx.m_tick(); // Write takes 1 m-cycle
         MMU::write(ctx, address, byte);
     }
 

@@ -23,8 +23,8 @@ macro_rules! step_test {
     (
         ctx: $ctx:expr;
         code: $code:literal, length: $length:literal, cycles: $cycles:literal
-        setup $setup:block
-        after $after:block
+        $(setup $setup:block)?
+        $(after $after:block)?
     ) => {{
         crate::testutil::prepare_instruction(
             $ctx,
@@ -32,11 +32,11 @@ macro_rules! step_test {
             $code
         );
 
-        $setup
+        $($setup)?
 
         crate::gb::cpu::CPU::step($ctx);
 
-        $after
+        $($after)?
 
         assert_eq!(
             $ctx.cpu.pc,

@@ -61,6 +61,22 @@ impl MappedMemoryRegion {
         let local = self.local_address(address);
         self.mem[local as usize] = value;
     }
+
+    pub fn as_vec(&self) -> &Vec<u8> {
+        &self.mem
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        self.as_vec().as_slice()
+    }
+
+    pub fn as_mut_vec(&mut self) -> &mut Vec<u8> {
+        &mut self.mem
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [u8] {
+        self.as_mut_vec().as_mut_slice()
+    }
 }
 
 impl Debug for MappedMemoryRegion {
@@ -116,6 +132,14 @@ mod tests {
         assert!(reg.contains(7));
         assert!(reg.contains(10));
         assert!(!reg.contains(11));
+    }
+
+    #[test]
+    fn test_size() {
+        let reg = MemoryRegion::new(5, 10);
+        assert_eq!(reg.size, 6);
+        assert_eq!(reg.size(), 6);
+        assert_eq!(reg.usize(), 6);
     }
 
     #[test]

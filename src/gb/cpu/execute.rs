@@ -2,12 +2,13 @@ use crate::gb::{
     GameBoy,
     cpu::{
         CPU,
-        execute::load::*,
+        execute::{load::*, misc::*},
         instructions::Instruction::{self, *},
     },
 };
 
 pub mod load;
+pub mod misc;
 
 impl CPU {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) {
@@ -536,7 +537,7 @@ impl CPU {
 
             // Misc
             DAA => todo_inst!(),
-            NOP => todo_inst!(),
+            NOP => nop(ctx),
             STOP_n8 => todo_inst!(),
             PREFIX => todo_inst!(),
             INVALID => panic!("attempted to execute an invalid instruction"),

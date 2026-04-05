@@ -28,19 +28,19 @@
             //     "logs/debug.log", // stderr
             // ],
         },
-        // {
-        //     "name": "gbemu: tests",
-        //     "type": "lldb",
-        //     "request": "launch",
-        //     "cargo": {
-        //         "args": [
-        //             "test",
-        //             "--bin=gbemu",
-        //         ]
-        //     },
-        //     "env": {
-        //         "RUST_LOG": "debug",
-        //     },
-        // },
+        {
+            "name": "gbemu: tests",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--bin=gbemu",
+                ]
+            },
+            "env": {
+                "RUST_LOG": "debug",
+            },
+        },
     ]
 }

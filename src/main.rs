@@ -28,6 +28,7 @@ fn main() {
 
     let mut gb = GameBoy::new();
     debug!("{gb:?}");
+    gb.load_rom("gb-bootroms/bin/dmg.bin");
     gb.run();
 }
 
