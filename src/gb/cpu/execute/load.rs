@@ -2,8 +2,8 @@ use log::debug;
 
 use crate::gb::{GameBoy, cpu::CPU};
 
-macro_rules! load_r8 {
-    ($dest:ident n8) => {
+macro_rules! load_r8s {
+    (@inner $dest:ident n8) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_ $dest _n8>](ctx: &mut GameBoy) {
@@ -12,7 +12,7 @@ macro_rules! load_r8 {
         }
     };
 
-    ($reg:ident _) => {
+    (@inner $reg:ident _) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_ $reg _ $reg>](_ctx: &mut GameBoy) {
@@ -27,7 +27,7 @@ macro_rules! load_r8 {
         }
     };
 
-    ($dest:ident $src:ident) => {
+    (@inner $dest:ident $src:ident) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_ $dest _ $src>](ctx: &mut GameBoy) {
@@ -36,7 +36,7 @@ macro_rules! load_r8 {
         }
     };
 
-    ($dest:ident *a16) => {
+    (@inner $dest:ident *a16) => {
         paste::paste! {
             #[inline(always)]
             pub fn [< ld_ $dest _ma16 >](ctx: &mut GameBoy) {
@@ -46,7 +46,7 @@ macro_rules! load_r8 {
         }
     };
 
-    ($dest:ident *$src:ident) => {
+    (@inner $dest:ident *$src:ident) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_ $dest _m $src>](ctx: &mut GameBoy) {
@@ -56,7 +56,7 @@ macro_rules! load_r8 {
         }
     };
 
-    (*a16 $src:ident) => {
+    (@inner *a16 $src:ident) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_ma16_ $src>](ctx: &mut GameBoy) {
@@ -66,7 +66,7 @@ macro_rules! load_r8 {
         }
     };
 
-    (*$dest:ident n8) => {
+    (@inner *$dest:ident n8) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_m $dest _n8>](ctx: &mut GameBoy) {
@@ -77,7 +77,7 @@ macro_rules! load_r8 {
         }
     };
 
-    (*$dest:ident $src:ident) => {
+    (@inner *$dest:ident $src:ident) => {
         paste::paste! {
             #[inline(always)]
             pub fn [<ld_m $dest _ $src>](ctx: &mut GameBoy) {
@@ -86,10 +86,12 @@ macro_rules! load_r8 {
             }
         }
     };
-}
 
-macro_rules! load_r8s {
-    ($(($($arg:tt)*))*) => { $(load_r8!($($arg)*);)* };
+    ($(($($arg:tt)*))*) => {
+        $(
+            load_r8s!(@inner $($arg)*);
+        )*
+    };
 }
 
 macro_rules! load_r16s {
