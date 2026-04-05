@@ -1,87 +1,162 @@
+use log::debug;
+
 use crate::gb::{GameBoy, cpu::CPU};
 
 macro_rules! load_r8 {
-    ($ctx:expr, $dest:ident, n8) => {{
-        $ctx.cpu.$dest = CPU::next_byte($ctx);
-    }};
-
-    ($ctx:expr, $dest:ident, $src:ident) => {{
-        $ctx.cpu.$dest = $ctx.cpu.$src;
-    }};
-
-    ($ctx:expr, $dest:ident, [a16]) => {{
-        let address = CPU::next_word($ctx);
-        $ctx.cpu.$dest = CPU::read_tick($ctx, address);
-    }};
-
-    ($ctx:expr, $dest:ident, [$r16:ident]) => {{
+    ($dest:ident n8) => {
         paste::paste! {
-            let address = $ctx.cpu.[<get_ $r16>]();
-            $ctx.cpu.$dest = CPU::read_tick($ctx, address);
+            #[inline(always)]
+            pub fn [<ld_ $dest _n8>](ctx: &mut GameBoy) {
+                ctx.cpu.$dest = CPU::next_byte(ctx);
+            }
         }
-    }};
+    };
 
-    ($ctx:expr, [a16], $src:ident) => {{
+    ($reg:ident _) => {
         paste::paste! {
-            let address = CPU::next_word($ctx);
-            CPU::write_tick($ctx, address, $ctx.cpu.$src);
+            #[inline(always)]
+            pub fn [<ld_ $reg _ $reg>](_ctx: &mut GameBoy) {
+                debug!(concat!(
+                    "LD ",
+                    stringify!([<$reg:upper>]),
+                    ", ",
+                    stringify!([<$reg:upper>]),
+                    " executed. Self loads are no-ops, but may have debug meaning in the future.",
+                ));
+            }
         }
-    }};
+    };
 
-    ($ctx:expr, [$r16:ident], n8) => {{
+    ($dest:ident $src:ident) => {
         paste::paste! {
-            let byte = CPU::next_byte($ctx);
-            let address = $ctx.cpu.[<get_ $r16>]();
-            CPU::write_tick($ctx, address, byte);
+            #[inline(always)]
+            pub fn [<ld_ $dest _ $src>](ctx: &mut GameBoy) {
+                ctx.cpu.$dest = ctx.cpu.$src;
+            }
         }
-    }};
+    };
 
-    ($ctx:expr, [$r16:ident], $src:ident) => {{
+    ($dest:ident *a16) => {
         paste::paste! {
-            let address = $ctx.cpu.[<get_ $r16>]();
-            CPU::write_tick($ctx, address, $ctx.cpu.$src);
+            #[inline(always)]
+            pub fn [< ld_ $dest _ma16 >](ctx: &mut GameBoy) {
+                let address = CPU::next_word(ctx);
+                ctx.cpu.$dest = CPU::read_tick(ctx, address);
+            }
         }
-    }};
+    };
+
+    ($dest:ident *$src:ident) => {
+        paste::paste! {
+            #[inline(always)]
+            pub fn [<ld_ $dest _m $src>](ctx: &mut GameBoy) {
+                let address = ctx.cpu.[<get_ $src>]();
+                ctx.cpu.$dest = CPU::read_tick(ctx, address);
+            }
+        }
+    };
+
+    (*a16 $src:ident) => {
+        paste::paste! {
+            #[inline(always)]
+            pub fn [<ld_ma16_ $src>](ctx: &mut GameBoy) {
+                let address = CPU::next_word(ctx);
+                CPU::write_tick(ctx, address, ctx.cpu.$src);
+            }
+        }
+    };
+
+    (*$dest:ident n8) => {
+        paste::paste! {
+            #[inline(always)]
+            pub fn [<ld_m $dest _n8>](ctx: &mut GameBoy) {
+                let byte = CPU::next_byte(ctx);
+                let address = ctx.cpu.[<get_ $dest>]();
+                CPU::write_tick(ctx, address, byte);
+            }
+        }
+    };
+
+    (*$dest:ident $src:ident) => {
+        paste::paste! {
+            #[inline(always)]
+            pub fn [<ld_m $dest _ $src>](ctx: &mut GameBoy) {
+                let address = ctx.cpu.[<get_ $dest>]();
+                CPU::write_tick(ctx, address, ctx.cpu.$src);
+            }
+        }
+    };
 }
-pub(crate) use load_r8;
 
-pub fn loadh_ma8_a(ctx: &mut GameBoy) {
+macro_rules! load_r8s {
+    ($(($($arg:tt)*))*) => { $(load_r8!($($arg)*);)* };
+}
+
+macro_rules! load_r16s {
+    ($(($dest:ident n16))*) => {$(
+        paste::paste! {
+            #[inline(always)]
+            pub fn [<ld_ $dest _n16>](ctx: &mut GameBoy) {
+                let word = CPU::next_word(ctx);
+                ctx.cpu.[<set_ $dest>](word);
+            }
+        }
+    )*};
+}
+
+load_r8s! {
+    // Main loads
+    (b   _) (b   c) (b   d) (b   e) (b   h) (b   l) (b *hl) (b   a) (b   n8)
+    (c   b) (c   _) (c   d) (c   e) (c   h) (c   l) (c *hl) (c   a) (c   n8)
+    (d   b) (d   c) (d   _) (d   e) (d   h) (d   l) (d *hl) (d   a) (d   n8)
+    (e   b) (e   c) (e   d) (e   _) (e   h) (e   l) (e *hl) (e   a) (e   n8)
+    (h   b) (h   c) (h   d) (h   e) (h   _) (h   l) (h *hl) (h   a) (h   n8)
+    (l   b) (l   c) (l   d) (l   e) (l   h) (l   _) (l *hl) (l   a) (l   n8)
+    (*hl b) (*hl c) (*hl d) (*hl e) (*hl h) (*hl l) /*N/A*/ (*hl a) (*hl n8)
+    (a   b) (a   c) (a   d) (a   e) (a   h) (a   l) (a *hl) (a   _) (a   n8)
+
+    // Memory loads
+    (a *bc) (a *de) (a *hli) (a *hld) (a *a16)
+    (*bc a) (*de a) (*hli a) (*hld a) (*a16 a)
+}
+
+load_r16s! {
+    (bc n16) (de n16) (hl n16)
+}
+
+#[inline(always)]
+pub fn ldh_ma8_a(ctx: &mut GameBoy) {
     let byte = CPU::next_byte(ctx);
-    loadh_m_a(ctx, byte);
+    ldh_m_a(ctx, byte);
 }
 
-pub fn loadh_mc_a(ctx: &mut GameBoy) {
-    loadh_m_a(ctx, ctx.cpu.c);
+#[inline(always)]
+pub fn ldh_mc_a(ctx: &mut GameBoy) {
+    ldh_m_a(ctx, ctx.cpu.c);
 }
 
-pub fn loadh_m_a(ctx: &mut GameBoy, half: u8) {
+#[inline(always)]
+pub fn ldh_m_a(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     CPU::write_tick(ctx, address, ctx.cpu.a);
 }
 
-pub fn loadh_a_ma8(ctx: &mut GameBoy) {
+#[inline(always)]
+pub fn ldh_a_ma8(ctx: &mut GameBoy) {
     let byte = CPU::next_byte(ctx);
-    loadh_a_m(ctx, byte);
+    ldh_a_m(ctx, byte);
 }
 
-pub fn loadh_a_mc(ctx: &mut GameBoy) {
-    loadh_a_m(ctx, ctx.cpu.c);
+#[inline(always)]
+pub fn ldh_a_mc(ctx: &mut GameBoy) {
+    ldh_a_m(ctx, ctx.cpu.c);
 }
 
-pub fn loadh_a_m(ctx: &mut GameBoy, half: u8) {
+#[inline(always)]
+pub fn ldh_a_m(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     ctx.cpu.a = CPU::read_tick(ctx, address);
 }
-
-macro_rules! load_r16 {
-    ($ctx:expr, $dest:ident) => {{
-        paste::paste! {
-            let word = CPU::next_word($ctx);
-            $ctx.cpu.[<set_ $dest>](word);
-        }
-    }};
-}
-pub(crate) use load_r16;
 
 #[cfg(test)]
 mod tests {
