@@ -26,16 +26,41 @@ macro_rules! step_test {
         $(setup $setup:block)?
         $(after $after:block)?
     ) => {{
+        step_test! { @inner1 $ctx, [$code] $($setup)? }
+        crate::gb::cpu::CPU::step($ctx);
+        step_test! { @inner2 $ctx, $length, $cycles $($after)? }
+    }};
+
+    (
+        ctx: $ctx:expr;
+        code: $code:literal $code_ex:literal, length: $length:literal, cycles: $cycles:literal
+        $(setup $setup:block)?
+        $(after $after:block)?
+    ) => {{
+        step_test! { @inner1 $ctx, [$code $code_ex] $($setup)? }
+        crate::gb::cpu::CPU::step($ctx);
+        crate::gb::cpu::CPU::step($ctx);
+        step_test! { @inner2 $ctx, $length, $cycles $($after)? }
+    }};
+
+    (@inner1 $ctx:expr, [$code:literal $($code_ex:literal)?] $($setup:block)?) => {
         crate::testutil::prepare_instruction(
             $ctx,
             crate::testutil::INSTRUCTION_ADDRESS,
             $code
         );
+        $(
+            crate::gb::mmu::MMU::write(
+                $ctx,
+                crate::testutil::INSTRUCTION_ADDRESS + 1,
+                $code_ex
+            );
+        )?
 
         $($setup)?
+    };
 
-        crate::gb::cpu::CPU::step($ctx);
-
+    (@inner2 $ctx:expr, $length:literal, $cycles:literal $($after:block)?) => {
         $($after)?
 
         assert_eq!(
@@ -43,5 +68,5 @@ macro_rules! step_test {
             crate::testutil::INSTRUCTION_ADDRESS + $length
         );
         assert_eq!($ctx.debug_timer, $cycles*4);
-    }};
+    };
 }

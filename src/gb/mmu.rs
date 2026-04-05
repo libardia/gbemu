@@ -67,7 +67,7 @@ impl MMU {
                 #OAM       => ctx.mmu.oam.get(address),
                 #HIGH_RAM  => ctx.mmu.hram.get(address),
 
-                // TODO IO registers
+                // TODO: IO registers read
                 // IO_JOYP      => Input::read(ctx, address),
                 // #IO_SERIAL   => Serial::read(ctx, address),
                 // #IO_TIMER    => Timer::read(ctx, address),
@@ -110,7 +110,7 @@ impl MMU {
                 #OAM       => ctx.mmu.oam.set(address, byte),
                 #HIGH_RAM  => ctx.mmu.hram.set(address, byte),
 
-                // TODO IO registers
+                // TODO: IO registers write
                 // IO_JOYP      => Input::write(ctx, address, value),
                 // #IO_SERIAL   => Serial::write(ctx, address, value),
                 // #IO_TIMER    => Timer::write(ctx, address, value),

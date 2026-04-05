@@ -4,9 +4,14 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "generate coverage",
+            "label": "coverage report",
             "type": "shell",
-            "command": "cargo llvm-cov --lcov --output-path ./target/lcov.info",
+            "command": "cargo",
+            "args": [
+                "llvm-cov",
+                "--ignore-filename-regex",
+                "main\\.rs",
+            ],
             "problemMatcher": [],
             "group": {
                 "kind": "build",

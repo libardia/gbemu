@@ -179,7 +179,7 @@ mod tests {
         ($code:literal $dest:ident n8) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $dest _n8>]() {
+                fn [<ld_ $dest _n8>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -199,7 +199,7 @@ mod tests {
         ($code:literal *$dest:ident n8) => {
             paste::paste! {
                 #[test]
-                fn [<load_m $dest _n8>]() {
+                fn [<ld_m $dest _n8>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -220,7 +220,7 @@ mod tests {
         ($code:literal $reg:ident _) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $reg _ $reg>]() {
+                fn [<ld_ $reg _ $reg>]() {
                     let ctx = &mut GameBoy::new();
                     let cpu_a: CPU;
                     step_test! {
@@ -242,7 +242,7 @@ mod tests {
         ($code:literal *a16 $src:ident) => {
             paste::paste! {
                 #[test]
-                fn [<load_ma16_ $src>]() {
+                fn [<ld_ma16_ $src>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -264,7 +264,7 @@ mod tests {
         ($code:literal *$dest:ident $src:ident) => {
             paste::paste! {
                 #[test]
-                fn [<load_m $dest _ $src>]() {
+                fn [<ld_m $dest _ $src>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -289,7 +289,7 @@ mod tests {
         ($code:literal $dest:ident *a16) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $dest _ma16>]() {
+                fn [<ld_ $dest _ma16>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -311,7 +311,7 @@ mod tests {
         ($code:literal $dest:ident *$src:ident) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $dest _m $src>]() {
+                fn [<ld_ $dest _m $src>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -332,7 +332,7 @@ mod tests {
         ($code:literal $dest:ident $src:ident) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $dest _ $src>]() {
+                fn [<ld_ $dest _ $src>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
@@ -358,7 +358,7 @@ mod tests {
         ($code:literal $dest:ident n16) => {
             paste::paste! {
                 #[test]
-                fn [<load_ $dest _n16>]() {
+                fn [<ld_ $dest _n16>]() {
                     let ctx = &mut GameBoy::new();
                     step_test! {
                         ctx: ctx;
