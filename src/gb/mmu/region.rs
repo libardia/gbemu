@@ -61,10 +61,6 @@ impl MappedMemoryRegion {
         let local = self.local_address(address);
         self.mem[local as usize] = value;
     }
-
-    pub fn fill(&mut self, value: u8) {
-        self.mem.fill(value);
-    }
 }
 
 impl Debug for MappedMemoryRegion {
