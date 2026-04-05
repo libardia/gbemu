@@ -16,7 +16,7 @@ pub mod execute;
 pub mod instructions;
 pub mod optables;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CPU {
     // Registers
     pub b: u8,

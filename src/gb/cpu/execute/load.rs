@@ -43,7 +43,7 @@ macro_rules! load_r8 {
         }
     }};
 }
-pub(super) use load_r8;
+pub(crate) use load_r8;
 
 pub fn loadh_ma8_a(ctx: &mut GameBoy) {
     let byte = CPU::next_byte(ctx);
@@ -54,7 +54,7 @@ pub fn loadh_mc_a(ctx: &mut GameBoy) {
     loadh_m_a(ctx, ctx.cpu.c);
 }
 
-fn loadh_m_a(ctx: &mut GameBoy, half: u8) {
+pub fn loadh_m_a(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     CPU::write_tick(ctx, address, ctx.cpu.a);
 }
@@ -68,7 +68,7 @@ pub fn loadh_a_mc(ctx: &mut GameBoy) {
     loadh_a_m(ctx, ctx.cpu.c);
 }
 
-fn loadh_a_m(ctx: &mut GameBoy, half: u8) {
+pub fn loadh_a_m(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     ctx.cpu.a = CPU::read_tick(ctx, address);
 }
@@ -81,11 +81,15 @@ macro_rules! load_r16 {
         }
     }};
 }
-pub(super) use load_r16;
+pub(crate) use load_r16;
 
 #[cfg(test)]
 mod tests {
-    use crate::gb::{CPU, GameBoy, MMU};
+    use crate::{
+        gb::{CPU, GameBoy, MMU},
+        step_test,
+        testutil::{INSTRUCTION_ADDRESS, registers_equal},
+    };
 
     const INST_ADD: u16 = 0xDF00;
     const MEM_ADD: u16 = 0xDFF0;
@@ -94,127 +98,176 @@ mod tests {
     const VAL: u8 = 0xA4;
     const VAL16: u16 = 0xBEEF;
 
-    fn set_instruction_at(ctx: &mut GameBoy, address: u16, byte: u8) {
-        MMU::write(ctx, address, byte);
-        ctx.cpu.pc = address;
-    }
-
     macro_rules! load_test {
-        ($byte:literal $dest:ident n8) => {
+        ($code:literal $dest:ident n8) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $dest _n8>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    MMU::write(gb, INST_ADD + 1, VAL);
-                    CPU::step(gb);
-                    assert_eq!(gb.cpu.$dest, VAL);
-                    assert_eq!(gb.debug_timer, 8); // 2 mtime
-                    assert_eq!(gb.cpu.pc, INST_ADD + 2); // 2 bytes long
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 2, cycles: 2
+                        setup {
+                            MMU::write(ctx, INST_ADD + 1, VAL);
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$dest, VAL);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal *$dest:ident n8) => {
+        ($code:literal *$dest:ident n8) => {
             paste::paste! {
                 #[test]
                 fn [<load_m $dest _n8>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    MMU::write(gb, INST_ADD + 1, VAL);
-                    gb.cpu.[<set_ $dest>](MEM_ADD);
-                    CPU::step(gb);
-                    assert_eq!(MMU::read(gb, MEM_ADD), VAL);
-                    assert_eq!(gb.debug_timer, 12); // 3 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 2, cycles: 3
+                        setup {
+                            MMU::write(ctx, INST_ADD + 1, VAL);
+                            ctx.cpu.[<set_ $dest>](MEM_ADD);
+                        }
+                        after {
+                            assert_eq!(MMU::read(ctx, MEM_ADD), VAL);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal $reg:ident _) => {
+        ($code:literal $reg:ident _) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $reg _ $reg>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    CPU::step(gb);
-                    assert_eq!(gb.debug_timer, 4); // 1 mtime
+                    let ctx = &mut GameBoy::new();
+                    let cpu_a: CPU;
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.$reg = VAL;
+                            cpu_a = ctx.cpu.clone();
+                        }
+                        after {
+                            assert!(registers_equal(&cpu_a, &ctx.cpu));
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal *a16 $src:ident) => {
+        ($code:literal *a16 $src:ident) => {
             paste::paste! {
                 #[test]
                 fn [<load_ma16_ $src>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    MMU::write(gb, INST_ADD + 1, (MEM_ADD & 0xFF) as u8);
-                    MMU::write(gb, INST_ADD + 2, (MEM_ADD >> 8) as u8);
-                    gb.cpu.$src = VAL;
-                    CPU::step(gb);
-                    assert_eq!(MMU::read(gb, MEM_ADD), VAL);
-                    assert_eq!(gb.debug_timer, 16); // 4 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 3, cycles: 4
+                        setup {
+                            MMU::write(ctx, INST_ADD + 1, (MEM_ADD & 0xFF) as u8);
+                            MMU::write(ctx, INST_ADD + 2, (MEM_ADD >> 8) as u8);
+                            ctx.cpu.$src = VAL;
+                        }
+                        after {
+                            assert_eq!(MMU::read(ctx, MEM_ADD), VAL);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal *$dest:ident $src:ident) => {
+        ($code:literal *$dest:ident $src:ident) => {
             paste::paste! {
                 #[test]
                 fn [<load_m $dest _ $src>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    gb.cpu.$src = VAL; // if $src is one of $dest, this will be overwritten (that's ok)
-                    gb.cpu.[<set_ $dest>](MEM_ADD);
-                    CPU::step(gb);
-                    assert!(gb.cpu.$src != 0xFF); // Make sure the load was in the correct direction
-                    assert_eq!(MMU::read(gb, MEM_ADD), gb.cpu.$src); // In case of overwrite
-                    assert_eq!(gb.debug_timer, 8); // 2 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 2
+                        setup {
+                            // if $src is one of $dest, this will be overwritten (that's ok)
+                            ctx.cpu.$src = VAL;
+                            ctx.cpu.[<set_ $dest>](MEM_ADD);
+                        }
+                        after {
+                            // Make sure the load was in the correct direction
+                            assert!(ctx.cpu.$src != 0xFF);
+                            // Check against $src here in case of overwrite
+                            assert_eq!(MMU::read(ctx, MEM_ADD), ctx.cpu.$src);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal $dest:ident *a16) => {
+        ($code:literal $dest:ident *a16) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $dest _ma16>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    MMU::write(gb, INST_ADD + 1, (MEM_ADD & 0xFF) as u8);
-                    MMU::write(gb, INST_ADD + 2, (MEM_ADD >> 8) as u8);
-                    MMU::write(gb, MEM_ADD, VAL);
-                    CPU::step(gb);
-                    assert_eq!(gb.cpu.$dest, VAL);
-                    assert_eq!(gb.debug_timer, 16); // 4 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 3, cycles: 4
+                        setup {
+                            MMU::write(ctx, INST_ADD + 1, (MEM_ADD & 0xFF) as u8);
+                            MMU::write(ctx, INST_ADD + 2, (MEM_ADD >> 8) as u8);
+                            MMU::write(ctx, MEM_ADD, VAL);
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$dest, VAL);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal $dest:ident *$src:ident) => {
+        ($code:literal $dest:ident *$src:ident) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $dest _m $src>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    gb.cpu.[<set_ $src>](MEM_ADD);
-                    MMU::write(gb, MEM_ADD, VAL);
-                    CPU::step(gb);
-                    assert_eq!(gb.cpu.$dest, VAL);
-                    assert_eq!(gb.debug_timer, 8); // 2 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 2
+                        setup {
+                            ctx.cpu.[<set_ $src>](MEM_ADD);
+                            MMU::write(ctx, MEM_ADD, VAL);
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$dest, VAL);
+                        }
+                    }
                 }
             }
         };
 
-        ($byte:literal $dest:ident $src:ident) => {
+        ($code:literal $dest:ident $src:ident) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $dest _ $src>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    gb.cpu.$src = VAL;
-                    CPU::step(gb);
-                    assert_eq!(gb.cpu.$dest, VAL);
-                    assert_eq!(gb.debug_timer, 4); // 1 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.$src = VAL;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$dest, VAL);
+                        }
+                    }
                 }
             }
         };
@@ -225,17 +278,23 @@ mod tests {
     }
 
     macro_rules! load16_test {
-        ($byte:literal $dest:ident n16) => {
+        ($code:literal $dest:ident n16) => {
             paste::paste! {
                 #[test]
                 fn [<load_ $dest _n16>]() {
-                    let gb = &mut GameBoy::new();
-                    set_instruction_at(gb, INST_ADD, $byte);
-                    MMU::write(gb, INST_ADD + 1, (VAL16 & 0xFF) as u8);
-                    MMU::write(gb, INST_ADD + 2, (VAL16 >> 8) as u8);
-                    CPU::step(gb);
-                    assert_eq!(gb.cpu.[<get_ $dest>](), VAL16);
-                    assert_eq!(gb.debug_timer, 12); // 3 mtime
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 3, cycles: 3
+                        setup {
+                            MMU::write(ctx, INST_ADD + 1, (VAL16 & 0xFF) as u8);
+                            MMU::write(ctx, INST_ADD + 2, (VAL16 >> 8) as u8);
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.[<get_ $dest>](), VAL16);
+                        }
+                    }
                 }
             }
         };
@@ -274,62 +333,142 @@ mod tests {
     // HL+ and HL- loads
     #[test]
     fn ld_mhli_a() {
-        let gb = &mut GameBoy::new();
-        set_instruction_at(gb, INST_ADD, 0x22); // Instruction code is $22
-        gb.cpu.a = VAL;
-        gb.cpu.set_hl(MEM_ADD);
-        CPU::step(gb);
-        assert_eq!(MMU::read(gb, MEM_ADD), VAL);
-        assert_eq!(gb.cpu.get_hl(), MEM_ADD + 1);
-        assert_eq!(gb.debug_timer, 8); // 2 mtime
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0x22, length: 1, cycles: 2
+            setup {
+                ctx.cpu.a = VAL;
+                ctx.cpu.set_hl(MEM_ADD);
+            }
+            after {
+                assert_eq!(MMU::read(ctx, MEM_ADD), VAL);
+                assert_eq!(ctx.cpu.get_hl(), MEM_ADD + 1);
+            }
+        }
     }
 
     #[test]
     fn ld_mhld_a() {
-        let gb = &mut GameBoy::new();
-        set_instruction_at(gb, INST_ADD, 0x32); // Instruction code is $32
-        gb.cpu.a = VAL;
-        gb.cpu.set_hl(MEM_ADD);
-        CPU::step(gb);
-        assert_eq!(MMU::read(gb, MEM_ADD), VAL);
-        assert_eq!(gb.cpu.get_hl(), MEM_ADD - 1);
-        assert_eq!(gb.debug_timer, 8); // 2 mtime
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0x32, length: 1, cycles: 2
+            setup {
+                ctx.cpu.a = VAL;
+                ctx.cpu.set_hl(MEM_ADD);
+            }
+            after {
+                assert_eq!(MMU::read(ctx, MEM_ADD), VAL);
+                assert_eq!(ctx.cpu.get_hl(), MEM_ADD - 1);
+            }
+        }
     }
 
     #[test]
     fn ld_a_mhli() {
-        let gb = &mut GameBoy::new();
-        set_instruction_at(gb, INST_ADD, 0x2A); // Instruction code is $2A
-        MMU::write(gb, MEM_ADD, VAL);
-        gb.cpu.set_hl(MEM_ADD);
-        CPU::step(gb);
-        assert_eq!(gb.cpu.a, VAL);
-        assert_eq!(gb.cpu.get_hl(), MEM_ADD + 1);
-        assert_eq!(gb.debug_timer, 8); // 2 mtime
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0x2A, length: 1, cycles: 2
+            setup {
+                MMU::write(ctx, MEM_ADD, VAL);
+                ctx.cpu.set_hl(MEM_ADD);
+            }
+            after {
+                assert_eq!(ctx.cpu.a, VAL);
+                assert_eq!(ctx.cpu.get_hl(), MEM_ADD + 1);
+            }
+        }
     }
 
     #[test]
     fn ld_a_mhld() {
-        let gb = &mut GameBoy::new();
-        set_instruction_at(gb, INST_ADD, 0x3A); // Instruction code is $3A
-        MMU::write(gb, MEM_ADD, VAL);
-        gb.cpu.set_hl(MEM_ADD);
-        CPU::step(gb);
-        assert_eq!(gb.cpu.a, VAL);
-        assert_eq!(gb.cpu.get_hl(), MEM_ADD - 1);
-        assert_eq!(gb.debug_timer, 8); // 2 mtime
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0x3A, length: 1, cycles: 2
+            setup {
+                MMU::write(ctx, MEM_ADD, VAL);
+                ctx.cpu.set_hl(MEM_ADD);
+            }
+            after {
+                assert_eq!(ctx.cpu.a, VAL);
+                assert_eq!(ctx.cpu.get_hl(), MEM_ADD - 1);
+            }
+        }
     }
 
     // High loads
     #[test]
     fn ldh_ma8_a() {
-        let gb = &mut GameBoy::new();
-        set_instruction_at(gb, INST_ADD, 0xE0); // Instruction code is $E0
-        MMU::write(gb, INST_ADD + 1, HIGH_ADD_LOW);
-        gb.cpu.a = VAL;
-        CPU::step(gb);
-        assert_eq!(MMU::read(gb, HIGH_ADD), VAL);
-        assert_eq!(gb.debug_timer, 12); // 3 mtime
-        assert_eq!(gb.cpu.pc, INST_ADD + 2); // 2 bytes long
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0xE0, length: 2, cycles: 3
+            setup {
+                MMU::write(ctx, INSTRUCTION_ADDRESS + 1, HIGH_ADD_LOW);
+                ctx.cpu.a = VAL;
+            }
+            after {
+                assert_eq!(MMU::read(ctx, HIGH_ADD), VAL);
+            }
+        }
+    }
+
+    #[test]
+    fn ldh_mc_a() {
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0xE2, length: 1, cycles: 2
+            setup {
+                ctx.cpu.c = HIGH_ADD_LOW;
+                ctx.cpu.a = VAL;
+            }
+            after {
+                assert_eq!(MMU::read(ctx, HIGH_ADD), VAL);
+            }
+        }
+    }
+
+    #[test]
+    fn ldh_a_ma8() {
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0xF0, length: 2, cycles: 3
+            setup {
+                MMU::write(ctx, INSTRUCTION_ADDRESS + 1, HIGH_ADD_LOW);
+                MMU::write(ctx, HIGH_ADD, VAL);
+            }
+            after {
+                assert_eq!(ctx.cpu.a, VAL);
+            }
+        }
+    }
+
+    #[test]
+    fn ldh_a_mc() {
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+
+            code: 0xF2, length: 1, cycles: 2
+            setup {
+                ctx.cpu.c = HIGH_ADD_LOW;
+                MMU::write(ctx, HIGH_ADD, VAL);
+            }
+            after {
+                assert_eq!(ctx.cpu.a, VAL);
+            }
+        }
     }
 }

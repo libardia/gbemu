@@ -9,7 +9,7 @@ pub mod gb;
 pub mod macros;
 
 #[cfg(test)]
-mod testutil;
+pub mod testutil;
 
 fn main() {
     init_logging("logs");
