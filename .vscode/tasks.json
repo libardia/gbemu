@@ -12,6 +12,12 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "continuous coverage",
+            "type": "shell",
+            "command": "cargo watch -x 'llvm-cov --lcov --output-path ./target/lcov.info' -w src/",
+            "problemMatcher": [],
         }
     ]
 }
