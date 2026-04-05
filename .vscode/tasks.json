@@ -16,7 +16,14 @@
         {
             "label": "continuous coverage",
             "type": "shell",
-            "command": "cargo watch -x 'llvm-cov --lcov --output-path ./target/lcov.info' -w src/",
+            "command": "cargo",
+            "args": [
+                "watch",
+                "-x",
+                "llvm-cov --ignore-filename-regex 'main\\.rs' --lcov --output-path ./target/lcov.info",
+                "-w",
+                "src/"
+            ],
             "problemMatcher": [],
         }
     ]

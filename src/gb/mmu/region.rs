@@ -127,6 +127,7 @@ mod tests {
     #[test]
     fn test_contains() {
         let reg = MemoryRegion::new(5, 10);
+        println!("{reg:?}");
         assert!(!reg.contains(4));
         assert!(reg.contains(5));
         assert!(reg.contains(7));
@@ -137,6 +138,7 @@ mod tests {
     #[test]
     fn test_size() {
         let reg = MemoryRegion::new(5, 10);
+        println!("{reg:?}");
         assert_eq!(reg.size, 6);
         assert_eq!(reg.size(), 6);
         assert_eq!(reg.usize(), 6);
@@ -145,6 +147,7 @@ mod tests {
     #[test]
     fn test_local_address() {
         let reg = MappedMemoryRegion::new(MemoryRegion::new(5, 10));
+        println!("{reg:?}");
         assert_eq!(reg.local_address(5), 0);
         assert_eq!(reg.local_address(7), 2);
         assert_eq!(reg.local_address(10), 5);
