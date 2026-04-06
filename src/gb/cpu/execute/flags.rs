@@ -3,19 +3,16 @@ use crate::gb::{GameBoy, cpu::CPU};
 macro_rules! operations {
     (@inner $bit:literal $target:ident) => {
         paste::paste! {
-            #[inline(always)]
             pub fn [<bit_ $bit _ $target>](ctx: &mut GameBoy) {
                 ctx.cpu.set_flag_z(ctx.cpu.$target & (1 << $bit) == 0);
                 ctx.cpu.set_flag_n(false);
                 ctx.cpu.set_flag_h(true);
             }
 
-            #[inline(always)]
             pub fn [<set_ $bit _ $target>](ctx: &mut GameBoy) {
                 ctx.cpu.$target |= 1 << $bit;
             }
 
-            #[inline(always)]
             pub fn [<res_ $bit _ $target>](ctx: &mut GameBoy) {
                 ctx.cpu.$target &= !(1 << $bit);
             }
@@ -24,7 +21,6 @@ macro_rules! operations {
 
     (@inner $bit:literal *hl) => {
         paste::paste! {
-            #[inline(always)]
             pub fn [<bit_ $bit _mhl>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.get_hl();
                 let byte = CPU::read_tick(ctx, address);
@@ -33,14 +29,12 @@ macro_rules! operations {
                 ctx.cpu.set_flag_h(true);
             }
 
-            #[inline(always)]
             pub fn [<set_ $bit _mhl>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.get_hl();
                 let byte = CPU::read_tick(ctx, address);
                 CPU::write_tick(ctx, address, byte | (1 << $bit));
             }
 
-            #[inline(always)]
             pub fn [<res_ $bit _mhl>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.get_hl();
                 let byte = CPU::read_tick(ctx, address);
