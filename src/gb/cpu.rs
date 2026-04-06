@@ -204,9 +204,9 @@ mod tests {
             z: true,
             n: true,
             h: true,
-            c: false,
+            c: true,
         };
-        assert_eq!(cpu.get_af(), 0xBEE0);
+        assert_eq!(cpu.get_af(), 0xBEF0);
     }
 
     #[test]
