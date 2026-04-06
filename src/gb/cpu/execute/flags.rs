@@ -5,9 +5,9 @@ macro_rules! operations {
         paste::paste! {
             #[inline(always)]
             pub fn [<bit_ $bit _ $target>](ctx: &mut GameBoy) {
-                ctx.cpu.set_flag_z(ctx.cpu.$target & (1 << $bit) == 0);
-                ctx.cpu.set_flag_n(false);
-                ctx.cpu.set_flag_h(true);
+                ctx.cpu.f.z = ctx.cpu.$target & (1 << $bit) == 0;
+                ctx.cpu.f.n = false;
+                ctx.cpu.f.h = true;
             }
 
             #[inline(always)]
@@ -28,9 +28,9 @@ macro_rules! operations {
             pub fn [<bit_ $bit _mhl>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.get_hl();
                 let byte = CPU::read_tick(ctx, address);
-                ctx.cpu.set_flag_z(byte & (1 << $bit) == 0);
-                ctx.cpu.set_flag_n(false);
-                ctx.cpu.set_flag_h(true);
+                ctx.cpu.f.z = byte & (1 << $bit) == 0;
+                ctx.cpu.f.n = false;
+                ctx.cpu.f.h = true;
             }
 
             #[inline(always)]
@@ -90,9 +90,9 @@ mod tests {
                             ctx.cpu.$target = 1 << $bit;
                         }
                         after {
-                            assert!(!ctx.cpu.get_flag_z());
-                            assert!(!ctx.cpu.get_flag_n());
-                            assert!( ctx.cpu.get_flag_h());
+                            assert!(!ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!( ctx.cpu.f.h);
                         }
                     }
                 }
@@ -108,9 +108,9 @@ mod tests {
                             ctx.cpu.$target = !(1 << $bit);
                         }
                         after {
-                            assert!( ctx.cpu.get_flag_z());
-                            assert!(!ctx.cpu.get_flag_n());
-                            assert!( ctx.cpu.get_flag_h());
+                            assert!( ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!( ctx.cpu.f.h);
                         }
                     }
                 }
@@ -131,9 +131,9 @@ mod tests {
                             ctx.cpu.set_hl(MEM_ADD);
                         }
                         after {
-                            assert!(!ctx.cpu.get_flag_z());
-                            assert!(!ctx.cpu.get_flag_n());
-                            assert!( ctx.cpu.get_flag_h());
+                            assert!(!ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!( ctx.cpu.f.h);
                         }
                     }
                 }
@@ -150,9 +150,9 @@ mod tests {
                             ctx.cpu.set_hl(MEM_ADD);
                         }
                         after {
-                            assert!( ctx.cpu.get_flag_z());
-                            assert!(!ctx.cpu.get_flag_n());
-                            assert!( ctx.cpu.get_flag_h());
+                            assert!( ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!( ctx.cpu.f.h);
                         }
                     }
                 }

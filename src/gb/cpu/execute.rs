@@ -7,6 +7,7 @@ use crate::gb::{
     },
 };
 
+pub mod arith_8;
 pub mod flags;
 pub mod load;
 pub mod misc;

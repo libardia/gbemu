@@ -29,7 +29,7 @@ pub struct CPU {
     pub l: u8,
 
     pub a: u8,
-    pub f: u8,
+    pub f: Flags,
 
     // Internal
     pub pc: u16,
@@ -37,6 +37,32 @@ pub struct CPU {
 
     pub prefix_mode: bool,
     pub halt_bug: bool,
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub struct Flags {
+    pub z: bool,
+    pub n: bool,
+    pub h: bool,
+    pub c: bool,
+}
+
+impl Flags {
+    pub fn as_byte(&self) -> u8 {
+        (if self.z { 0x80 } else { 0 }
+            | if self.n { 0x40 } else { 0 }
+            | if self.h { 0x20 } else { 0 }
+            | if self.c { 0x10 } else { 0 })
+    }
+
+    pub fn from_byte(byte: u8) -> Self {
+        Self {
+            z: (byte & 0x80) != 0,
+            n: (byte & 0x40) != 0,
+            h: (byte & 0x20) != 0,
+            c: (byte & 0x10) != 0,
+        }
+    }
 }
 
 macro_rules! r16 {
@@ -49,26 +75,6 @@ macro_rules! r16 {
             pub fn [<set_ $r1 $r2>](&mut self, word: u16) {
                 self.$r1 = (word >> 8) as u8;
                 self.$r2 = (word & 0xFF) as u8
-            }
-        }
-    };
-}
-
-macro_rules! flag {
-    ($f:ident, $bit:literal) => {
-        paste::paste! {
-            pub const [<FLAG_ $f:upper _MASK>]: u8 = 1 << $bit;
-
-            pub fn [<get_flag_ $f>](&self) -> bool {
-                self.f & Self::[<FLAG_ $f:upper _MASK>] != 0
-            }
-
-            pub fn [<set_flag_ $f>](&mut self, value: bool) {
-                if value {
-                    self.f |= Self::[<FLAG_ $f:upper _MASK>];
-                } else {
-                    self.f &= !Self::[<FLAG_ $f:upper _MASK>];
-                }
             }
         }
     };
@@ -90,7 +96,15 @@ impl CPU {
     r16!(b + c);
     r16!(d + e);
     r16!(h + l);
-    r16!(a + f);
+
+    pub fn get_af(&self) -> u16 {
+        (self.a as u16) << 8 | self.f.as_byte() as u16
+    }
+
+    pub fn set_af(&mut self, word: u16) {
+        self.a = (word >> 8) as u8;
+        self.f = Flags::from_byte((word & 0xFF) as u8);
+    }
 
     pub fn get_hli(&mut self) -> u16 {
         let hl = self.get_hl();
@@ -103,11 +117,6 @@ impl CPU {
         self.set_hl(hl.wrapping_sub(1));
         hl
     }
-
-    flag!(z, 7);
-    flag!(n, 6);
-    flag!(h, 5);
-    flag!(c, 4);
 
     pub fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
         ctx.m_tick(); // Read takes 1 m-cycle
@@ -179,48 +188,85 @@ mod tests {
     r16_test!(b + c);
     r16_test!(d + e);
     r16_test!(h + l);
-    r16_test!(a + f);
+
+    #[test]
+    pub fn test_af() {
+        let mut cpu = CPU::default();
+        assert_eq!(cpu.get_af(), 0);
+
+        cpu.set_af(0xDEAD);
+        assert_eq!(cpu.a, 0xDE);
+        assert_eq!(cpu.f.as_byte(), 0xA0);
+        assert_eq!(cpu.get_af(), 0xDEA0);
+
+        cpu.a = 0xBE;
+        cpu.f = Flags {
+            z: true,
+            n: true,
+            h: true,
+            c: false,
+        };
+        assert_eq!(cpu.get_af(), 0xBEE0);
+    }
 
     #[test]
     pub fn decode_test() {
-        let mut gb = GameBoy::new();
+        let ctx = &mut GameBoy::new();
 
         let address = 0xC0CA; // Put instruction in work ram
         let byte = 0xFE; // Instruction CP_A_n8
 
-        gb.cpu.pc = address;
-        MMU::write(&mut gb, address, byte);
+        ctx.cpu.pc = address;
+        MMU::write(ctx, address, byte);
 
-        assert_eq!(gb.cpu.pc, address);
-        let inst = CPU::decode(&mut gb);
-        assert_eq!(gb.cpu.pc, address + 1);
+        assert_eq!(ctx.cpu.pc, address);
+        let inst = CPU::decode(ctx);
+        assert_eq!(ctx.cpu.pc, address + 1);
         assert_eq!(inst, Instruction::CP_A_n8)
     }
 
     #[test]
     pub fn decode_prefix_test() {
-        let mut gb = GameBoy::new();
+        let ctx = &mut GameBoy::new();
 
         let address = 0xC0BE; // Put instruction in work ram
         let prefix = 0xCB; // Instruction prefix
         let byte = 0xEF; // Instruction SET_5_A
 
-        gb.cpu.pc = address;
-        MMU::write(&mut gb, address, prefix);
-        MMU::write(&mut gb, address + 1, byte);
+        ctx.cpu.pc = address;
+        MMU::write(ctx, address, prefix);
+        MMU::write(ctx, address + 1, byte);
 
-        assert!(!gb.cpu.prefix_mode);
-        assert_eq!(gb.cpu.pc, address);
-        let inst = CPU::decode(&mut gb);
-        assert_eq!(gb.cpu.pc, address + 1);
+        assert!(!ctx.cpu.prefix_mode);
+        assert_eq!(ctx.cpu.pc, address);
+        let inst = CPU::decode(ctx);
+        assert_eq!(ctx.cpu.pc, address + 1);
         assert_eq!(inst, Instruction::PREFIX);
 
         // "Execution" of the prefix instruction really is just a NOP and setting prefix mode
-        gb.cpu.prefix_mode = true;
+        ctx.cpu.prefix_mode = true;
 
-        let inst = CPU::decode(&mut gb);
-        assert_eq!(gb.cpu.pc, address + 2);
+        let inst = CPU::decode(ctx);
+        assert_eq!(ctx.cpu.pc, address + 2);
         assert_eq!(inst, Instruction::SET_5_A);
-        assert!(!gb.cpu.prefix_mode);
+        assert!(!ctx.cpu.prefix_mode);
+    }
+
+    #[test]
+    fn test_halt_bug() {
+        const ADDRESS: u16 = 0xCF00;
+
+        let ctx = &mut GameBoy::new();
+
+        ctx.cpu.pc = ADDRESS;
+        for i in 0..3 {
+            MMU::write(ctx, ADDRESS + i, i as u8);
+        }
+
+        assert_eq!(CPU::next_byte(ctx), 0);
+        ctx.cpu.halt_bug = true;
+        assert_eq!(CPU::next_byte(ctx), 1);
+        assert_eq!(CPU::next_byte(ctx), 1);
+        assert_eq!(CPU::next_byte(ctx), 2);
     }
 }
