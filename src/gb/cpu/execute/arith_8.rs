@@ -1,9 +1,11 @@
-use crate::gb::GameBoy;
+use crate::gb::{
+    GameBoy,
+    cpu::{CPU, access::ByteLoc},
+};
 
-#[inline(always)]
-fn do_add(ctx: &mut GameBoy, value: u8, carry: bool) {
+pub fn add_r8(ctx: &mut GameBoy, reg: ByteLoc, carry: bool) {
     let lhs = ctx.cpu.a;
-    let rhs = value;
+    let rhs = CPU::get_location(ctx, reg);
     let c = (carry && ctx.cpu.f.c) as u8;
     let (result, overflow1) = lhs.overflowing_add(rhs);
     let (result, overflow2) = result.overflowing_add(c);

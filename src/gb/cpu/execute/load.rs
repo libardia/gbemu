@@ -1,163 +1,36 @@
-use log::debug;
+use log::warn;
 
-use crate::gb::{GameBoy, cpu::CPU};
+use crate::gb::{
+    GameBoy,
+    cpu::{
+        CPU,
+        access::{ByteLoc, WordLoc},
+    },
+};
 
-macro_rules! load_r8s {
-    (@inner $dest:ident n8) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ $dest _n8>](ctx: &mut GameBoy) {
-                ctx.cpu.$dest = CPU::next_byte(ctx);
-            }
-        }
-    };
+pub fn ld_r8_r8(ctx: &mut GameBoy, dest: ByteLoc, src: ByteLoc) {
+    if src == dest {
+        warn!(
+            "LD {src:?}, {dest:?}: loading a register to itself is a no-op, but may be given debug meaning in the future."
+        );
+        return;
+    }
 
-    (@inner $reg:ident _) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ $reg _ $reg>](_ctx: &mut GameBoy) {
-                debug!(concat!(
-                    "LD ",
-                    stringify!([<$reg:upper>]),
-                    ", ",
-                    stringify!([<$reg:upper>]),
-                    " executed. Self loads are no-ops, but may have debug meaning in the future.",
-                ));
-            }
-        }
-    };
-
-    (@inner $dest:ident $src:ident) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ $dest _ $src>](ctx: &mut GameBoy) {
-                ctx.cpu.$dest = ctx.cpu.$src;
-            }
-        }
-    };
-
-    (@inner $dest:ident *a16) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [< ld_ $dest _ma16 >](ctx: &mut GameBoy) {
-                let address = CPU::next_word(ctx);
-                ctx.cpu.$dest = CPU::read_tick(ctx, address);
-            }
-        }
-    };
-
-    (@inner $dest:ident *$src:ident) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ $dest _m $src>](ctx: &mut GameBoy) {
-                let address = ctx.cpu.[<get_ $src>]();
-                ctx.cpu.$dest = CPU::read_tick(ctx, address);
-            }
-        }
-    };
-
-    (@inner *a16 $src:ident) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ma16_ $src>](ctx: &mut GameBoy) {
-                let address = CPU::next_word(ctx);
-                CPU::write_tick(ctx, address, ctx.cpu.$src);
-            }
-        }
-    };
-
-    (@inner *$dest:ident n8) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_m $dest _n8>](ctx: &mut GameBoy) {
-                let byte = CPU::next_byte(ctx);
-                let address = ctx.cpu.[<get_ $dest>]();
-                CPU::write_tick(ctx, address, byte);
-            }
-        }
-    };
-
-    (@inner *$dest:ident $src:ident) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_m $dest _ $src>](ctx: &mut GameBoy) {
-                let address = ctx.cpu.[<get_ $dest>]();
-                CPU::write_tick(ctx, address, ctx.cpu.$src);
-            }
-        }
-    };
-
-    ($(($($arg:tt)*))*) => {
-        $(
-            load_r8s!(@inner $($arg)*);
-        )*
-    };
+    let byte = CPU::get_location(ctx, src);
+    CPU::set_location(ctx, dest, byte);
 }
 
-macro_rules! load_r16s {
-    ($(($dest:ident n16))*) => {$(
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<ld_ $dest _n16>](ctx: &mut GameBoy) {
-                let word = CPU::next_word(ctx);
-                ctx.cpu.[<set_ $dest>](word);
-            }
-        }
-    )*};
+pub fn ld_a_high(ctx: &mut GameBoy, src: ByteLoc) {
+    ctx.cpu.a = CPU::get_high_location(ctx, src);
 }
 
-load_r8s! {
-    // Main loads
-    (b   _) (b   c) (b   d) (b   e) (b   h) (b   l) (b *hl) (b   a) (b   n8)
-    (c   b) (c   _) (c   d) (c   e) (c   h) (c   l) (c *hl) (c   a) (c   n8)
-    (d   b) (d   c) (d   _) (d   e) (d   h) (d   l) (d *hl) (d   a) (d   n8)
-    (e   b) (e   c) (e   d) (e   _) (e   h) (e   l) (e *hl) (e   a) (e   n8)
-    (h   b) (h   c) (h   d) (h   e) (h   _) (h   l) (h *hl) (h   a) (h   n8)
-    (l   b) (l   c) (l   d) (l   e) (l   h) (l   _) (l *hl) (l   a) (l   n8)
-    (*hl b) (*hl c) (*hl d) (*hl e) (*hl h) (*hl l) /*N/A*/ (*hl a) (*hl n8)
-    (a   b) (a   c) (a   d) (a   e) (a   h) (a   l) (a *hl) (a   _) (a   n8)
-
-    // Memory loads
-    (a *bc) (a *de) (a *hli) (a *hld) (a *a16)
-    (*bc a) (*de a) (*hli a) (*hld a) (*a16 a)
+pub fn ld_high_a(ctx: &mut GameBoy, dest: ByteLoc) {
+    CPU::set_high_location(ctx, dest, ctx.cpu.a);
 }
 
-load_r16s! {
-    (bc n16) (de n16) (hl n16)
-}
-
-#[inline(always)]
-pub fn ldh_ma8_a(ctx: &mut GameBoy) {
-    let byte = CPU::next_byte(ctx);
-    ldh_m_a(ctx, byte);
-}
-
-#[inline(always)]
-pub fn ldh_mc_a(ctx: &mut GameBoy) {
-    ldh_m_a(ctx, ctx.cpu.c);
-}
-
-#[inline(always)]
-pub fn ldh_m_a(ctx: &mut GameBoy, half: u8) {
-    let address = 0xFF00 + half as u16;
-    CPU::write_tick(ctx, address, ctx.cpu.a);
-}
-
-#[inline(always)]
-pub fn ldh_a_ma8(ctx: &mut GameBoy) {
-    let byte = CPU::next_byte(ctx);
-    ldh_a_m(ctx, byte);
-}
-
-#[inline(always)]
-pub fn ldh_a_mc(ctx: &mut GameBoy) {
-    ldh_a_m(ctx, ctx.cpu.c);
-}
-
-#[inline(always)]
-pub fn ldh_a_m(ctx: &mut GameBoy, half: u8) {
-    let address = 0xFF00 + half as u16;
-    ctx.cpu.a = CPU::read_tick(ctx, address);
+pub fn ld_r16_n16(ctx: &mut GameBoy, dest: WordLoc) {
+    let word = CPU::next_word(ctx);
+    CPU::set_word_location(ctx, dest, word);
 }
 
 #[cfg(test)]

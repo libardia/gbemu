@@ -1,70 +1,25 @@
-use crate::gb::{GameBoy, cpu::CPU};
+use crate::gb::{
+    GameBoy,
+    cpu::{CPU, access::ByteLoc},
+};
 
-macro_rules! operations {
-    (@inner $bit:literal $target:ident) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<bit_ $bit _ $target>](ctx: &mut GameBoy) {
-                ctx.cpu.f.z = ctx.cpu.$target & (1 << $bit) == 0;
-                ctx.cpu.f.n = false;
-                ctx.cpu.f.h = true;
-            }
-
-            #[inline(always)]
-            pub fn [<set_ $bit _ $target>](ctx: &mut GameBoy) {
-                ctx.cpu.$target |= 1 << $bit;
-            }
-
-            #[inline(always)]
-            pub fn [<res_ $bit _ $target>](ctx: &mut GameBoy) {
-                ctx.cpu.$target &= !(1 << $bit);
-            }
-        }
-    };
-
-    (@inner $bit:literal *hl) => {
-        paste::paste! {
-            #[inline(always)]
-            pub fn [<bit_ $bit _mhl>](ctx: &mut GameBoy) {
-                let address = ctx.cpu.get_hl();
-                let byte = CPU::read_tick(ctx, address);
-                ctx.cpu.f.z = byte & (1 << $bit) == 0;
-                ctx.cpu.f.n = false;
-                ctx.cpu.f.h = true;
-            }
-
-            #[inline(always)]
-            pub fn [<set_ $bit _mhl>](ctx: &mut GameBoy) {
-                let address = ctx.cpu.get_hl();
-                let byte = CPU::read_tick(ctx, address);
-                CPU::write_tick(ctx, address, byte | (1 << $bit));
-            }
-
-            #[inline(always)]
-            pub fn [<res_ $bit _mhl>](ctx: &mut GameBoy) {
-                let address = ctx.cpu.get_hl();
-                let byte = CPU::read_tick(ctx, address);
-                CPU::write_tick(ctx, address, byte & !(1 << $bit));
-            }
-        }
-    };
-
-    ($(($($arg:tt)*))*) => {
-        $(
-            operations!(@inner $($arg)*);
-        )*
-    };
+pub fn bit_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
+    let byte = CPU::get_location(ctx, target);
+    ctx.cpu.f.z = byte & (1 << bit) == 0;
+    ctx.cpu.f.n = false;
+    ctx.cpu.f.h = true;
 }
 
-operations! {
-    (0 b) (0 c) (0 d) (0 e) (0 h) (0 l) (0 *hl) (0 a)
-    (1 b) (1 c) (1 d) (1 e) (1 h) (1 l) (1 *hl) (1 a)
-    (2 b) (2 c) (2 d) (2 e) (2 h) (2 l) (2 *hl) (2 a)
-    (3 b) (3 c) (3 d) (3 e) (3 h) (3 l) (3 *hl) (3 a)
-    (4 b) (4 c) (4 d) (4 e) (4 h) (4 l) (4 *hl) (4 a)
-    (5 b) (5 c) (5 d) (5 e) (5 h) (5 l) (5 *hl) (5 a)
-    (6 b) (6 c) (6 d) (6 e) (6 h) (6 l) (6 *hl) (6 a)
-    (7 b) (7 c) (7 d) (7 e) (7 h) (7 l) (7 *hl) (7 a)
+pub fn res_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
+    let byte = CPU::get_location(ctx, target);
+    let result = byte & !(1 << bit);
+    CPU::set_location(ctx, target, result);
+}
+
+pub fn set_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
+    let byte = CPU::get_location(ctx, target);
+    let result = byte | 1 << bit;
+    CPU::set_location(ctx, target, result);
 }
 
 #[cfg(test)]

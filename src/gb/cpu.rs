@@ -12,6 +12,7 @@ use crate::{
     hex,
 };
 
+pub mod access;
 pub mod execute;
 pub mod instructions;
 pub mod optables;
