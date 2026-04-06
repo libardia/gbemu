@@ -2,12 +2,14 @@ use crate::gb::GameBoy;
 
 // TODO: DAA
 
+#[inline(always)]
 pub fn nop(_ctx: &mut GameBoy) {
     // Do nothing
 }
 
 // TODO: STOP
 
+#[inline(always)]
 pub fn prefix(ctx: &mut GameBoy) {
     // Next byte is interpreted as a prefixed instruction
     ctx.cpu.prefix_mode = true;

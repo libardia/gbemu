@@ -5,6 +5,7 @@ use crate::gb::{GameBoy, cpu::CPU};
 macro_rules! load_r8s {
     (@inner $dest:ident n8) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ $dest _n8>](ctx: &mut GameBoy) {
                 ctx.cpu.$dest = CPU::next_byte(ctx);
             }
@@ -13,6 +14,7 @@ macro_rules! load_r8s {
 
     (@inner $reg:ident _) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ $reg _ $reg>](_ctx: &mut GameBoy) {
                 debug!(concat!(
                     "LD ",
@@ -27,6 +29,7 @@ macro_rules! load_r8s {
 
     (@inner $dest:ident $src:ident) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ $dest _ $src>](ctx: &mut GameBoy) {
                 ctx.cpu.$dest = ctx.cpu.$src;
             }
@@ -35,6 +38,7 @@ macro_rules! load_r8s {
 
     (@inner $dest:ident *a16) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [< ld_ $dest _ma16 >](ctx: &mut GameBoy) {
                 let address = CPU::next_word(ctx);
                 ctx.cpu.$dest = CPU::read_tick(ctx, address);
@@ -44,6 +48,7 @@ macro_rules! load_r8s {
 
     (@inner $dest:ident *$src:ident) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ $dest _m $src>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.[<get_ $src>]();
                 ctx.cpu.$dest = CPU::read_tick(ctx, address);
@@ -53,6 +58,7 @@ macro_rules! load_r8s {
 
     (@inner *a16 $src:ident) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ma16_ $src>](ctx: &mut GameBoy) {
                 let address = CPU::next_word(ctx);
                 CPU::write_tick(ctx, address, ctx.cpu.$src);
@@ -62,6 +68,7 @@ macro_rules! load_r8s {
 
     (@inner *$dest:ident n8) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_m $dest _n8>](ctx: &mut GameBoy) {
                 let byte = CPU::next_byte(ctx);
                 let address = ctx.cpu.[<get_ $dest>]();
@@ -72,6 +79,7 @@ macro_rules! load_r8s {
 
     (@inner *$dest:ident $src:ident) => {
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_m $dest _ $src>](ctx: &mut GameBoy) {
                 let address = ctx.cpu.[<get_ $dest>]();
                 CPU::write_tick(ctx, address, ctx.cpu.$src);
@@ -89,6 +97,7 @@ macro_rules! load_r8s {
 macro_rules! load_r16s {
     ($(($dest:ident n16))*) => {$(
         paste::paste! {
+            #[inline(always)]
             pub fn [<ld_ $dest _n16>](ctx: &mut GameBoy) {
                 let word = CPU::next_word(ctx);
                 ctx.cpu.[<set_ $dest>](word);
@@ -117,29 +126,35 @@ load_r16s! {
     (bc n16) (de n16) (hl n16)
 }
 
+#[inline(always)]
 pub fn ldh_ma8_a(ctx: &mut GameBoy) {
     let byte = CPU::next_byte(ctx);
     ldh_m_a(ctx, byte);
 }
 
+#[inline(always)]
 pub fn ldh_mc_a(ctx: &mut GameBoy) {
     ldh_m_a(ctx, ctx.cpu.c);
 }
 
+#[inline(always)]
 pub fn ldh_m_a(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     CPU::write_tick(ctx, address, ctx.cpu.a);
 }
 
+#[inline(always)]
 pub fn ldh_a_ma8(ctx: &mut GameBoy) {
     let byte = CPU::next_byte(ctx);
     ldh_a_m(ctx, byte);
 }
 
+#[inline(always)]
 pub fn ldh_a_mc(ctx: &mut GameBoy) {
     ldh_a_m(ctx, ctx.cpu.c);
 }
 
+#[inline(always)]
 pub fn ldh_a_m(ctx: &mut GameBoy, half: u8) {
     let address = 0xFF00 + half as u16;
     ctx.cpu.a = CPU::read_tick(ctx, address);
