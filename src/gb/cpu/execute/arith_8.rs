@@ -13,7 +13,7 @@ pub fn add_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
     ctx.cpu.a = result;
     ctx.cpu.f.z = result == 0;
     ctx.cpu.f.n = false;
-    ctx.cpu.f.h = ((lhs & 0xF) + (rhs & 0xF)) + c > 0xF;
+    ctx.cpu.f.h = ((lhs & 0xF) + (rhs & 0xF) + c) > 0xF;
     ctx.cpu.f.c = overflow1 || overflow2;
 }
 
@@ -463,6 +463,254 @@ mod tests {
             }
         };
 
+        (@inner $code:literal cp n8) => {
+            #[test]
+            fn cp_eq_n8() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 2, cycles: 2
+                    setup {
+                        ctx.cpu.a = A;
+                        MMU::write(ctx, INSTRUCTION_ADDRESS + 1, A);
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A);
+                        assert!( ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!(!ctx.cpu.f.c);
+                    }
+                }
+            }
+
+            #[test]
+            fn cp_neq_n8() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 2, cycles: 2
+                    setup {
+                        ctx.cpu.a = A;
+                        MMU::write(ctx, INSTRUCTION_ADDRESS + 1, B);
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!( ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal cp *hl) => {
+            #[test]
+            fn cp_eq_mhl() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 2
+                    setup {
+                        ctx.cpu.a = A;
+                        ctx.cpu.set_hl(MEM_ADD);
+                        MMU::write(ctx, MEM_ADD, A);
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A);
+                        assert!( ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!(!ctx.cpu.f.c);
+                    }
+                }
+            }
+
+            #[test]
+            fn cp_neq_mhl() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 2
+                    setup {
+                        ctx.cpu.a = A;
+                        ctx.cpu.set_hl(MEM_ADD);
+                        MMU::write(ctx, MEM_ADD, B);
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!( ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal cp a) => {
+            #[test]
+            fn cp_a() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 1
+                    setup {
+                        ctx.cpu.a = A;
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A);
+                        assert!( ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!(!ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal cp $reg:ident) => {
+            paste::paste! {
+                #[test]
+                fn [<cp_eq_ $reg>]() {
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.a = A;
+                            ctx.cpu.$reg = A;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.a, A);
+                            assert!( ctx.cpu.f.z);
+                            assert!( ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!(!ctx.cpu.f.c);
+                        }
+                    }
+                }
+
+                #[test]
+                fn [<cp_neq_ $reg>]() {
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.a = A;
+                            ctx.cpu.$reg = B;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.a, A);
+                            assert!(!ctx.cpu.f.z);
+                            assert!( ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!( ctx.cpu.f.c);
+                        }
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal inc *hl) => {
+            #[test]
+            fn inc_mhl() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 3
+                    setup {
+                        MMU::write(ctx, MEM_ADD, A);
+                        ctx.cpu.set_hl(MEM_ADD);
+                    }
+                    after {
+                        assert_eq!(MMU::read(ctx, MEM_ADD), AI);
+                        assert!(!ctx.cpu.f.z);
+                        assert!(!ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal inc $reg:ident) => {
+            paste::paste! {
+                #[test]
+                fn [<inc_ $reg>]() {
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.$reg = A;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$reg, AI);
+                            assert!(!ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                        }
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal dec *hl) => {
+            #[test]
+            fn dec_mhl() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 3
+                    setup {
+                        MMU::write(ctx, MEM_ADD, A);
+                        ctx.cpu.set_hl(MEM_ADD);
+                    }
+                    after {
+                        assert_eq!(MMU::read(ctx, MEM_ADD), AD);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal dec $reg:ident) => {
+            paste::paste! {
+                #[test]
+                fn [<dec_ $reg>]() {
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.$reg = A;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.$reg, AD);
+                            assert!(!ctx.cpu.f.z);
+                            assert!( ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                        }
+                    }
+                }
+            }
+        };
+
         ($(($($arg:tt)*))*) => {
             $(
                 arith_tests!(@inner $($arg)*);
@@ -475,5 +723,9 @@ mod tests {
         (0x88 adc b) (0x89 adc c) (0x8A adc d) (0x8B adc e) (0x8C adc h) (0x8D adc l) (0x8E adc *hl) (0x8F adc a) (0xCE adc n8)
         (0x90 sub b) (0x91 sub c) (0x92 sub d) (0x93 sub e) (0x94 sub h) (0x95 sub l) (0x96 sub *hl) (0x97 sub a) (0xD6 sub n8)
         (0x98 sbc b) (0x99 sbc c) (0x9A sbc d) (0x9B sbc e) (0x9C sbc h) (0x9D sbc l) (0x9E sbc *hl) (0x9F sbc a) (0xDE sbc n8)
+        (0xB8 cp  b) (0xB9 cp  c) (0xBA cp  d) (0xBB cp  e) (0xBC cp  h) (0xBD cp  l) (0xBE cp  *hl) (0xBF cp  a) (0xFE cp  n8)
+
+        (0x04 inc b) (0x0C inc c) (0x14 inc d) (0x1C inc e) (0x24 inc h) (0x2C inc l) (0x34 inc *hl) (0x3C inc a)
+        (0x05 dec b) (0x0D dec c) (0x15 dec d) (0x1D dec e) (0x25 dec h) (0x2D dec l) (0x35 dec *hl) (0x3D dec a)
     }
 }
