@@ -163,6 +163,10 @@ mod tests {
                         }
                         after {
                             assert_eq!(ctx.cpu.a, A+B);
+                            assert!(!ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!(!ctx.cpu.f.c);
                         }
                     }
                 }
@@ -257,6 +261,10 @@ mod tests {
                         }
                         after {
                             assert_eq!(ctx.cpu.a, A+B+1);
+                            assert!(!ctx.cpu.f.z);
+                            assert!(!ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!(!ctx.cpu.f.c);
                         }
                     }
                 }
@@ -347,6 +355,108 @@ mod tests {
                         }
                         after {
                             assert_eq!(ctx.cpu.a, A);
+                            assert!(!ctx.cpu.f.z);
+                            assert!( ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!(!ctx.cpu.f.c);
+                        }
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal sbc n8) => {
+            #[test]
+            fn sbc_n8() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 2, cycles: 2
+                    setup {
+                        ctx.cpu.a = A+B;
+                        ctx.cpu.f.c = true;
+                        MMU::write(ctx, INSTRUCTION_ADDRESS + 1, B);
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A-1);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!(!ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal sbc *hl) => {
+            #[test]
+            fn sbc_mhl() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 2
+                    setup {
+                        ctx.cpu.a = A+B;
+                        ctx.cpu.f.c = true;
+                        ctx.cpu.set_hl(MEM_ADD);
+                        MMU::write(ctx, MEM_ADD, B)
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, A-1);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!(!ctx.cpu.f.h);
+                        assert!(!ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal sbc a) => {
+            #[test]
+            fn sbc_a() {
+                let ctx = &mut GameBoy::new();
+                step_test! {
+                    ctx: ctx;
+
+                    code: $code, length: 1, cycles: 1
+                    setup {
+                        ctx.cpu.a = A;
+                        ctx.cpu.f.c = true;
+                    }
+                    after {
+                        assert_eq!(ctx.cpu.a, 0xFF);
+                        assert!(!ctx.cpu.f.z);
+                        assert!( ctx.cpu.f.n);
+                        assert!( ctx.cpu.f.h);
+                        assert!( ctx.cpu.f.c);
+                    }
+                }
+            }
+        };
+
+        (@inner $code:literal sbc $reg:ident) => {
+            paste::paste! {
+                #[test]
+                fn [<sbc_ $reg>]() {
+                    let ctx = &mut GameBoy::new();
+                    step_test! {
+                        ctx: ctx;
+
+                        code: $code, length: 1, cycles: 1
+                        setup {
+                            ctx.cpu.a = A+B;
+                            ctx.cpu.f.c = true;
+                            ctx.cpu.$reg = B;
+                        }
+                        after {
+                            assert_eq!(ctx.cpu.a, A-1);
+                            assert!(!ctx.cpu.f.z);
+                            assert!( ctx.cpu.f.n);
+                            assert!(!ctx.cpu.f.h);
+                            assert!(!ctx.cpu.f.c);
                         }
                     }
                 }
@@ -364,6 +474,6 @@ mod tests {
         (0x80 add b) (0x81 add c) (0x82 add d) (0x83 add e) (0x84 add h) (0x85 add l) (0x86 add *hl) (0x87 add a) (0xC6 add n8)
         (0x88 adc b) (0x89 adc c) (0x8A adc d) (0x8B adc e) (0x8C adc h) (0x8D adc l) (0x8E adc *hl) (0x8F adc a) (0xCE adc n8)
         (0x90 sub b) (0x91 sub c) (0x92 sub d) (0x93 sub e) (0x94 sub h) (0x95 sub l) (0x96 sub *hl) (0x97 sub a) (0xD6 sub n8)
-        // (0x98 sbc b) (0x99 sbc c) (0x9A sbc d) (0x9B sbc e) (0x9C sbc h) (0x9D sbc l) (0x9E sbc *hl) (0x9F sbc a) (0xDE sbc n8)
+        (0x98 sbc b) (0x99 sbc c) (0x9A sbc d) (0x9B sbc e) (0x9C sbc h) (0x9D sbc l) (0x9E sbc *hl) (0x9F sbc a) (0xDE sbc n8)
     }
 }
