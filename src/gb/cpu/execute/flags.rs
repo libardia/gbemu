@@ -4,22 +4,22 @@ use crate::gb::{
 };
 
 pub fn bit_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
-    let byte = CPU::get_location(ctx, target);
+    let byte = CPU::get_byte_at(ctx, target);
     ctx.cpu.f.z = byte & (1 << bit) == 0;
     ctx.cpu.f.n = false;
     ctx.cpu.f.h = true;
 }
 
 pub fn res_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
-    let byte = CPU::get_location(ctx, target);
+    let byte = CPU::get_byte_at(ctx, target);
     let result = byte & !(1 << bit);
-    CPU::set_location(ctx, target, result);
+    CPU::set_byte_at(ctx, target, result);
 }
 
 pub fn set_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
-    let byte = CPU::get_location(ctx, target);
+    let byte = CPU::get_byte_at(ctx, target);
     let result = byte | 1 << bit;
-    CPU::set_location(ctx, target, result);
+    CPU::set_byte_at(ctx, target, result);
 }
 
 #[cfg(test)]

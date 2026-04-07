@@ -16,21 +16,21 @@ pub fn ld_r8_r8(ctx: &mut GameBoy, dest: ByteLoc, src: ByteLoc) {
         return;
     }
 
-    let byte = CPU::get_location(ctx, src);
-    CPU::set_location(ctx, dest, byte);
+    let byte = CPU::get_byte_at(ctx, src);
+    CPU::set_byte_at(ctx, dest, byte);
 }
 
 pub fn ld_a_high(ctx: &mut GameBoy, src: ByteLoc) {
-    ctx.cpu.a = CPU::get_high_location(ctx, src);
+    ctx.cpu.a = CPU::get_hbyte_at(ctx, src);
 }
 
 pub fn ld_high_a(ctx: &mut GameBoy, dest: ByteLoc) {
-    CPU::set_high_location(ctx, dest, ctx.cpu.a);
+    CPU::set_hbyte_at(ctx, dest, ctx.cpu.a);
 }
 
 pub fn ld_r16_n16(ctx: &mut GameBoy, dest: WordLoc) {
     let word = CPU::next_word(ctx);
-    CPU::set_word_location(ctx, dest, word);
+    CPU::set_word_at(ctx, dest, word);
 }
 
 #[cfg(test)]

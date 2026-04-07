@@ -32,7 +32,7 @@ pub enum WordLoc {
 }
 
 impl CPU {
-    pub(super) fn get_location(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
+    pub(super) fn get_byte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
         match loc {
             ByteLoc::B => ctx.cpu.b,
             ByteLoc::C => ctx.cpu.c,
@@ -62,7 +62,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_location(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
+    pub(super) fn set_byte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
         match loc {
             ByteLoc::B => ctx.cpu.b = byte,
             ByteLoc::C => ctx.cpu.c = byte,
@@ -92,7 +92,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn get_high_location(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
+    pub(super) fn get_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
         match loc {
             ByteLoc::C => CPU::read_tick(ctx, 0xFF00 + ctx.cpu.c as u16),
             ByteLoc::N8 => {
@@ -104,7 +104,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_high_location(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
+    pub(super) fn set_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
         match loc {
             ByteLoc::C => CPU::write_tick(ctx, 0xFF00 + ctx.cpu.c as u16, byte),
             ByteLoc::N8 => {
@@ -116,7 +116,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_word_location(ctx: &mut GameBoy, loc: WordLoc, word: u16) {
+    pub(super) fn set_word_at(ctx: &mut GameBoy, loc: WordLoc, word: u16) {
         match loc {
             WordLoc::BC => ctx.cpu.set_bc(word),
             WordLoc::DE => ctx.cpu.set_de(word),

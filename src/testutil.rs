@@ -18,7 +18,6 @@ pub fn registers_equal(cpu_a: &CPU, cpu_b: &CPU) -> bool {
         && cpu_a.f == cpu_b.f
 }
 
-#[macro_export]
 macro_rules! step_test {
     (
         ctx: $ctx:expr;
@@ -70,3 +69,4 @@ macro_rules! step_test {
         assert_eq!($ctx.debug_timer, $cycles*4);
     };
 }
+pub(crate) use step_test;
