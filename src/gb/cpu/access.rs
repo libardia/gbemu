@@ -1,4 +1,7 @@
-use crate::gb::{GameBoy, cpu::CPU};
+use crate::{
+    gb::{GameBoy, cpu::CPU},
+    hex,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ByteLoc {
@@ -32,7 +35,7 @@ pub enum WordLoc {
 }
 
 impl CPU {
-    pub(super) fn get_byte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
+    pub fn get_byte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
         match loc {
             ByteLoc::B => ctx.cpu.b,
             ByteLoc::C => ctx.cpu.c,
@@ -62,7 +65,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_byte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
+    pub fn set_byte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
         match loc {
             ByteLoc::B => ctx.cpu.b = byte,
             ByteLoc::C => ctx.cpu.c = byte,
@@ -92,7 +95,7 @@ impl CPU {
         }
     }
 
-    pub(super) fn get_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
+    pub fn get_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
         match loc {
             ByteLoc::C => CPU::read_tick(ctx, 0xFF00 + ctx.cpu.c as u16),
             ByteLoc::N8 => {
@@ -104,9 +107,13 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
+    pub fn set_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
+        println!("[0xFF00 + {loc:?}] = {}", hex!(byte, 2));
         match loc {
-            ByteLoc::C => CPU::write_tick(ctx, 0xFF00 + ctx.cpu.c as u16, byte),
+            ByteLoc::C => {
+                let half_address = ctx.cpu.c as u16;
+                CPU::write_tick(ctx, 0xFF00 + half_address, byte);
+            }
             ByteLoc::N8 => {
                 let half_address = CPU::next_byte(ctx) as u16;
                 CPU::write_tick(ctx, 0xFF00 + half_address, byte);
@@ -116,12 +123,96 @@ impl CPU {
         }
     }
 
-    pub(super) fn set_word_at(ctx: &mut GameBoy, loc: WordLoc, word: u16) {
+    pub fn set_word_at(ctx: &mut GameBoy, loc: WordLoc, word: u16) {
         match loc {
             WordLoc::BC => ctx.cpu.set_bc(word),
             WordLoc::DE => ctx.cpu.set_de(word),
             WordLoc::HL => ctx.cpu.set_hl(word),
             WordLoc::N16 => unimplemented!("can't write to a constant"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::gb::mmu::MMU;
+    use ByteLoc::*;
+
+    use super::*;
+
+    #[test]
+    fn getset_byte_at() {
+        let ctx = &mut GameBoy::new();
+
+        CPU::set_byte_at(ctx, B, 0xBB);
+        CPU::set_byte_at(ctx, C, 0xCC);
+        CPU::set_byte_at(ctx, D, 0xDD);
+        CPU::set_byte_at(ctx, E, 0xEE);
+        CPU::set_byte_at(ctx, H, 0xFF);
+        CPU::set_byte_at(ctx, L, 0x99);
+        CPU::set_byte_at(ctx, A, 0xAA);
+
+        assert_eq!(CPU::get_byte_at(ctx, B), 0xBB);
+        assert_eq!(ctx.cpu.b, 0xBB);
+        assert_eq!(CPU::get_byte_at(ctx, C), 0xCC);
+        assert_eq!(ctx.cpu.c, 0xCC);
+        assert_eq!(CPU::get_byte_at(ctx, D), 0xDD);
+        assert_eq!(ctx.cpu.d, 0xDD);
+        assert_eq!(CPU::get_byte_at(ctx, E), 0xEE);
+        assert_eq!(ctx.cpu.e, 0xEE);
+        assert_eq!(CPU::get_byte_at(ctx, H), 0xFF);
+        assert_eq!(ctx.cpu.h, 0xFF);
+        assert_eq!(CPU::get_byte_at(ctx, L), 0x99);
+        assert_eq!(ctx.cpu.l, 0x99);
+        assert_eq!(CPU::get_byte_at(ctx, A), 0xAA);
+        assert_eq!(ctx.cpu.a, 0xAA);
+
+        ctx.cpu.set_bc(0xCA01);
+        ctx.cpu.set_de(0xCB02);
+        ctx.cpu.set_hl(0xCC03);
+
+        ctx.cpu.pc = 0xDF00;
+        MMU::write(ctx, 0xDF00, 0x04);
+        MMU::write(ctx, 0xDF01, 0xCD);
+
+        CPU::set_byte_at(ctx, MBC, 0xBC);
+        CPU::set_byte_at(ctx, MDE, 0xDE);
+        CPU::set_byte_at(ctx, MHL, 0xF9);
+        CPU::set_byte_at(ctx, MA16, 0x16);
+        ctx.cpu.pc = 0xDF00; // reset PC (because it will change after last call)
+
+        assert_eq!(CPU::get_byte_at(ctx, MBC), 0xBC);
+        assert_eq!(MMU::read(ctx, 0xCA01), 0xBC);
+        assert_eq!(CPU::get_byte_at(ctx, MDE), 0xDE);
+        assert_eq!(MMU::read(ctx, 0xCB02), 0xDE);
+        assert_eq!(CPU::get_byte_at(ctx, MHL), 0xF9);
+        assert_eq!(MMU::read(ctx, 0xCC03), 0xF9);
+        assert_eq!(CPU::get_byte_at(ctx, MA16), 0x16);
+        assert_eq!(MMU::read(ctx, 0xCD04), 0x16);
+    }
+
+    #[test]
+    #[should_panic]
+    fn set_byte_at_n8() {
+        let ctx = &mut GameBoy::new();
+        CPU::set_byte_at(ctx, N8, 0x08);
+    }
+
+    #[test]
+    fn getset_hbyte_at() {
+        let ctx = &mut GameBoy::new();
+
+        ctx.cpu.c = 0x01;
+        ctx.cpu.pc = 0xDF00;
+        MMU::write(ctx, 0xDF00, 0x02);
+
+        CPU::set_hbyte_at(ctx, C, 0xCC);
+        assert_eq!(MMU::read(ctx, 0xFF01), 0xCC);
+        CPU::set_hbyte_at(ctx, N8, 0x08);
+        assert_eq!(MMU::read(ctx, 0xFF02), 0x08);
+        ctx.cpu.pc = 0xDF00; // reset PC (because it will change after last call)
+
+        assert_eq!(CPU::get_hbyte_at(ctx, C), 0xCC);
+        assert_eq!(CPU::get_hbyte_at(ctx, N8), 0x08);
     }
 }

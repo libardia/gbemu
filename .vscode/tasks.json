@@ -21,8 +21,9 @@
         {
             "label": "continuous coverage",
             "type": "shell",
-            "command": "cargo",
+            "command": "RUST_BACKTRACE=1",
             "args": [
+                "cargo",
                 "watch",
                 "-x",
                 "llvm-cov --ignore-filename-regex 'main\\.rs' --lcov --output-path ./target/lcov.info",

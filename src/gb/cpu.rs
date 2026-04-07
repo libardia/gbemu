@@ -75,7 +75,7 @@ macro_rules! r16 {
 
             pub fn [<set_ $r1 $r2>](&mut self, word: u16) {
                 self.$r1 = (word >> 8) as u8;
-                self.$r2 = (word & 0xFF) as u8
+                self.$r2 = (word & 0xFF) as u8;
             }
         }
     };
