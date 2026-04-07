@@ -36,10 +36,11 @@ pub fn ld_r16_n16(ctx: &mut GameBoy, dest: WordLoc) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        gb::{CPU, GameBoy, MMU},
-        step_test,
-        testutil::{INSTRUCTION_ADDRESS, registers_equal},
+        gb::mmu::MMU,
+        testutil::{INSTRUCTION_ADDRESS, registers_equal, step_test},
     };
+
+    use super::*;
 
     const INST_ADD: u16 = 0xDF00;
     const MEM_ADD: u16 = 0xDFF0;

@@ -24,8 +24,7 @@ pub fn set_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
 
 #[cfg(test)]
 mod tests {
-    use crate::gb::mmu::MMU;
-    use crate::step_test;
+    use crate::{gb::mmu::MMU, testutil::step_test};
 
     use super::*;
 
