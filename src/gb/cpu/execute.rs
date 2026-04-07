@@ -3,12 +3,13 @@ use crate::gb::{
     cpu::{
         CPU,
         access::{ByteLoc::*, WordLoc::*},
-        execute::{arith_8::*, flags::*, load::*, misc::*},
+        execute::{arith_8::*, carry::*, flags::*, load::*, misc::*},
         instructions::Instruction::{self, *},
     },
 };
 
 pub mod arith_8;
+pub mod carry;
 pub mod flags;
 pub mod load;
 pub mod misc;
@@ -512,8 +513,8 @@ impl CPU {
             RST_v38 => todo_inst!(),
 
             // Carry flag
-            SCF => todo_inst!(),
-            CCF => todo_inst!(),
+            SCF => scf(ctx),
+            CCF => ccf(ctx),
 
             // Stack
             LD_SP_n16 => todo_inst!(),
