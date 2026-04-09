@@ -15,7 +15,10 @@ pub struct GameBoy {
     pub cpu: CPU,
     pub mmu: MMU,
 
+    pub debug_isntructions: bool,
     pub debug_timer: u64,
+
+    pub exit: bool,
 }
 
 impl GameBoy {
@@ -24,7 +27,10 @@ impl GameBoy {
             cpu: CPU::new(),
             mmu: MMU::new(),
 
+            debug_isntructions: false,
             debug_timer: Default::default(),
+
+            exit: false,
         }
     }
 
@@ -40,11 +46,10 @@ impl GameBoy {
     }
 
     pub fn run(&mut self) {
-        loop {
+        while !self.exit {
             // CPU step will handle ticking all other hardware,
             // because instructions take variable amounts of time
             CPU::step(self);
-            break;
         }
 
         info!("Terminating.")
@@ -102,5 +107,12 @@ mod tests {
     #[should_panic]
     fn test_small_rom() {
         GameBoy::new().load_rom("res/rom_too_small.bin");
+    }
+
+    #[test]
+    fn run_test() {
+        let ctx = &mut GameBoy::new();
+        ctx.load_rom("res/rom_run_test.bin");
+        ctx.run();
     }
 }

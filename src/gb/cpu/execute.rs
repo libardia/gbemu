@@ -3,13 +3,14 @@ use crate::gb::{
     cpu::{
         CPU,
         access::{ByteLoc::*, WordLoc::*},
-        execute::{arith_8::*, carry::*, flags::*, load::*, misc::*},
+        execute::{arith_8::*, carry::*, debug::*, flags::*, load::*, misc::*},
         instructions::Instruction::{self, *},
     },
 };
 
 pub mod arith_8;
 pub mod carry;
+pub mod debug;
 pub mod flags;
 pub mod load;
 pub mod misc;
@@ -53,7 +54,7 @@ impl CPU {
             LD_E_B => ld_r8_r8(ctx, E, B),
             LD_E_C => ld_r8_r8(ctx, E, C),
             LD_E_D => ld_r8_r8(ctx, E, D),
-            LD_E_E => ld_r8_r8(ctx, E, E),
+            LD_E_E => exit(ctx),
             LD_E_H => ld_r8_r8(ctx, E, H),
             LD_E_L => ld_r8_r8(ctx, E, L),
             LD_E_mHL => ld_r8_r8(ctx, E, MHL),

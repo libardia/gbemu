@@ -121,8 +121,15 @@ def_regions! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use log::debug;
     use test_log::test;
+
+    #[test]
+    fn test_format() {
+        assert_eq!(
+            format!("{:?}", MappedMemoryRegion::new(MemoryRegion::new(5, 10))),
+            "MappedMemoryRegion { $0005 .. $000A (6 bytes) }"
+        );
+    }
 
     #[test]
     fn test_contains() {
@@ -153,7 +160,6 @@ mod tests {
     #[test]
     fn test_getset() {
         let mut reg = MappedMemoryRegion::new(MemoryRegion::new(5, 10));
-        debug!("Mapped region: {reg:?}");
         reg.set(6, 0xDE);
         reg.set(7, 0xAD);
         assert_eq!(reg.get(6), 0xDE);
