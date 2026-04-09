@@ -1,7 +1,4 @@
-use crate::{
-    gb::{GameBoy, cpu::CPU},
-    hex,
-};
+use crate::gb::{GameBoy, cpu::CPU};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ByteLoc {
@@ -108,7 +105,6 @@ impl CPU {
     }
 
     pub fn set_hbyte_at(ctx: &mut GameBoy, loc: ByteLoc, byte: u8) {
-        println!("[0xFF00 + {loc:?}] = {}", hex!(byte, 2));
         match loc {
             ByteLoc::C => {
                 let half_address = ctx.cpu.c as u16;
@@ -199,20 +195,54 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn set_word_at_n16() {
+        let ctx = &mut GameBoy::new();
+        CPU::set_word_at(ctx, WordLoc::N16, 0x0800);
+    }
+
+    #[test]
     fn getset_hbyte_at() {
         let ctx = &mut GameBoy::new();
 
-        ctx.cpu.c = 0x01;
+        ctx.cpu.c = 0x81;
         ctx.cpu.pc = 0xDF00;
-        MMU::write(ctx, 0xDF00, 0x02);
+        MMU::write(ctx, 0xDF00, 0x82);
 
         CPU::set_hbyte_at(ctx, C, 0xCC);
-        assert_eq!(MMU::read(ctx, 0xFF01), 0xCC);
         CPU::set_hbyte_at(ctx, N8, 0x08);
-        assert_eq!(MMU::read(ctx, 0xFF02), 0x08);
         ctx.cpu.pc = 0xDF00; // reset PC (because it will change after last call)
 
         assert_eq!(CPU::get_hbyte_at(ctx, C), 0xCC);
+        assert_eq!(MMU::read(ctx, 0xFF81), 0xCC);
         assert_eq!(CPU::get_hbyte_at(ctx, N8), 0x08);
+        assert_eq!(MMU::read(ctx, 0xFF82), 0x08);
     }
+
+    macro_rules! panic_set_hbyte {
+        ($($loc:expr),*) => {
+            paste::paste! {$(
+                #[test]
+                #[should_panic]
+                fn [<panic_test_set_hbyte_ $loc:lower>]() {
+                    CPU::set_hbyte_at(&mut GameBoy::new(), $loc, 0x00);
+                }
+            )*}
+        };
+    }
+
+    macro_rules! panic_get_hbyte {
+        ($($loc:expr),*) => {
+            paste::paste! {$(
+                #[test]
+                #[should_panic]
+                fn [<panic_test_get_hbyte_ $loc:lower>]() {
+                    CPU::get_hbyte_at(&mut GameBoy::new(), $loc);
+                }
+            )*}
+        };
+    }
+
+    panic_set_hbyte!(B, D, E, H, L, A, MBC, MDE, MHL, MHLI, MHLD, MA16);
+    panic_get_hbyte!(B, D, E, H, L, A, MBC, MDE, MHL, MHLI, MHLD, MA16);
 }
