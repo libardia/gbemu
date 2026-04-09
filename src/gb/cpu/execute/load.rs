@@ -1,18 +1,32 @@
-use log::warn;
+use log::{debug, warn};
 
 use crate::gb::{
     GameBoy,
     cpu::{
         CPU,
         access::{ByteLoc, WordLoc},
+        execute::debug::*,
     },
 };
 
 pub fn ld_r8_r8(ctx: &mut GameBoy, dest: ByteLoc, src: ByteLoc) {
     if src == dest {
-        warn!(
-            "LD {src:?}, {dest:?}: loading a register to itself is a no-op, but may be given debug meaning in the future."
-        );
+        if ctx.debug_isntructions {
+            match src {
+                // ByteLoc::B => todo!(),
+                // ByteLoc::C => todo!(),
+                ByteLoc::D => print_cpu(ctx),
+                ByteLoc::E => exit(ctx),
+                // ByteLoc::H => todo!(),
+                // ByteLoc::L => todo!(),
+                // ByteLoc::A => todo!(),
+                _ => warn!(
+                    "executed LD {src:?}, {dest:?}: loading a register to itself is a no-op, but may be given debug meaning in the future."
+                ),
+            }
+        } else {
+            debug!("executed LD {src:?}, {dest:?}: loading a register to itself is a no-op");
+        }
         return;
     }
 

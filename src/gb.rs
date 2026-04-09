@@ -112,6 +112,7 @@ mod tests {
     #[test]
     fn run_test() {
         let ctx = &mut GameBoy::new();
+        ctx.debug_isntructions = true;
         ctx.load_rom("res/rom_run_test.bin");
         ctx.run();
     }

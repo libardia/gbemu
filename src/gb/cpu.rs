@@ -156,6 +156,11 @@ impl CPU {
             OPTABLE[byte]
         }
     }
+
+    pub fn debug_str(&self) -> &str {
+        // TODO: Debug CPU string
+        return "";
+    }
 }
 
 #[cfg(test)]
