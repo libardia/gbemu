@@ -15,6 +15,8 @@ pub fn prefix(ctx: &mut GameBoy) {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use crate::testutil::step_test;
 
     use super::*;

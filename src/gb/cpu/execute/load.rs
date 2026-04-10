@@ -49,6 +49,8 @@ pub fn ld_r16_n16(ctx: &mut GameBoy, dest: WordLoc) {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use crate::{
         gb::mmu::MMU,
         testutil::{INSTRUCTION_ADDRESS, registers_equal, step_test},

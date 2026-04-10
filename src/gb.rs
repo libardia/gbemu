@@ -8,6 +8,7 @@ use log::info;
 use crate::gb::{cpu::CPU, mmu::MMU};
 
 pub mod cpu;
+pub mod hw;
 pub mod mmu;
 
 #[derive(Debug)]
@@ -68,6 +69,8 @@ impl GameBoy {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use crate::gb::GameBoy;
 
     #[test]

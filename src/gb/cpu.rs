@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, trace};
 
 use crate::{
     gb::{
@@ -7,6 +7,7 @@ use crate::{
             instructions::Instruction,
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
+        hw::HardwareInterface,
         mmu::MMU,
     },
     hex,
@@ -36,6 +37,11 @@ pub struct CPU {
     pub pc: u16,
     pub sp: u16,
 
+    pub ime: bool,
+    pub int_e: u8,
+    pub int_f: u8,
+
+    // Misc
     pub prefix_mode: bool,
     pub halt_bug: bool,
 }
@@ -90,7 +96,7 @@ impl CPU {
 
     pub fn step(ctx: &mut GameBoy) {
         let inst = CPU::decode(ctx);
-        debug!("Instruction: {inst:?}");
+        trace!("Instruction: {inst:?}");
         CPU::execute(ctx, inst);
     }
 
@@ -148,7 +154,7 @@ impl CPU {
 
     pub fn decode(ctx: &mut GameBoy) -> Instruction {
         let byte = CPU::next_byte(ctx) as usize;
-        debug!("Byte: {}", hex!(byte, 2));
+        trace!("Byte: {}", hex!(byte, 2));
         if ctx.cpu.prefix_mode {
             ctx.cpu.prefix_mode = false;
             PREFIX_OPTABLE[byte]
@@ -157,14 +163,52 @@ impl CPU {
         }
     }
 
-    pub fn debug_str(&self) -> &str {
-        // TODO: Debug CPU string
-        return "";
+    pub fn debug_str(&self) -> String {
+        return format!(
+            concat!(
+                "\n== CPU =================",
+                "\n| BC: {:>02X} {:>02X} |     znhc |",
+                "\n| DE: {:>02X} {:>02X} |  F: {}{}{}{} |",
+                "\n| HL: {:>02X} {:>02X} | PC: {:>04X} |",
+                "\n| AF: {:>02X} {:>02X} | SP: {:>04X} |",
+                "\n========================",
+            ),
+            self.b,
+            self.c,
+            self.d,
+            self.e,
+            self.f.z as u8,
+            self.f.n as u8,
+            self.f.h as u8,
+            self.f.c as u8,
+            self.h,
+            self.l,
+            self.pc,
+            self.a,
+            self.f.as_byte(),
+            self.sp
+        );
+    }
+}
+
+impl HardwareInterface for CPU {
+    fn init(&mut self) {
+        todo!()
+    }
+
+    fn read(&mut self, address: u16) -> u8 {
+        todo!()
+    }
+
+    fn write(&mut self, address: u16, byte: u8) {
+        todo!()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use super::*;
 
     macro_rules! r16_test {

@@ -5,6 +5,7 @@ use crate::{
     hex,
 };
 
+pub mod io;
 pub mod region;
 
 #[derive(Debug, Default)]

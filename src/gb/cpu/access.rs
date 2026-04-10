@@ -131,6 +131,8 @@ impl CPU {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use crate::gb::mmu::MMU;
     use ByteLoc::*;
 

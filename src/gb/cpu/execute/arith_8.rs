@@ -1,6 +1,6 @@
 use crate::gb::{
     GameBoy,
-    cpu::{CPU, access::ByteLoc},
+    cpu::{CPU, Flags, access::ByteLoc},
 };
 
 pub fn add_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
@@ -11,10 +11,12 @@ pub fn add_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
     let (result, overflow2) = result.overflowing_add(c);
 
     ctx.cpu.a = result;
-    ctx.cpu.f.z = result == 0;
-    ctx.cpu.f.n = false;
-    ctx.cpu.f.h = ((lhs & 0xF) + (rhs & 0xF) + c) > 0xF;
-    ctx.cpu.f.c = overflow1 || overflow2;
+    ctx.cpu.f = Flags {
+        z: result == 0,
+        n: false,
+        h: ((lhs & 0xF) + (rhs & 0xF) + c) > 0xF,
+        c: overflow1 || overflow2,
+    };
 }
 
 pub fn sub_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
@@ -26,9 +28,12 @@ pub fn inc_r8(ctx: &mut GameBoy, target: ByteLoc) {
     let result = orig.wrapping_add(1);
     CPU::set_byte_at(ctx, target, result);
 
-    ctx.cpu.f.z = result == 0;
-    ctx.cpu.f.n = false;
-    ctx.cpu.f.h = orig & 0xF == 0xF
+    ctx.cpu.f = Flags {
+        z: result == 0,
+        n: false,
+        h: orig & 0xF == 0xF,
+        c: ctx.cpu.f.c, // Unchanged
+    };
 }
 
 pub fn dec_r8(ctx: &mut GameBoy, target: ByteLoc) {
@@ -36,9 +41,12 @@ pub fn dec_r8(ctx: &mut GameBoy, target: ByteLoc) {
     let result = orig.wrapping_sub(1);
     CPU::set_byte_at(ctx, target, result);
 
-    ctx.cpu.f.z = result == 0;
-    ctx.cpu.f.n = true;
-    ctx.cpu.f.h = orig & 0xF == 0
+    ctx.cpu.f = Flags {
+        z: result == 0,
+        n: true,
+        h: orig & 0xF == 0,
+        c: ctx.cpu.f.c, // Unchanged
+    };
 }
 
 pub fn cp_r8(ctx: &mut GameBoy, target: ByteLoc) {
@@ -53,16 +61,20 @@ fn sub_internal(ctx: &mut GameBoy, target: ByteLoc, carry: bool) -> u8 {
     let (result, overflow1) = lhs.overflowing_sub(rhs);
     let (result, overflow2) = result.overflowing_sub(c);
 
-    ctx.cpu.f.z = result == 0;
-    ctx.cpu.f.n = true;
-    ctx.cpu.f.h = (lhs & 0xF) < ((rhs & 0xF) + c);
-    ctx.cpu.f.c = overflow1 || overflow2;
+    ctx.cpu.f = Flags {
+        z: result == 0,
+        n: true,
+        h: (lhs & 0xF) < ((rhs & 0xF) + c),
+        c: overflow1 || overflow2,
+    };
 
     result
 }
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     use crate::{
         gb::mmu::MMU,
         testutil::{INSTRUCTION_ADDRESS, step_test},

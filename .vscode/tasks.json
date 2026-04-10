@@ -21,7 +21,7 @@
         {
             "label": "continuous coverage",
             "type": "shell",
-            "command": "RUST_BACKTRACE=1",
+            "command": "RUST_LOG=debug",
             "args": [
                 "cargo",
                 "watch",
