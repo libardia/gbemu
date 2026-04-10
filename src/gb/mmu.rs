@@ -1,8 +1,15 @@
 use log::warn;
 
 use crate::{
-    gb::{GameBoy, mmu::region::*},
-    hex,
+    gb::{
+        GameBoy,
+        hw::HardwareInterface,
+        mmu::{
+            io::{IO_IE, IO_IF},
+            region::*,
+        },
+    },
+    macros::hex,
 };
 
 pub mod io;
@@ -49,7 +56,7 @@ impl MMU {
         }
     }
 
-    pub fn read(ctx: &GameBoy, address: u16) -> u8 {
+    pub fn read(ctx: &mut GameBoy, address: u16) -> u8 {
         if ctx.mmu.boot_mode {
             if BOOT_ROM.contains(address) {
                 // Return early (boot rom "maps over" everything else)
@@ -72,10 +79,10 @@ impl MMU {
                 // IO_JOYP      => Input::read(ctx, address),
                 // #IO_SERIAL   => Serial::read(ctx, address),
                 // #IO_TIMER    => Timer::read(ctx, address),
-                // IO_IF        => get_bits_of!(ctx.mem.io_if, 0x1F),
+                IO_IF        => ctx.cpu.read(address),
                 // #IO_AUDIO    => Audio::read(ctx, address),
                 // #IO_GRAPHICS => Graphics::read(ctx, address),
-                // IO_IE        => ctx.mem.io_ie,
+                IO_IE        => ctx.cpu.read(address),
 
                 // Anything else is unreadable
                 _ => {
@@ -115,11 +122,11 @@ impl MMU {
                 // IO_JOYP      => Input::write(ctx, address, value),
                 // #IO_SERIAL   => Serial::write(ctx, address, value),
                 // #IO_TIMER    => Timer::write(ctx, address, value),
-                // IO_IF        => ctx.mem.io_if = set_bits_of!(ctx.mem.io_if, value, 0x1F),
+                IO_IF        => ctx.cpu.write(address, byte),
                 // #IO_AUDIO    => Audio::write(ctx, address, value),
                 // #IO_GRAPHICS => Graphics::write(ctx, address, value),
                 // IO_BANK      => if value != 0 { ctx.mem.boot_mode = false },
-                // IO_IE        => ctx.mem.io_ie = value,
+                IO_IE        => ctx.cpu.write(address, byte),
 
                 // Anything else is unwritable
                 _ => warn!(

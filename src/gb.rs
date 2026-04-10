@@ -16,9 +16,10 @@ pub struct GameBoy {
     pub cpu: CPU,
     pub mmu: MMU,
 
-    pub debug_isntructions: bool,
     pub debug_timer: u64,
 
+    pub debug_isntructions: bool,
+    pub skip_boot: bool,
     pub exit: bool,
 }
 
@@ -28,9 +29,10 @@ impl GameBoy {
             cpu: CPU::new(),
             mmu: MMU::new(),
 
-            debug_isntructions: false,
             debug_timer: Default::default(),
 
+            debug_isntructions: false,
+            skip_boot: false,
             exit: false,
         }
     }

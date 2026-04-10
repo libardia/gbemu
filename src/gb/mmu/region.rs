@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::hex;
+use crate::macros::hex;
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct MemoryRegion {

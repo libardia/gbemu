@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::trace;
 
 use crate::{
     gb::{
@@ -8,9 +8,12 @@ use crate::{
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
         hw::HardwareInterface,
-        mmu::MMU,
+        mmu::{
+            MMU,
+            io::{IO_IE, IO_IF},
+        },
     },
-    hex,
+    macros::{get_masked, hex, set_masked},
 };
 
 pub mod access;
@@ -38,8 +41,8 @@ pub struct CPU {
     pub sp: u16,
 
     pub ime: bool,
-    pub int_e: u8,
     pub int_f: u8,
+    pub int_e: u8,
 
     // Misc
     pub prefix_mode: bool,
@@ -89,9 +92,7 @@ macro_rules! r16 {
 
 impl CPU {
     pub fn new() -> Self {
-        let cpu = CPU::default();
-        // TODO: init
-        cpu
+        CPU::default()
     }
 
     pub fn step(ctx: &mut GameBoy) {
@@ -192,16 +193,22 @@ impl CPU {
 }
 
 impl HardwareInterface for CPU {
-    fn init(&mut self) {
-        todo!()
-    }
-
     fn read(&mut self, address: u16) -> u8 {
-        todo!()
+        match address {
+            IO_IF => get_masked!(self.int_f; 0x1F),
+            IO_IE => self.int_e,
+
+            _ => unimplemented!("can't read address {} from the CPU", hex!(address, 4)),
+        }
     }
 
     fn write(&mut self, address: u16, byte: u8) {
-        todo!()
+        match address {
+            IO_IF => self.int_f = set_masked!(self.int_f, byte; 0x1F),
+            IO_IE => self.int_e = byte,
+
+            _ => unimplemented!("can't write address {} to the CPU", hex!(address, 4)),
+        };
     }
 }
 
