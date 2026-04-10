@@ -4,10 +4,7 @@ use crate::{
     gb::{
         GameBoy,
         hw::HardwareInterface,
-        mmu::{
-            io::{IO_IE, IO_IF},
-            region::*,
-        },
+        mmu::{io::*, region::*},
     },
     macros::hex,
 };
@@ -67,22 +64,21 @@ impl MMU {
         address_dispatch! {
             on address:
                 // ROM and RAM
-                #ROM_SPACE => todo!("read from ROM_SPACE"),
+                #ROM_SPACE => todo!("read from ROM_SPACE"), // TODO: read from ROM
                 #VRAM      => ctx.mmu.vram.get(address),
-                #CART_RAM  => todo!("read from CART_RAM"),
+                #CART_RAM  => todo!("read from CART_RAM"), // TODO: read from cart RAM
                 #WORK_RAM  => ctx.mmu.wram.get(address),
                 #ECHO_RAM  => ctx.mmu.wram.get(address - Self::ECHO_RAM_OFFSET),
                 #OAM       => ctx.mmu.oam.get(address),
                 #HIGH_RAM  => ctx.mmu.hram.get(address),
 
-                // TODO: IO registers read
-                // IO_JOYP      => Input::read(ctx, address),
-                // #IO_SERIAL   => Serial::read(ctx, address),
-                // #IO_TIMER    => Timer::read(ctx, address),
-                IO_IF        => ctx.cpu.read(address),
-                // #IO_AUDIO    => Audio::read(ctx, address),
-                // #IO_GRAPHICS => Graphics::read(ctx, address),
-                IO_IE        => ctx.cpu.read(address),
+                IO_JOYP => ctx.inu.read(address),
+                #IO_SBU => ctx.sdu.read(address),
+                #IO_TMU => ctx.tmu.read(address),
+                IO_IF   => ctx.cpu.read(address),
+                #IO_APU => ctx.apu.read(address),
+                #IO_PPU => ctx.ppu.read(address),
+                IO_IE   => ctx.cpu.read(address),
 
                 // Anything else is unreadable
                 _ => {
@@ -110,23 +106,22 @@ impl MMU {
         address_dispatch! {
             on address:
                 // ROM and RAM
-                #ROM_SPACE => todo!("write to ROM_SPACE"),
+                #ROM_SPACE => todo!("write to ROM_SPACE"), // TODO: write to ROM
                 #VRAM      => ctx.mmu.vram.set(address, byte),
-                #CART_RAM  => todo!("write to CART_RAM"),
+                #CART_RAM  => todo!("write to CART_RAM"), // TODO: write to cart RAM
                 #WORK_RAM  => ctx.mmu.wram.set(address, byte),
                 #ECHO_RAM  => ctx.mmu.wram.set(address - Self::ECHO_RAM_OFFSET, byte),
                 #OAM       => ctx.mmu.oam.set(address, byte),
                 #HIGH_RAM  => ctx.mmu.hram.set(address, byte),
 
-                // TODO: IO registers write
-                // IO_JOYP      => Input::write(ctx, address, value),
-                // #IO_SERIAL   => Serial::write(ctx, address, value),
-                // #IO_TIMER    => Timer::write(ctx, address, value),
-                IO_IF        => ctx.cpu.write(address, byte),
-                // #IO_AUDIO    => Audio::write(ctx, address, value),
-                // #IO_GRAPHICS => Graphics::write(ctx, address, value),
-                // IO_BANK      => if value != 0 { ctx.mem.boot_mode = false },
-                IO_IE        => ctx.cpu.write(address, byte),
+                IO_JOYP => ctx.inu.write(address, byte),
+                #IO_SBU => ctx.sdu.write(address, byte),
+                #IO_TMU => ctx.tmu.write(address, byte),
+                IO_IF   => ctx.cpu.write(address, byte),
+                #IO_APU => ctx.apu.write(address, byte),
+                #IO_PPU => ctx.ppu.write(address, byte),
+                IO_BANK => if byte != 0 { ctx.mmu.boot_mode = false },
+                IO_IE   => ctx.cpu.write(address, byte),
 
                 // Anything else is unwritable
                 _ => warn!(

@@ -6,14 +6,14 @@ pub const IO_JOYP: u16 = 0xFF00;
 // Serial
 pub const IO_SB: u16 = 0xFF01;
 pub const IO_SC: u16 = 0xFF02;
-pub const IO_SERIAL: MemoryRegion = MemoryRegion::new(IO_SB, IO_SC);
+pub const IO_SBU: MemoryRegion = MemoryRegion::new(IO_SB, IO_SC);
 
 // Timer
 pub const IO_DIV: u16 = 0xFF04;
 pub const IO_TIMA: u16 = 0xFF05;
 pub const IO_TMA: u16 = 0xFF06;
 pub const IO_TAC: u16 = 0xFF07;
-pub const IO_TIMER: MemoryRegion = MemoryRegion::new(IO_DIV, IO_TAC);
+pub const IO_TMU: MemoryRegion = MemoryRegion::new(IO_DIV, IO_TAC);
 
 // Interrupts
 pub const IO_IF: u16 = 0xFF0F;
@@ -41,7 +41,7 @@ pub const IO_NR50: u16 = 0xFF24;
 pub const IO_NR51: u16 = 0xFF25;
 pub const IO_NR52: u16 = 0xFF26;
 pub const IO_WAVE: MemoryRegion = MemoryRegion::new(0xFF30, 0xFF3F);
-pub const IO_AUDIO: MemoryRegion = MemoryRegion::new(IO_NR10, IO_WAVE.end);
+pub const IO_APU: MemoryRegion = MemoryRegion::new(IO_NR10, IO_WAVE.end);
 
 // Graphics
 pub const IO_LCDC: u16 = 0xFF40;
@@ -56,7 +56,7 @@ pub const IO_OBP0: u16 = 0xFF48;
 pub const IO_OBP1: u16 = 0xFF49;
 pub const IO_WY: u16 = 0xFF4A;
 pub const IO_WX: u16 = 0xFF4B;
-pub const IO_GRAPHICS: MemoryRegion = MemoryRegion::new(IO_LCDC, IO_WX);
+pub const IO_PPU: MemoryRegion = MemoryRegion::new(IO_LCDC, IO_WX);
 
 // System
 pub const IO_BANK: u16 = 0xFF50;

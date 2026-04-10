@@ -5,16 +5,27 @@ use std::{
 
 use log::info;
 
-use crate::gb::{cpu::CPU, mmu::MMU};
+use crate::gb::{apu::APU, cpu::CPU, inu::INU, mmu::MMU, ppu::PPU, sdu::SDU, tmu::TMU};
 
+pub mod apu;
 pub mod cpu;
 pub mod hw;
+pub mod inu;
 pub mod mmu;
+pub mod ppu;
+pub mod sdu;
+pub mod tmu;
 
 #[derive(Debug)]
 pub struct GameBoy {
-    pub cpu: CPU,
     pub mmu: MMU,
+
+    pub cpu: CPU,
+    pub ppu: PPU,
+    pub tmu: TMU,
+    pub inu: INU,
+    pub apu: APU,
+    pub sdu: SDU,
 
     pub debug_timer: u64,
 
@@ -26,8 +37,14 @@ pub struct GameBoy {
 impl GameBoy {
     pub fn new() -> Self {
         Self {
-            cpu: CPU::new(),
             mmu: MMU::new(),
+
+            cpu: CPU::new(),
+            ppu: PPU::new(),
+            tmu: TMU::new(),
+            inu: INU::new(),
+            apu: APU::new(),
+            sdu: SDU::new(),
 
             debug_timer: Default::default(),
 
