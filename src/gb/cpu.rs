@@ -7,7 +7,7 @@ use crate::{
             instructions::Instruction,
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
-        hw::HardwareInterface,
+        hardware_interface::HardwareInterface,
         mmu::{
             MMU,
             io::{IO_IE, IO_IF},

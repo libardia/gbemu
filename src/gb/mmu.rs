@@ -3,7 +3,7 @@ use log::warn;
 use crate::{
     gb::{
         GameBoy,
-        hw::HardwareInterface,
+        hardware_interface::HardwareInterface,
         mmu::{io::*, region::*},
     },
     macros::hex,

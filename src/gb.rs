@@ -9,7 +9,7 @@ use crate::gb::{apu::APU, cpu::CPU, inu::INU, mmu::MMU, ppu::PPU, sdu::SDU, tmu:
 
 pub mod apu;
 pub mod cpu;
-pub mod hw;
+pub mod hardware_interface;
 pub mod inu;
 pub mod mmu;
 pub mod ppu;

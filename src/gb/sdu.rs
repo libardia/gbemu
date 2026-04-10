@@ -1,4 +1,4 @@
-use crate::{gb::hw::HardwareInterface, macros::hex};
+use crate::{gb::hardware_interface::HardwareInterface, macros::hex};
 
 #[derive(Debug, Default)]
 pub struct SDU {
