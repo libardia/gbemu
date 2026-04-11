@@ -160,12 +160,15 @@ pub enum Instruction {
     ADD_HL_BC, // $09: ADD HL, BC
     ADD_HL_DE, // $19: ADD HL, DE
     ADD_HL_HL, // $29: ADD HL, HL
+    ADD_HL_SP, // $39: ADD HL, SP
     INC_BC,    // $03: INC BC
     INC_DE,    // $13: INC DE
     INC_HL,    // $23: INC HL
+    INC_SP,    // $33: INC SP
     DEC_BC,    // $0B: DEC BC
     DEC_DE,    // $1B: DEC DE
     DEC_HL,    // $2B: DEC HL
+    DEC_SP,    // $3B: DEC SP
     /* #endregion */
 
     /* #region Bitwise logic */
@@ -508,10 +511,7 @@ pub enum Instruction {
     LD_SP_HL,   // $F9: LD SP, HL
     LD_HL_SPe8, // $F8: LD HL, SP+e8
     LD_ma16_SP, // $08: LD [a16], SP
-    ADD_HL_SP,  // $39: ADD HL, SP
     ADD_SP_e8,  // $E8: ADD SP, e8
-    INC_SP,     // $33: INC SP
-    DEC_SP,     // $3B: DEC SP
     POP_BC,     // $C1: POP BC
     POP_DE,     // $D1: POP DE
     POP_HL,     // $E1: POP HL

@@ -28,7 +28,7 @@ pub enum WordLoc {
     BC,
     DE,
     HL,
-    N16,
+    SP,
 }
 
 impl CPU {
@@ -119,12 +119,21 @@ impl CPU {
         }
     }
 
+    pub fn get_word_at(ctx: &mut GameBoy, loc: WordLoc) -> u16 {
+        match loc {
+            WordLoc::BC => ctx.cpu.get_bc(),
+            WordLoc::DE => ctx.cpu.get_de(),
+            WordLoc::HL => ctx.cpu.get_hl(),
+            WordLoc::SP => ctx.cpu.sp,
+        }
+    }
+
     pub fn set_word_at(ctx: &mut GameBoy, loc: WordLoc, word: u16) {
         match loc {
             WordLoc::BC => ctx.cpu.set_bc(word),
             WordLoc::DE => ctx.cpu.set_de(word),
             WordLoc::HL => ctx.cpu.set_hl(word),
-            WordLoc::N16 => unimplemented!("can't write to a constant"),
+            WordLoc::SP => ctx.cpu.sp = word,
         }
     }
 }
@@ -194,13 +203,6 @@ mod tests {
     fn set_byte_at_n8() {
         let ctx = &mut GameBoy::new();
         CPU::set_byte_at(ctx, N8, 0x08);
-    }
-
-    #[test]
-    #[should_panic]
-    fn set_word_at_n16() {
-        let ctx = &mut GameBoy::new();
-        CPU::set_word_at(ctx, WordLoc::N16, 0x0800);
     }
 
     #[test]

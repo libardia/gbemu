@@ -3,7 +3,7 @@ use crate::gb::{
     cpu::{CPU, Flags, access::ByteLoc},
 };
 
-pub fn add_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
+pub fn add_a_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
     let lhs = ctx.cpu.a;
     let rhs = CPU::get_byte_at(ctx, target);
     let c = (carry && ctx.cpu.f.c) as u8;
@@ -19,7 +19,7 @@ pub fn add_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
     };
 }
 
-pub fn sub_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
+pub fn sub_a_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
     ctx.cpu.a = sub_internal(ctx, target, carry);
 }
 
@@ -49,7 +49,7 @@ pub fn dec_r8(ctx: &mut GameBoy, target: ByteLoc) {
     };
 }
 
-pub fn cp_r8(ctx: &mut GameBoy, target: ByteLoc) {
+pub fn cp_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
     // Flags set the same as a subtraction, but the result is ignored
     sub_internal(ctx, target, false);
 }

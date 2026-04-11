@@ -1,7 +1,7 @@
 use std::{fs, panic, path::Path};
 
 use ftail::Ftail;
-use log::{LevelFilter, debug, error};
+use log::{LevelFilter, error};
 
 use crate::gb::GameBoy;
 
@@ -27,7 +27,6 @@ fn main() {
     }));
 
     let mut gb = GameBoy::new();
-    debug!("{gb:?}");
     gb.load_rom("gb-bootroms/bin/dmg.bin");
     gb.run();
 }
