@@ -3,7 +3,9 @@ use crate::gb::{
     cpu::{
         CPU,
         access::{ByteLoc::*, WordLoc::*},
-        execute::{arith8::*, arith16::*, carry::*, flags::*, load::*, logic::*, misc::*},
+        execute::{
+            arith8::*, arith16::*, carry::*, flags::*, interrupts::*, load::*, logic::*, misc::*,
+        },
         instructions::Instruction::{self, *},
     },
 };
@@ -13,6 +15,7 @@ pub mod arith8;
 pub mod carry;
 pub mod debug;
 pub mod flags;
+pub mod interrupts;
 pub mod load;
 pub mod logic;
 pub mod misc;
@@ -538,9 +541,9 @@ impl CPU {
             PUSH_AF => todo_inst!(),
 
             // Interrupts
-            DI => todo_inst!(),
-            EI => todo_inst!(),
-            HALT => todo_inst!(),
+            DI => di(ctx),
+            EI => ei(ctx),
+            HALT => halt(ctx),
 
             // Misc
             DAA => todo_inst!(),

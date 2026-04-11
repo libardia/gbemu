@@ -45,6 +45,7 @@ pub struct CPU {
     pub int_e: u8,
 
     // Misc
+    pub ime_timer: u8,
     pub prefix_mode: bool,
     pub halt_bug: bool,
 }
@@ -99,6 +100,17 @@ impl CPU {
         let inst = CPU::decode(ctx);
         trace!("Instruction: {inst:?}");
         CPU::execute(ctx, inst);
+
+        // Special handling for IME flag
+        if ctx.cpu.ime_timer > 0 {
+            if ctx.cpu.ime_timer == 1 {
+                debug_interrupts!(on);
+                ctx.cpu.ime = true;
+            }
+
+            // Tick down
+            ctx.cpu.ime_timer -= 1;
+        }
     }
 
     r16!(b + c);
@@ -211,6 +223,19 @@ impl HardwareInterface for CPU {
         };
     }
 }
+
+macro_rules! debug_interrupts {
+    (on) => {
+        log::debug!("interrupts enabled");
+    };
+    (..on) => {
+        log::debug!("interrupts will be enabled");
+    };
+    (off) => {
+        log::debug!("interrupts disabled");
+    };
+}
+pub(crate) use debug_interrupts;
 
 #[cfg(test)]
 mod tests {
