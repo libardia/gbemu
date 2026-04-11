@@ -3,7 +3,7 @@ use crate::gb::{
     cpu::{
         CPU,
         access::{ByteLoc::*, WordLoc::*},
-        execute::{arith8::*, arith16::*, carry::*, flags::*, load::*, misc::*},
+        execute::{arith8::*, arith16::*, carry::*, flags::*, load::*, logic::*, misc::*},
         instructions::Instruction::{self, *},
     },
 };
@@ -14,6 +14,7 @@ pub mod carry;
 pub mod debug;
 pub mod flags;
 pub mod load;
+pub mod logic;
 pub mod misc;
 
 impl CPU {
@@ -192,34 +193,34 @@ impl CPU {
             DEC_SP => dec_r16(ctx, SP),
 
             // Bitwise logic
-            AND_A_B => todo_inst!(),
-            AND_A_C => todo_inst!(),
-            AND_A_D => todo_inst!(),
-            AND_A_E => todo_inst!(),
-            AND_A_H => todo_inst!(),
-            AND_A_L => todo_inst!(),
-            AND_A_mHL => todo_inst!(),
-            AND_A_A => todo_inst!(),
-            AND_A_n8 => todo_inst!(),
-            OR_A_B => todo_inst!(),
-            OR_A_C => todo_inst!(),
-            OR_A_D => todo_inst!(),
-            OR_A_E => todo_inst!(),
-            OR_A_H => todo_inst!(),
-            OR_A_L => todo_inst!(),
-            OR_A_mHL => todo_inst!(),
-            OR_A_A => todo_inst!(),
-            OR_A_n8 => todo_inst!(),
-            XOR_A_B => todo_inst!(),
-            XOR_A_C => todo_inst!(),
-            XOR_A_D => todo_inst!(),
-            XOR_A_E => todo_inst!(),
-            XOR_A_H => todo_inst!(),
-            XOR_A_L => todo_inst!(),
-            XOR_A_mHL => todo_inst!(),
-            XOR_A_A => todo_inst!(),
-            XOR_A_n8 => todo_inst!(),
-            CPL => todo_inst!(),
+            AND_A_B => and_a_r8(ctx, B),
+            AND_A_C => and_a_r8(ctx, C),
+            AND_A_D => and_a_r8(ctx, D),
+            AND_A_E => and_a_r8(ctx, E),
+            AND_A_H => and_a_r8(ctx, H),
+            AND_A_L => and_a_r8(ctx, L),
+            AND_A_mHL => and_a_r8(ctx, MHL),
+            AND_A_A => and_a_r8(ctx, A),
+            AND_A_n8 => and_a_r8(ctx, N8),
+            OR_A_B => or_a_r8(ctx, B),
+            OR_A_C => or_a_r8(ctx, C),
+            OR_A_D => or_a_r8(ctx, D),
+            OR_A_E => or_a_r8(ctx, E),
+            OR_A_H => or_a_r8(ctx, H),
+            OR_A_L => or_a_r8(ctx, L),
+            OR_A_mHL => or_a_r8(ctx, MHL),
+            OR_A_A => or_a_r8(ctx, A),
+            OR_A_n8 => or_a_r8(ctx, N8),
+            XOR_A_B => xor_a_r8(ctx, B),
+            XOR_A_C => xor_a_r8(ctx, C),
+            XOR_A_D => xor_a_r8(ctx, D),
+            XOR_A_E => xor_a_r8(ctx, E),
+            XOR_A_H => xor_a_r8(ctx, H),
+            XOR_A_L => xor_a_r8(ctx, L),
+            XOR_A_mHL => xor_a_r8(ctx, MHL),
+            XOR_A_A => xor_a_r8(ctx, A),
+            XOR_A_n8 => xor_a_r8(ctx, N8),
+            CPL => cpl(ctx),
 
             // Bit flags
             BIT_0_B => bit_b_r8(ctx, 0, B),
