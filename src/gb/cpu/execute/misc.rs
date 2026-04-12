@@ -1,3 +1,5 @@
+use log::warn;
+
 use crate::gb::GameBoy;
 
 // TODO: DAA
@@ -6,7 +8,16 @@ pub fn nop(_ctx: &mut GameBoy) {
     // Do nothing
 }
 
-// TODO: STOP
+pub fn stop(ctx: &mut GameBoy) {
+    // The STOP instruction is INSANE. It's full behavior can be found here
+    // https://gbdev.io/pandocs/Reducing_Power_Consumption.html#the-bizarre-case-of-the-game-boy-stop-instruction-before-even-considering-timing
+
+    //TODO: maybe try to actually emulate STOP.
+    warn!("STOP instruction is not yet implemented and will be ignored");
+
+    // the byte after stop is ignored (unless we're actually trying to emulate it)
+    ctx.cpu.pc += 1;
+}
 
 pub fn prefix(ctx: &mut GameBoy) {
     // Next byte is interpreted as a prefixed instruction

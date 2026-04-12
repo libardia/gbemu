@@ -550,7 +550,7 @@ impl CPU {
             // Misc
             DAA => todo_inst!(),
             NOP => nop(ctx),
-            STOP_n8 => todo_inst!(),
+            STOP_n8 => stop(ctx),
             PREFIX => prefix(ctx),
             INVALID => panic!("attempted to execute an invalid instruction"),
         }
