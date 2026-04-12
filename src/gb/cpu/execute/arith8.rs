@@ -3,24 +3,20 @@ use crate::gb::{
     cpu::{CPU, Flags, access::ByteLoc},
 };
 
-pub fn add_a_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
-    let lhs = ctx.cpu.a;
-    let rhs = CPU::get_byte_at(ctx, target);
-    let c = (carry && ctx.cpu.f.c) as u8;
-    let (result, overflow1) = lhs.overflowing_add(rhs);
-    let (result, overflow2) = result.overflowing_add(c);
-
-    ctx.cpu.a = result;
-    ctx.cpu.f = Flags {
-        z: result == 0,
-        n: false,
-        h: ((lhs & 0xF) + (rhs & 0xF) + c) > 0xF,
-        c: overflow1 || overflow2,
-    };
+pub fn add_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
+    ctx.cpu.a = add_internal(ctx, target, false);
 }
 
-pub fn sub_a_r8(ctx: &mut GameBoy, target: ByteLoc, carry: bool) {
-    ctx.cpu.a = sub_internal(ctx, target, carry);
+pub fn adc_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
+    ctx.cpu.a = add_internal(ctx, target, true);
+}
+
+pub fn sub_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
+    ctx.cpu.a = sub_internal(ctx, target, false);
+}
+
+pub fn sbc_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
+    ctx.cpu.a = sub_internal(ctx, target, true);
 }
 
 pub fn inc_r8(ctx: &mut GameBoy, target: ByteLoc) {
@@ -52,6 +48,23 @@ pub fn dec_r8(ctx: &mut GameBoy, target: ByteLoc) {
 pub fn cp_a_r8(ctx: &mut GameBoy, target: ByteLoc) {
     // Flags set the same as a subtraction, but the result is ignored
     sub_internal(ctx, target, false);
+}
+
+fn add_internal(ctx: &mut GameBoy, target: ByteLoc, carry: bool) -> u8 {
+    let lhs = ctx.cpu.a;
+    let rhs = CPU::get_byte_at(ctx, target);
+    let c = (carry && ctx.cpu.f.c) as u8;
+    let (result, overflow1) = lhs.overflowing_add(rhs);
+    let (result, overflow2) = result.overflowing_add(c);
+
+    ctx.cpu.f = Flags {
+        z: result == 0,
+        n: false,
+        h: ((lhs & 0xF) + (rhs & 0xF) + c) > 0xF,
+        c: overflow1 || overflow2,
+    };
+
+    result
 }
 
 fn sub_internal(ctx: &mut GameBoy, target: ByteLoc, carry: bool) -> u8 {
