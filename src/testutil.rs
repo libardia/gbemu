@@ -70,3 +70,28 @@ macro_rules! step_test {
     };
 }
 pub(crate) use step_test;
+
+macro_rules! jump_test {
+    (
+        ctx: $ctx:expr;
+        code: $code:literal, pc_after: $pc_after:expr, cycles: $cycles:literal
+        $(setup $setup:block)?
+        $(after $after:block)?
+    ) => {
+        crate::testutil::prepare_instruction(
+            $ctx,
+            crate::testutil::INSTRUCTION_ADDRESS,
+            $code
+        );
+
+        $($setup)?
+
+        crate::gb::cpu::CPU::step($ctx);
+
+        $($after)?
+
+        assert_eq!($ctx.cpu.pc, $pc_after);
+        assert_eq!($ctx.debug_timer, $cycles*4);
+    };
+}
+pub(crate) use jump_test;

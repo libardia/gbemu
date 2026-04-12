@@ -31,6 +31,15 @@ pub enum WordLoc {
     SP,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Condition {
+    CZ,
+    CNZ,
+    CC,
+    CNC,
+    CALWAYS,
+}
+
 impl CPU {
     pub fn get_byte_at(ctx: &mut GameBoy, loc: ByteLoc) -> u8 {
         match loc {
@@ -134,6 +143,16 @@ impl CPU {
             WordLoc::DE => ctx.cpu.set_de(word),
             WordLoc::HL => ctx.cpu.set_hl(word),
             WordLoc::SP => ctx.cpu.sp = word,
+        }
+    }
+
+    pub fn test_condition(ctx: &mut GameBoy, cond: Condition) -> bool {
+        match cond {
+            Condition::CZ => ctx.cpu.f.z,
+            Condition::CNZ => !ctx.cpu.f.z,
+            Condition::CC => ctx.cpu.f.c,
+            Condition::CNC => !ctx.cpu.f.c,
+            Condition::CALWAYS => true,
         }
     }
 }

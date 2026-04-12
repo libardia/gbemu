@@ -96,6 +96,17 @@ impl CPU {
         CPU::default()
     }
 
+    pub fn decode(ctx: &mut GameBoy) -> Instruction {
+        let byte = CPU::next_byte(ctx) as usize;
+        trace!("Byte: {}", hex!(byte, 2));
+        if ctx.cpu.prefix_mode {
+            ctx.cpu.prefix_mode = false;
+            PREFIX_OPTABLE[byte]
+        } else {
+            OPTABLE[byte]
+        }
+    }
+
     pub fn step(ctx: &mut GameBoy) {
         let inst = CPU::decode(ctx);
         trace!("Instruction: {inst:?}");
@@ -159,21 +170,30 @@ impl CPU {
         byte
     }
 
+    pub fn next_signed(ctx: &mut GameBoy) -> i8 {
+        CPU::next_byte(ctx) as i8
+    }
+
     pub fn next_word(ctx: &mut GameBoy) -> u16 {
         let lower = CPU::next_byte(ctx);
         let upper = CPU::next_byte(ctx);
         (upper as u16) << 8 | lower as u16
     }
 
-    pub fn decode(ctx: &mut GameBoy) -> Instruction {
-        let byte = CPU::next_byte(ctx) as usize;
-        trace!("Byte: {}", hex!(byte, 2));
-        if ctx.cpu.prefix_mode {
-            ctx.cpu.prefix_mode = false;
-            PREFIX_OPTABLE[byte]
-        } else {
-            OPTABLE[byte]
-        }
+    pub fn push_stack(ctx: &mut GameBoy, word: u16) {
+        ctx.cpu.sp -= 1;
+        CPU::write_tick(ctx, ctx.cpu.sp, (word >> 8) as u8);
+        ctx.cpu.sp -= 1;
+        CPU::write_tick(ctx, ctx.cpu.sp, (word & 0xFF) as u8);
+    }
+
+    pub fn pop_stack(ctx: &mut GameBoy) -> u16 {
+        let low = CPU::read_tick(ctx, ctx.cpu.sp);
+        ctx.cpu.sp += 1;
+        let high = CPU::read_tick(ctx, ctx.cpu.sp);
+        ctx.cpu.sp += 1;
+
+        ((high as u16) << 8) | (low as u16)
     }
 
     pub fn debug_str(&self) -> String {
