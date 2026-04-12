@@ -29,6 +29,7 @@ pub enum WordLoc {
     DE,
     HL,
     SP,
+    AF,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -134,6 +135,7 @@ impl CPU {
             WordLoc::DE => ctx.cpu.get_de(),
             WordLoc::HL => ctx.cpu.get_hl(),
             WordLoc::SP => ctx.cpu.sp,
+            WordLoc::AF => ctx.cpu.get_af(),
         }
     }
 
@@ -143,6 +145,7 @@ impl CPU {
             WordLoc::DE => ctx.cpu.set_de(word),
             WordLoc::HL => ctx.cpu.set_hl(word),
             WordLoc::SP => ctx.cpu.sp = word,
+            WordLoc::AF => ctx.cpu.set_af(word),
         }
     }
 

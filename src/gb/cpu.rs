@@ -1,4 +1,4 @@
-use log::trace;
+use log::{trace, warn};
 
 use crate::{
     gb::{
@@ -11,6 +11,7 @@ use crate::{
         mmu::{
             MMU,
             io::{IO_IE, IO_IF},
+            region::HIGH_RAM,
         },
     },
     macros::{get_masked, hex, set_masked},
@@ -181,17 +182,25 @@ impl CPU {
     }
 
     pub fn push_stack(ctx: &mut GameBoy, word: u16) {
-        ctx.cpu.sp -= 1;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
         CPU::write_tick(ctx, ctx.cpu.sp, (word >> 8) as u8);
-        ctx.cpu.sp -= 1;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_sub(1);
         CPU::write_tick(ctx, ctx.cpu.sp, (word & 0xFF) as u8);
+
+        if !HIGH_RAM.contains(ctx.cpu.sp) {
+            warn!("stack pointer outside HRAM, at {}!", hex!(ctx.cpu.sp, 4));
+        }
     }
 
     pub fn pop_stack(ctx: &mut GameBoy) -> u16 {
         let low = CPU::read_tick(ctx, ctx.cpu.sp);
-        ctx.cpu.sp += 1;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
         let high = CPU::read_tick(ctx, ctx.cpu.sp);
-        ctx.cpu.sp += 1;
+        ctx.cpu.sp = ctx.cpu.sp.wrapping_add(1);
+
+        if !HIGH_RAM.contains(ctx.cpu.sp) {
+            warn!("stack pointer outside HRAM, at {}!", hex!(ctx.cpu.sp, 4));
+        }
 
         ((high as u16) << 8) | (low as u16)
     }

@@ -5,7 +5,7 @@ use crate::gb::{
         access::{ByteLoc::*, Condition::*, WordLoc::*},
         execute::{
             arith8::*, arith16::*, carry::*, flags::*, interrupts::*, jumps::*, load::*, logic::*,
-            misc::*,
+            misc::*, stack::*,
         },
         instructions::Instruction::{self, *},
     },
@@ -21,6 +21,7 @@ pub mod jumps;
 pub mod load;
 pub mod logic;
 pub mod misc;
+pub mod stack;
 
 impl CPU {
     pub fn execute(ctx: &mut GameBoy, inst: Instruction) {
@@ -528,19 +529,19 @@ impl CPU {
             CCF => ccf(ctx),
 
             // Stack
-            LD_SP_n16 => todo_inst!(),
-            LD_SP_HL => todo_inst!(),
-            LD_HL_SPe8 => todo_inst!(),
-            LD_ma16_SP => todo_inst!(),
-            ADD_SP_e8 => todo_inst!(),
-            POP_BC => todo_inst!(),
-            POP_DE => todo_inst!(),
-            POP_HL => todo_inst!(),
-            POP_AF => todo_inst!(),
-            PUSH_BC => todo_inst!(),
-            PUSH_DE => todo_inst!(),
-            PUSH_HL => todo_inst!(),
-            PUSH_AF => todo_inst!(),
+            LD_SP_n16 => ld_sp_n16(ctx),
+            LD_SP_HL => ld_sp_hl(ctx),
+            LD_HL_SPe8 => ld_hl_sp_e8(ctx),
+            LD_ma16_SP => ld_ma16_sp(ctx),
+            ADD_SP_e8 => add_sp_e8(ctx),
+            POP_BC => pop_r16(ctx, BC),
+            POP_DE => pop_r16(ctx, DE),
+            POP_HL => pop_r16(ctx, HL),
+            POP_AF => pop_r16(ctx, AF),
+            PUSH_BC => push_r16(ctx, BC),
+            PUSH_DE => push_r16(ctx, DE),
+            PUSH_HL => push_r16(ctx, HL),
+            PUSH_AF => push_r16(ctx, AF),
 
             // Interrupts
             DI => di(ctx),
