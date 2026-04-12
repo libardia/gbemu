@@ -2,7 +2,10 @@ use log::warn;
 
 use crate::gb::GameBoy;
 
-// TODO: DAA
+pub fn daa(_ctx: &mut GameBoy) {
+    // TODO: DAA
+    todo!("DAA instruction");
+}
 
 pub fn nop(_ctx: &mut GameBoy) {
     // Do nothing

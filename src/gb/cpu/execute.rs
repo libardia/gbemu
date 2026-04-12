@@ -549,7 +549,7 @@ impl CPU {
             HALT => halt(ctx),
 
             // Misc
-            DAA => todo_inst!(),
+            DAA => daa(ctx),
             NOP => nop(ctx),
             STOP_n8 => stop(ctx),
             PREFIX => prefix(ctx),
