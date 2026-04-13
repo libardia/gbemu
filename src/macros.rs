@@ -35,3 +35,10 @@ macro_rules! unwrap_or_error {
     };
 }
 pub(crate) use unwrap_or_error;
+
+macro_rules! make_word {
+    ($high:expr, $low:expr) => {
+        (((($high) as u16) << 8) | (($low) as u16))
+    };
+}
+pub(crate) use make_word;

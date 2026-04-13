@@ -75,6 +75,7 @@ fn weird_flags(ctx: &mut GameBoy, off: i8) {
 mod tests {
     use crate::{
         gb::mmu::MMU,
+        macros::make_word,
         testutil::{INSTRUCTION_ADDRESS, dummy_ctx, step_test},
     };
 
@@ -91,7 +92,7 @@ mod tests {
         let low = MMU::read(ctx, ctx.cpu.sp);
         let high = MMU::read(ctx, ctx.cpu.sp + 1);
 
-        ((high as u16) << 8) | (low as u16)
+        make_word!(high, low)
     }
 
     #[test]

@@ -1,27 +1,41 @@
-use crate::{
-    gb::{
-        GameBoy,
-        cpu::{CPU, access::Condition, debug_interrupts},
-    },
-    macros::hex,
+use log::trace;
+
+use crate::gb::{
+    GameBoy,
+    cpu::{CPU, access::Condition, debug_interrupts},
 };
+
+macro_rules! trace_jump {
+    ($address:expr) => {
+        trace!("jump, new pc {}", crate::macros::hex!($address, 4))
+    };
+}
+
+macro_rules! trace_no_jump {
+    () => {
+        trace!("did not jump")
+    };
+}
 
 pub fn jr_cc_e8(ctx: &mut GameBoy, cond: Condition) {
     let relative_from: u16 = ctx.cpu.pc;
 
     // Read always happens first (1 tick)
     let offset = CPU::next_signed(ctx) as i16;
-    println!("Hex of offset: {}", hex!(offset, 4));
     let address = relative_from.wrapping_add_signed(offset);
 
     if CPU::test_condition(ctx, cond) {
         ctx.m_tick(); // 1 tick longer if branch
         ctx.cpu.pc = address;
+        trace_jump!(address);
+    } else {
+        trace_no_jump!();
     }
 }
 
 pub fn jp_hl(ctx: &mut GameBoy) {
     ctx.cpu.pc = ctx.cpu.get_hl();
+    trace_jump!(ctx.cpu.pc);
 }
 
 pub fn jp_cc_a16(ctx: &mut GameBoy, cond: Condition) {
@@ -31,6 +45,9 @@ pub fn jp_cc_a16(ctx: &mut GameBoy, cond: Condition) {
     if CPU::test_condition(ctx, cond) {
         ctx.m_tick(); // 1 tick longer if branch
         ctx.cpu.pc = address;
+        trace_jump!(address);
+    } else {
+        trace_no_jump!();
     }
 }
 
@@ -42,6 +59,9 @@ pub fn call_cc_a16(ctx: &mut GameBoy, cond: Condition) {
         ctx.m_tick(); // One tick happens here, not sure why
         CPU::push_stack(ctx, ctx.cpu.pc); // 2 ticks
         ctx.cpu.pc = address;
+        trace_jump!(address);
+    } else {
+        trace_no_jump!();
     }
 }
 
@@ -49,6 +69,7 @@ pub fn rst(ctx: &mut GameBoy, address: u16) {
     ctx.m_tick(); // One tick here
     CPU::push_stack(ctx, ctx.cpu.pc); // 2 ticks
     ctx.cpu.pc = address;
+    trace_jump!(address);
 }
 
 pub fn ret(ctx: &mut GameBoy, enable_interrupts: bool) {
@@ -60,6 +81,8 @@ pub fn ret(ctx: &mut GameBoy, enable_interrupts: bool) {
         debug_interrupts!(on);
         ctx.cpu.ime = true;
     }
+
+    trace_jump!(address);
 }
 
 pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
@@ -68,6 +91,9 @@ pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
         let address = CPU::pop_stack(ctx); // 2 ticks
         ctx.m_tick(); // 1 tick: internal?
         ctx.cpu.pc = address;
+        trace_jump!(address);
+    } else {
+        trace_no_jump!();
     }
 }
 
@@ -75,6 +101,7 @@ pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
 mod tests {
     use crate::{
         gb::mmu::{MMU, region::HIGH_RAM_END},
+        macros::make_word,
         testutil::{INSTRUCTION_ADDRESS, dummy_ctx, jump_test, step_test},
     };
 
@@ -97,7 +124,7 @@ mod tests {
         let low = MMU::read(ctx, ctx.cpu.sp);
         let high = MMU::read(ctx, ctx.cpu.sp + 1);
 
-        ((high as u16) << 8) | (low as u16)
+        make_word!(high, low)
     }
 
     #[test]

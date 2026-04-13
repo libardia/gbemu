@@ -9,12 +9,13 @@ use crate::{
     macros::hex,
 };
 
+pub mod header_data;
 pub mod io;
 pub mod region;
 
 #[derive(Debug, Default)]
 pub struct MMU {
-    pub rom: MappedMemoryRegion,
+    pub boot_rom: MappedMemoryRegion,
 
     pub vram: MappedMemoryRegion,
     pub wram: MappedMemoryRegion,
@@ -42,7 +43,7 @@ impl MMU {
 
     pub fn new() -> Self {
         Self {
-            rom: MappedMemoryRegion::new(BOOT_ROM),
+            boot_rom: MappedMemoryRegion::new(BOOT_ROM),
 
             vram: MappedMemoryRegion::new(VRAM),
             wram: MappedMemoryRegion::new(WORK_RAM),
@@ -57,16 +58,16 @@ impl MMU {
         if ctx.mmu.boot_mode {
             if BOOT_ROM.contains(address) {
                 // Return early (boot rom "maps over" everything else)
-                return ctx.mmu.rom.get(address);
+                return ctx.mmu.boot_rom.get(address);
             }
         }
 
         address_dispatch! {
             on address:
                 // ROM and RAM
-                #ROM_SPACE => todo!("read from ROM_SPACE"), // TODO: read from ROM
+                #ROM_SPACE => ctx.cart.read(address),
                 #VRAM      => ctx.mmu.vram.get(address),
-                #CART_RAM  => todo!("read from CART_RAM"), // TODO: read from cart RAM
+                #CART_RAM  => ctx.cart.read(address),
                 #WORK_RAM  => ctx.mmu.wram.get(address),
                 #ECHO_RAM  => ctx.mmu.wram.get(address - Self::ECHO_RAM_OFFSET),
                 #OAM       => ctx.mmu.oam.get(address),
@@ -106,9 +107,9 @@ impl MMU {
         address_dispatch! {
             on address:
                 // ROM and RAM
-                #ROM_SPACE => todo!("write to ROM_SPACE"), // TODO: write to ROM
+                #ROM_SPACE => ctx.cart.write(address, byte),
                 #VRAM      => ctx.mmu.vram.set(address, byte),
-                #CART_RAM  => todo!("write to CART_RAM"), // TODO: write to cart RAM
+                #CART_RAM  => ctx.cart.write(address, byte),
                 #WORK_RAM  => ctx.mmu.wram.set(address, byte),
                 #ECHO_RAM  => ctx.mmu.wram.set(address - Self::ECHO_RAM_OFFSET, byte),
                 #OAM       => ctx.mmu.oam.set(address, byte),

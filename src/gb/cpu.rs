@@ -14,7 +14,7 @@ use crate::{
             region::HIGH_RAM,
         },
     },
-    macros::{get_masked, hex, set_masked},
+    macros::{get_masked, hex, make_word, set_masked},
 };
 
 pub mod access;
@@ -83,7 +83,7 @@ macro_rules! r16 {
     ($r1:ident + $r2:ident) => {
         paste::paste! {
             pub fn [<get_ $r1 $r2>](&self) -> u16 {
-                (self.$r1 as u16) << 8 | self.$r2 as u16
+                make_word!(self.$r1, self.$r2)
             }
 
             pub fn [<set_ $r1 $r2>](&mut self, word: u16) {
@@ -100,19 +100,24 @@ impl CPU {
     }
 
     pub fn decode(ctx: &mut GameBoy) -> Instruction {
+        let address = ctx.cpu.pc;
         let byte = CPU::next_byte(ctx) as usize;
-        trace!("Byte: {}", hex!(byte, 2));
-        if ctx.cpu.prefix_mode {
+        let inst = if ctx.cpu.prefix_mode {
             ctx.cpu.prefix_mode = false;
             PREFIX_OPTABLE[byte]
         } else {
             OPTABLE[byte]
-        }
+        };
+        trace!(
+            "{}: decoded byte: {} -> {inst:?}",
+            hex!(byte, 2),
+            hex!(address, 4)
+        );
+        inst
     }
 
     pub fn step(ctx: &mut GameBoy) {
         let inst = CPU::decode(ctx);
-        trace!("Instruction: {inst:?}");
         CPU::execute(ctx, inst);
 
         // Special handling for IME flag
@@ -132,7 +137,7 @@ impl CPU {
     r16!(h + l);
 
     pub fn get_af(&self) -> u16 {
-        (self.a as u16) << 8 | self.f.as_byte() as u16
+        make_word!(self.a, self.f.as_byte())
     }
 
     pub fn set_af(&mut self, word: u16) {
@@ -180,7 +185,7 @@ impl CPU {
     pub fn next_word(ctx: &mut GameBoy) -> u16 {
         let lower = CPU::next_byte(ctx);
         let upper = CPU::next_byte(ctx);
-        (upper as u16) << 8 | lower as u16
+        make_word!(upper, lower)
     }
 
     pub fn push_stack(ctx: &mut GameBoy, word: u16) {
@@ -204,7 +209,7 @@ impl CPU {
             warn!("stack pointer outside HRAM, at {}!", hex!(ctx.cpu.sp, 4));
         }
 
-        ((high as u16) << 8) | (low as u16)
+        make_word!(high, low)
     }
 
     pub fn debug_str(&self) -> String {

@@ -1,19 +1,19 @@
-use std::{
-    fs::File,
-    io::{Read, Result},
-};
+use std::{fs::File, io::Read};
 
 use log::info;
 
-use crate::gb::{
-    apu::APU,
-    cart::{Cart, load_cart},
-    cpu::CPU,
-    inu::INU,
-    mmu::MMU,
-    ppu::PPU,
-    sdu::SDU,
-    tmu::TMU,
+use crate::{
+    gb::{
+        apu::APU,
+        cart::{Cart, load_cart},
+        cpu::CPU,
+        inu::INU,
+        mmu::MMU,
+        ppu::PPU,
+        sdu::SDU,
+        tmu::TMU,
+    },
+    macros::unwrap_or_error,
 };
 
 pub mod apu;
@@ -66,14 +66,13 @@ impl GameBoy {
     }
 
     pub fn load_rom(&mut self, file_path: &str) {
-        fn do_load(ctx: &mut GameBoy, file_path: &str) -> Result<()> {
-            let mut f = File::open(file_path)?;
-            f.read_exact(ctx.mmu.rom.as_mut_slice())
-        }
-        match do_load(self, file_path) {
-            Ok(_) => info!("successfully loaded ROM '{file_path}'"),
-            Err(e) => panic!("error opening ROM file: {e}"),
-        }
+        let mut f = unwrap_or_error!(File::open(file_path), "failed to open ROM file");
+        unwrap_or_error!(
+            f.read_exact(self.mmu.boot_rom.as_mut_slice()),
+            "error reading ROM file"
+        );
+
+        info!("successfully loaded ROM '{file_path}'");
     }
 
     pub fn run(&mut self) {
@@ -128,11 +127,11 @@ mod tests {
         let ctx = &mut dummy_ctx();
         ctx.load_rom("res/rom_ascending.bin");
         for i in 0..0x100 {
-            assert_eq!(i as u8, ctx.mmu.rom.as_slice()[i]);
+            assert_eq!(i as u8, ctx.mmu.boot_rom.as_slice()[i]);
         }
         ctx.load_rom("res/rom_dummy.bin");
         for i in 0..0x100 {
-            assert_eq!(0, ctx.mmu.rom.as_slice()[i]);
+            assert_eq!(0, ctx.mmu.boot_rom.as_slice()[i]);
         }
     }
 
