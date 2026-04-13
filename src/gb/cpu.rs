@@ -110,8 +110,8 @@ impl CPU {
         };
         trace!(
             "{}: decoded byte: {} -> {inst:?}",
+            hex!(address, 4),
             hex!(byte, 2),
-            hex!(address, 4)
         );
         inst
     }

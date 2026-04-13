@@ -8,7 +8,7 @@ use crate::{
         cart::{Cart, load_cart},
         cpu::CPU,
         inu::INU,
-        mmu::MMU,
+        mmu::{MMU, header_data::ENTRY_POINT},
         ppu::PPU,
         sdu::SDU,
         tmu::TMU,
@@ -40,7 +40,6 @@ pub struct GameBoy {
     pub debug_timer: u64,
 
     pub debug_isntructions: bool,
-    pub skip_boot: bool,
     pub exit: bool,
 }
 
@@ -60,7 +59,6 @@ impl GameBoy {
             debug_timer: Default::default(),
 
             debug_isntructions: false,
-            skip_boot: false,
             exit: false,
         }
     }
@@ -73,6 +71,11 @@ impl GameBoy {
         );
 
         info!("successfully loaded ROM '{file_path}'");
+    }
+
+    pub fn skip_boot(&mut self) {
+        self.mmu.boot_mode = false;
+        self.cpu.pc = ENTRY_POINT.begin;
     }
 
     pub fn run(&mut self) {
