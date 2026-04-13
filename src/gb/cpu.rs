@@ -14,7 +14,7 @@ use crate::{
             region::HIGH_RAM,
         },
     },
-    macros::{get_masked, hex, make_word, set_masked},
+    macros::{get_masked, hex, make_word, select, set_masked},
 };
 
 pub mod access;
@@ -215,21 +215,22 @@ impl CPU {
     pub fn debug_str(&self) -> String {
         return format!(
             concat!(
-                "\n== CPU =================",
-                "\n| BC: {:>02X} {:>02X} |     znhc |",
-                "\n| DE: {:>02X} {:>02X} |  F: {}{}{}{} |",
-                "\n| HL: {:>02X} {:>02X} | PC: {:>04X} |",
-                "\n| AF: {:>02X} {:>02X} | SP: {:>04X} |",
-                "\n========================",
+                "\n== CPU ==================",
+                "\n| BC: {:>02X} {:>02X} | F:   {}{}{}{} |",
+                "\n| DE: {:>02X} {:>02X} | IME: {:<4} |",
+                "\n| HL: {:>02X} {:>02X} | PC:  {:>04X} |",
+                "\n| AF: {:>02X} {:>02X} | SP:  {:>04X} |",
+                "\n=========================",
             ),
             self.b,
             self.c,
+            select!(self.f.z; "Z", "-"),
+            select!(self.f.n; "N", "-"),
+            select!(self.f.h; "H", "-"),
+            select!(self.f.c; "C", "-"),
             self.d,
             self.e,
-            self.f.z as u8,
-            self.f.n as u8,
-            self.f.h as u8,
-            self.f.c as u8,
+            select!(self.ime; "on", "off"),
             self.h,
             self.l,
             self.pc,

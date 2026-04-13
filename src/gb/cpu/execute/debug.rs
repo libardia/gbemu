@@ -37,6 +37,7 @@ mod tests {
                 ctx.cpu.a = 0xAA;
                 ctx.cpu.f = Flags { z: true, n: false, h: true, c: false };
                 ctx.cpu.sp = 0xBEEF;
+                ctx.cpu.ime = false;
             }
             after {
                 // assert!(false);
