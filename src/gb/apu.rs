@@ -1,4 +1,4 @@
-use crate::{gb::hardware_interface::HardwareInterface, macros::hex};
+use crate::gb::hardware_interface::{HardwareInterface, warn_todo_read, warn_todo_write};
 
 #[derive(Debug, Default)]
 pub struct APU {
@@ -14,11 +14,11 @@ impl APU {
 impl HardwareInterface for APU {
     fn read(&mut self, address: u16) -> u8 {
         // TODO: read APU
-        todo!("APU: read {}", hex!(address, 4));
+        warn_todo_read!("APU", address)
     }
 
     fn write(&mut self, address: u16, byte: u8) {
         // TODO: write APU
-        todo!("APU: write {} to {}", hex!(byte, 2), hex!(address, 4));
+        warn_todo_write!("APU", address, byte);
     }
 }

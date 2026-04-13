@@ -1,4 +1,4 @@
-use crate::{gb::hardware_interface::HardwareInterface, macros::hex};
+use crate::gb::hardware_interface::{HardwareInterface, warn_todo_read, warn_todo_write};
 
 #[derive(Debug, Default)]
 pub struct INU {
@@ -14,11 +14,11 @@ impl INU {
 impl HardwareInterface for INU {
     fn read(&mut self, address: u16) -> u8 {
         // TODO: read INU
-        todo!("INU: read {}", hex!(address, 4));
+        warn_todo_read!("INU", address)
     }
 
     fn write(&mut self, address: u16, byte: u8) {
         // TODO: write INU
-        todo!("INU: write {} to {}", hex!(byte, 2), hex!(address, 4));
+        warn_todo_write!("INU", address, byte);
     }
 }
