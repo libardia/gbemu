@@ -553,3 +553,21 @@ impl CPU {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::testutil::step_test;
+
+    use super::*;
+    use test_log::test;
+
+    #[test]
+    #[should_panic]
+    fn invalid() {
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx: ctx;
+            code: 0xD3, length: 0, cycles: 0
+        }
+    }
+}

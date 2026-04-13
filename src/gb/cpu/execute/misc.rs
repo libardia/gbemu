@@ -2,9 +2,35 @@ use log::warn;
 
 use crate::gb::GameBoy;
 
-pub fn daa(_ctx: &mut GameBoy) {
-    // TODO: DAA
-    todo!("DAA instruction");
+pub fn daa(ctx: &mut GameBoy) {
+    let mut f = ctx.cpu.f;
+    let mut a = ctx.cpu.a;
+    let mut adj = 0;
+
+    if f.n {
+        if f.h {
+            adj += 0x6;
+        }
+        if f.c {
+            adj += 0x60;
+        }
+        a = a.wrapping_sub(adj);
+    } else {
+        if f.h || (a & 0xF) > 0x9 {
+            adj += 0x6;
+        }
+        if f.c || a > 0x99 {
+            adj += 0x60;
+            f.c = true;
+        }
+        a = a.wrapping_add(adj);
+    }
+
+    f.z = a == 0;
+    f.h = false;
+
+    ctx.cpu.a = a;
+    ctx.cpu.f = f;
 }
 
 pub fn nop(_ctx: &mut GameBoy) {
@@ -29,11 +55,10 @@ pub fn prefix(ctx: &mut GameBoy) {
 
 #[cfg(test)]
 mod tests {
-    use test_log::test;
-
     use crate::testutil::step_test;
 
     use super::*;
+    use test_log::test;
 
     #[test]
     fn nop() {
@@ -42,6 +67,16 @@ mod tests {
             ctx: ctx;
             code: 0x00, length: 1, cycles: 1
             // Nothing else to do!
+        }
+    }
+
+    #[test]
+    fn stop() {
+        let ctx = &mut GameBoy::new();
+        step_test! {
+            ctx:ctx;
+            code: 0x10, length: 2, cycles: 1
+            // TODO: this test will need to change if STOP is ever actually implemented
         }
     }
 
