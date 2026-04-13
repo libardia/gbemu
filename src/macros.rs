@@ -1,3 +1,10 @@
+macro_rules! select {
+    ($cond:expr; $true:expr, $false:expr) => {
+        if $cond { $true } else { $false }
+    };
+}
+pub(crate) use select;
+
 macro_rules! hex {
     ($byte:expr, $width:literal) => {
         format_args!(concat!("${:>0", $width, "X}"), $byte)

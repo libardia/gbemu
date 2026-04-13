@@ -61,10 +61,12 @@ pub struct Flags {
 
 impl Flags {
     pub fn as_byte(&self) -> u8 {
-        (if self.z { 0x80 } else { 0 }
-            | if self.n { 0x40 } else { 0 }
-            | if self.h { 0x20 } else { 0 }
-            | if self.c { 0x10 } else { 0 })
+        let mut b = 0;
+        b |= (self.z as u8) << 7;
+        b |= (self.n as u8) << 6;
+        b |= (self.h as u8) << 5;
+        b |= (self.c as u8) << 4;
+        b
     }
 
     pub fn from_byte(byte: u8) -> Self {
