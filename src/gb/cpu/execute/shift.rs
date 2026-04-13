@@ -191,7 +191,6 @@ mod tests {
         testutil::{dummy_ctx, step_test},
     };
 
-    use super::*;
     use test_log::test;
 
     #[test]

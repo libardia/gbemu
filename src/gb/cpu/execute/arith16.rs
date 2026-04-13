@@ -37,7 +37,6 @@ pub fn dec_r16(ctx: &mut GameBoy, target: WordLoc) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::testutil::{dummy_ctx, step_test};
     use test_log::test;
 

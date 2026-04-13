@@ -93,8 +93,6 @@ mod tests {
         testutil::{INSTRUCTION_ADDRESS, dummy_ctx, step_test},
     };
 
-    use super::*;
-
     const MEM_ADD: u16 = 0xDD00;
 
     const A: u8 = 0x15;

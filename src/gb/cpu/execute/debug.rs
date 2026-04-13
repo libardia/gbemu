@@ -15,7 +15,7 @@ mod tests {
     use test_log::test;
 
     use crate::{
-        gb::{GameBoy, cpu::Flags},
+        gb::cpu::Flags,
         testutil::{dummy_ctx, step_test},
     };
 

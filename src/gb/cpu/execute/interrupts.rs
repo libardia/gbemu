@@ -19,7 +19,6 @@ pub fn halt(_ctx: &mut GameBoy) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::{
         gb::{cpu::CPU, mmu::MMU},
         testutil::{INSTRUCTION_ADDRESS, dummy_ctx, prepare_instruction, step_test},

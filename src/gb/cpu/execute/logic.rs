@@ -41,7 +41,6 @@ pub fn cpl(ctx: &mut GameBoy) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::gb::MMU;
     use crate::testutil::{INSTRUCTION_ADDRESS, dummy_ctx, step_test};
     use test_log::test;

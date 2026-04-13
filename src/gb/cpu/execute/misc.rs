@@ -57,7 +57,6 @@ pub fn prefix(ctx: &mut GameBoy) {
 mod tests {
     use crate::testutil::{dummy_ctx, step_test};
 
-    use super::*;
     use test_log::test;
 
     #[test]

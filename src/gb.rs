@@ -101,7 +101,7 @@ impl GameBoy {
 mod tests {
     use test_log::test;
 
-    use crate::{gb::GameBoy, testutil::dummy_ctx};
+    use crate::testutil::dummy_ctx;
 
     #[test]
     fn test_m_tick() {

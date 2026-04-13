@@ -14,7 +14,6 @@ mod tests {
 
     use crate::testutil::{dummy_ctx, step_test};
 
-    use super::*;
 
     #[test]
     fn scf_0() {

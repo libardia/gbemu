@@ -31,8 +31,6 @@ mod tests {
         testutil::{dummy_ctx, step_test},
     };
 
-    use super::*;
-
     const MEM_ADD: u16 = 0xDFE0;
 
     macro_rules! bit_tests {
