@@ -75,7 +75,7 @@ fn weird_flags(ctx: &mut GameBoy, off: i8) {
 mod tests {
     use crate::{
         gb::mmu::MMU,
-        testutil::{INSTRUCTION_ADDRESS, step_test},
+        testutil::{INSTRUCTION_ADDRESS, dummy_ctx, step_test},
     };
 
     use super::*;
@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn ld_sp_n16() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x31, length: 3, cycles: 3
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn ld_sp_hl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xF9, length: 1, cycles: 2
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn ld_hl_sp_e8() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xF8, length: 2, cycles: 3
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn ld_ma16_sp() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x08, length: 3, cycles: 5
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn add_sp_e8() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xE8, length: 2, cycles: 4
@@ -188,7 +188,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<pop_ $dest>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: $code, length: 1, cycles: 3
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn pop_af() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xF1, length: 1, cycles: 3
@@ -236,7 +236,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<push_ $src>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: $code, length: 1, cycles: 4
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn push_af() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xF5, length: 1, cycles: 4

@@ -22,13 +22,13 @@ mod tests {
     use super::*;
     use crate::{
         gb::{cpu::CPU, mmu::MMU},
-        testutil::{INSTRUCTION_ADDRESS, prepare_instruction, step_test},
+        testutil::{INSTRUCTION_ADDRESS, dummy_ctx, prepare_instruction, step_test},
     };
     use test_log::test;
 
     #[test]
     fn di() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn ei() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         prepare_instruction(ctx, INSTRUCTION_ADDRESS, 0xFB); // first instruction is EI
         MMU::write(ctx, INSTRUCTION_ADDRESS + 1, 0x00); // next instruction is NOP
 

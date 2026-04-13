@@ -186,14 +186,17 @@ pub fn swap_r8(ctx: &mut GameBoy, target: ByteLoc) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{gb::mmu::MMU, testutil::step_test};
+    use crate::{
+        gb::mmu::MMU,
+        testutil::{dummy_ctx, step_test},
+    };
 
     use super::*;
     use test_log::test;
 
     #[test]
     fn rra() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x1F, length: 1, cycles: 1
@@ -213,7 +216,7 @@ mod tests {
 
     #[test]
     fn rrca() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x0F, length: 1, cycles: 1
@@ -233,7 +236,7 @@ mod tests {
 
     #[test]
     fn rla() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x17, length: 1, cycles: 1
@@ -253,7 +256,7 @@ mod tests {
 
     #[test]
     fn rlca() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x07, length: 1, cycles: 1
@@ -276,7 +279,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<rr_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -303,7 +306,7 @@ mod tests {
 
     #[test]
     fn rr_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x1E, length: 2, cycles: 4
@@ -327,7 +330,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<rrc_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -354,7 +357,7 @@ mod tests {
 
     #[test]
     fn rrc_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x0E, length: 2, cycles: 4
@@ -378,7 +381,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<rl_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -405,7 +408,7 @@ mod tests {
 
     #[test]
     fn rl_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x16, length: 2, cycles: 4
@@ -429,7 +432,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<rlc_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -456,7 +459,7 @@ mod tests {
 
     #[test]
     fn rlc_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x06, length: 2, cycles: 4
@@ -480,7 +483,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<srl_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -507,7 +510,7 @@ mod tests {
 
     #[test]
     fn srl_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x3E, length: 2, cycles: 4
@@ -531,7 +534,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<sra_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -558,7 +561,7 @@ mod tests {
 
     #[test]
     fn sra_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x2E, length: 2, cycles: 4
@@ -582,7 +585,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<sla_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -609,7 +612,7 @@ mod tests {
 
     #[test]
     fn sla_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x26, length: 2, cycles: 4
@@ -633,7 +636,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<swap_ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
                         code: 0xCB $code, length: 2, cycles: 2
@@ -660,7 +663,7 @@ mod tests {
 
     #[test]
     fn swap_mhl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB 0x36, length: 2, cycles: 4

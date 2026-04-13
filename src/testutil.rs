@@ -18,6 +18,10 @@ pub fn registers_equal(cpu_a: &CPU, cpu_b: &CPU) -> bool {
         && cpu_a.f == cpu_b.f
 }
 
+pub fn dummy_ctx() -> GameBoy {
+    GameBoy::new("res/cart_romonly_dummy.bin")
+}
+
 macro_rules! step_test {
     (
         ctx: $ctx:expr;

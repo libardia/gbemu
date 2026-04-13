@@ -164,14 +164,14 @@ impl CPU {
 mod tests {
     use test_log::test;
 
-    use crate::gb::mmu::MMU;
+    use crate::{gb::mmu::MMU, testutil::dummy_ctx};
     use ByteLoc::*;
 
     use super::*;
 
     #[test]
     fn getset_byte_at() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
 
         CPU::set_byte_at(ctx, B, 0xBB);
         CPU::set_byte_at(ctx, C, 0xCC);
@@ -223,13 +223,13 @@ mod tests {
     #[test]
     #[should_panic]
     fn set_byte_at_n8() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         CPU::set_byte_at(ctx, N8, 0x08);
     }
 
     #[test]
     fn getset_hbyte_at() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
 
         ctx.cpu.c = 0x81;
         ctx.cpu.pc = 0xDF00;
@@ -251,7 +251,7 @@ mod tests {
                 #[test]
                 #[should_panic]
                 fn [<panic_test_set_hbyte_ $loc:lower>]() {
-                    CPU::set_hbyte_at(&mut GameBoy::new(), $loc, 0x00);
+                    CPU::set_hbyte_at(&mut dummy_ctx(), $loc, 0x00);
                 }
             )*}
         };
@@ -263,7 +263,7 @@ mod tests {
                 #[test]
                 #[should_panic]
                 fn [<panic_test_get_hbyte_ $loc:lower>]() {
-                    CPU::get_hbyte_at(&mut GameBoy::new(), $loc);
+                    CPU::get_hbyte_at(&mut dummy_ctx(), $loc);
                 }
             )*}
         };

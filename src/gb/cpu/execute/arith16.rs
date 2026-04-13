@@ -38,7 +38,7 @@ pub fn dec_r16(ctx: &mut GameBoy, target: WordLoc) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testutil::step_test;
+    use crate::testutil::{dummy_ctx, step_test};
     use test_log::test;
 
     const HL: u16 = 0x1234;
@@ -50,7 +50,7 @@ mod tests {
     /* #region Addition */
     #[test]
     fn add_hl_bc() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn add_hl_de() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn add_hl_hl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn add_hl_sp() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -131,7 +131,7 @@ mod tests {
     /* #region Increment */
     #[test]
     fn inc_bc() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn inc_de() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn inc_hl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn inc_sp() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -197,7 +197,7 @@ mod tests {
     /* #region Decrement */
     #[test]
     fn dec_bc() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn dec_de() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn dec_hl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn dec_sp() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 

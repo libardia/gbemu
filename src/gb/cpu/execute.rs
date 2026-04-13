@@ -556,7 +556,7 @@ impl CPU {
 
 #[cfg(test)]
 mod tests {
-    use crate::testutil::step_test;
+    use crate::testutil::{dummy_ctx, step_test};
 
     use super::*;
     use test_log::test;
@@ -564,7 +564,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn invalid() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xD3, length: 0, cycles: 0

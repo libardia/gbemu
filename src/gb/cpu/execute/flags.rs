@@ -26,7 +26,10 @@ pub fn set_b_r8(ctx: &mut GameBoy, bit: u8, target: ByteLoc) {
 mod tests {
     use test_log::test;
 
-    use crate::{gb::mmu::MMU, testutil::step_test};
+    use crate::{
+        gb::mmu::MMU,
+        testutil::{dummy_ctx, step_test},
+    };
 
     use super::*;
 
@@ -37,7 +40,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<bit_on_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -55,7 +58,7 @@ mod tests {
 
                 #[test]
                 fn [<bit_off_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -77,7 +80,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<bit_on_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -96,7 +99,7 @@ mod tests {
 
                 #[test]
                 fn [<bit_off_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -119,7 +122,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<res_off_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -135,7 +138,7 @@ mod tests {
 
                 #[test]
                 fn [<res_nop_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -155,7 +158,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<res_off_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -172,7 +175,7 @@ mod tests {
 
                 #[test]
                 fn [<res_nop_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -193,7 +196,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<set_on_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -209,7 +212,7 @@ mod tests {
 
                 #[test]
                 fn [<set_nop_ $bit _ $target>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -229,7 +232,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<set_on_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -246,7 +249,7 @@ mod tests {
 
                 #[test]
                 fn [<set_nop_ $bit _mhl>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 

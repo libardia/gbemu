@@ -16,12 +16,12 @@ mod tests {
 
     use crate::{
         gb::{GameBoy, cpu::Flags},
-        testutil::step_test,
+        testutil::{dummy_ctx, step_test},
     };
 
     #[test]
     fn test_print_cpu() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         ctx.debug_isntructions = true;
         step_test!(
             ctx: ctx;

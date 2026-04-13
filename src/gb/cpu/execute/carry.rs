@@ -12,13 +12,13 @@ pub fn ccf(ctx: &mut GameBoy) {
 mod tests {
     use test_log::test;
 
-    use crate::testutil::step_test;
+    use crate::testutil::{dummy_ctx, step_test};
 
     use super::*;
 
     #[test]
     fn scf_0() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn scf_1() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn ccf_0() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn ccf_1() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 

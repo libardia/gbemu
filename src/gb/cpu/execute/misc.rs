@@ -55,14 +55,14 @@ pub fn prefix(ctx: &mut GameBoy) {
 
 #[cfg(test)]
 mod tests {
-    use crate::testutil::step_test;
+    use crate::testutil::{dummy_ctx, step_test};
 
     use super::*;
     use test_log::test;
 
     #[test]
     fn nop() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0x00, length: 1, cycles: 1
@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn stop() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx:ctx;
             code: 0x10, length: 2, cycles: 1
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn prefix() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
             code: 0xCB, length: 1, cycles: 1

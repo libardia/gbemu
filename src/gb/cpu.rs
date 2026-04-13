@@ -272,6 +272,8 @@ pub(crate) use debug_interrupts;
 mod tests {
     use test_log::test;
 
+    use crate::testutil::dummy_ctx;
+
     use super::*;
 
     macro_rules! r16_test {
@@ -324,7 +326,7 @@ mod tests {
 
     #[test]
     pub fn decode_test() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
 
         let address = 0xC0CA; // Put instruction in work ram
         let byte = 0xFE; // Instruction CP_A_n8
@@ -340,7 +342,7 @@ mod tests {
 
     #[test]
     pub fn decode_prefix_test() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
 
         let address = 0xC0BE; // Put instruction in work ram
         let prefix = 0xCB; // Instruction prefix
@@ -369,7 +371,7 @@ mod tests {
     fn test_halt_bug() {
         const ADDRESS: u16 = 0xCF00;
 
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
 
         ctx.cpu.pc = ADDRESS;
         for i in 0..3 {

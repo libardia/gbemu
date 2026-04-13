@@ -43,7 +43,7 @@ pub fn cpl(ctx: &mut GameBoy) {
 mod tests {
     use super::*;
     use crate::gb::MMU;
-    use crate::testutil::{INSTRUCTION_ADDRESS, step_test};
+    use crate::testutil::{INSTRUCTION_ADDRESS, dummy_ctx, step_test};
     use test_log::test;
 
     const MEM_ADD: u16 = 0xDD00;
@@ -58,7 +58,7 @@ mod tests {
         (@inner $code:literal and mhl) => {
             #[test]
             fn and_a_mhl() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -82,7 +82,7 @@ mod tests {
         (@inner $code:literal and n8) => {
             #[test]
             fn and_a_n8() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -105,7 +105,7 @@ mod tests {
         (@inner $code:literal and a) => {
             #[test]
             fn and_a_a() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -128,7 +128,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<and_a_ $reg>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -152,7 +152,7 @@ mod tests {
         (@inner $code:literal or mhl) => {
             #[test]
             fn or_a_mhl() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -176,7 +176,7 @@ mod tests {
         (@inner $code:literal or n8) => {
             #[test]
             fn or_a_n8() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -199,7 +199,7 @@ mod tests {
         (@inner $code:literal or a) => {
             #[test]
             fn or_a_a() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -222,7 +222,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<or_a_ $reg>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -246,7 +246,7 @@ mod tests {
         (@inner $code:literal xor mhl) => {
             #[test]
             fn xor_a_mhl() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -270,7 +270,7 @@ mod tests {
         (@inner $code:literal xor n8) => {
             #[test]
             fn xor_a_n8() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -293,7 +293,7 @@ mod tests {
         (@inner $code:literal xor a) => {
             #[test]
             fn xor_a_a() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 step_test! {
                     ctx: ctx;
 
@@ -316,7 +316,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<xor_a_ $reg>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -352,7 +352,7 @@ mod tests {
 
     #[test]
     fn cpl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 

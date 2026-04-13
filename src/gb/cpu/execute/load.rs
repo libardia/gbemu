@@ -53,7 +53,7 @@ mod tests {
 
     use crate::{
         gb::mmu::MMU,
-        testutil::{INSTRUCTION_ADDRESS, registers_equal, step_test},
+        testutil::{INSTRUCTION_ADDRESS, dummy_ctx, registers_equal, step_test},
     };
 
     use super::*;
@@ -70,7 +70,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $dest _n8>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -90,7 +90,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_m $dest _n8>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -111,7 +111,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $reg _ $reg>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     let cpu_a: CPU;
                     step_test! {
                         ctx: ctx;
@@ -133,7 +133,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ma16_ $src>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -155,7 +155,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_m $dest _ $src>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -180,7 +180,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $dest _ma16>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -202,7 +202,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $dest _m $src>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -223,7 +223,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $dest _ $src>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -249,7 +249,7 @@ mod tests {
             paste::paste! {
                 #[test]
                 fn [<ld_ $dest _n16>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -300,7 +300,7 @@ mod tests {
     // HL+ and HL- loads
     #[test]
     fn ld_mhli_a() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -318,7 +318,7 @@ mod tests {
 
     #[test]
     fn ld_mhld_a() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn ld_a_mhli() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -354,7 +354,7 @@ mod tests {
 
     #[test]
     fn ld_a_mhld() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -373,7 +373,7 @@ mod tests {
     // High loads
     #[test]
     fn ldh_ma8_a() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -390,7 +390,7 @@ mod tests {
 
     #[test]
     fn ldh_mc_a() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -407,7 +407,7 @@ mod tests {
 
     #[test]
     fn ldh_a_ma8() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 
@@ -424,7 +424,7 @@ mod tests {
 
     #[test]
     fn ldh_a_mc() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         step_test! {
             ctx: ctx;
 

@@ -25,3 +25,13 @@ macro_rules! set_masked {
     };
 }
 pub(crate) use set_masked;
+
+macro_rules! unwrap_or_error {
+    ($result:expr, $($arg:tt)*) => {
+        match $result {
+            Ok(x) => x,
+            Err(e) => panic!("{}: {e}", format_args!($($arg)*)),
+        }
+    };
+}
+pub(crate) use unwrap_or_error;

@@ -75,7 +75,7 @@ pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
 mod tests {
     use crate::{
         gb::mmu::{MMU, region::HIGH_RAM_END},
-        testutil::{INSTRUCTION_ADDRESS, jump_test, step_test},
+        testutil::{INSTRUCTION_ADDRESS, dummy_ctx, jump_test, step_test},
     };
 
     use super::*;
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn jp_a16() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn jp_hl() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -132,7 +132,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<$testname _taken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     jump_test! {
                         ctx: ctx;
 
@@ -147,7 +147,7 @@ mod tests {
 
                 #[test]
                 fn [<$testname _untaken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn jr_e8() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -188,7 +188,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<$testname _taken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     jump_test! {
                         ctx: ctx;
 
@@ -202,7 +202,7 @@ mod tests {
 
                 #[test]
                 fn [<$testname _untaken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn call_a16() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -248,7 +248,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<$testname _taken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     jump_test! {
                         ctx: ctx;
 
@@ -268,7 +268,7 @@ mod tests {
 
                 #[test]
                 fn [<$testname _untaken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn ret() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -315,7 +315,7 @@ mod tests {
 
     #[test]
     fn reti() {
-        let ctx = &mut GameBoy::new();
+        let ctx = &mut dummy_ctx();
         jump_test! {
             ctx: ctx;
 
@@ -338,7 +338,7 @@ mod tests {
             paste::paste! {$(
                 #[test]
                 fn [<$testname _taken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     jump_test! {
                         ctx: ctx;
 
@@ -357,7 +357,7 @@ mod tests {
 
                 #[test]
                 fn [<$testname _untaken>]() {
-                    let ctx = &mut GameBoy::new();
+                    let ctx = &mut dummy_ctx();
                     step_test! {
                         ctx: ctx;
 
@@ -388,7 +388,7 @@ mod tests {
         ($($code:literal $testname:ident $vec:literal;)*) => {$(
             #[test]
             fn $testname() {
-                let ctx = &mut GameBoy::new();
+                let ctx = &mut dummy_ctx();
                 jump_test! {
                     ctx: ctx;
 
