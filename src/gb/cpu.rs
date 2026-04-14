@@ -5,7 +5,7 @@ use crate::{
         GameBoy,
         cpu::{
             instructions::Instruction,
-            interrupts::INT_FLAGS_MASK,
+            interrupt_handling::INT_FLAGS_MASK,
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
         hardware_interface::HardwareInterface,
@@ -21,7 +21,7 @@ use crate::{
 pub mod access;
 pub mod execute;
 pub mod instructions;
-pub mod interrupts;
+pub mod interrupt_handling;
 pub mod optables;
 
 #[derive(Debug, Default, Clone)]

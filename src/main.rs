@@ -29,7 +29,7 @@ fn main() {
     let mut gb = GameBoy::new("res/cart_romonly_terminate.bin");
     gb.debug_isntructions = true;
     gb.load_rom("gb-bootroms/bin/dmg.bin");
-    gb.skip_boot();
+    // gb.skip_boot();
     gb.run();
 }
 
