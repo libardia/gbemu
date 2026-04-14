@@ -53,7 +53,7 @@ mod tests {
         CPU::step(ctx);
 
         assert!(!ctx.cpu.ime);
-        assert_eq!(ctx.debug_timer, 4); // 1 mtime
+        assert_eq!(ctx.system_ticks, 4); // 1 mtime
         assert_eq!(ctx.cpu.pc, INSTRUCTION_ADDRESS + 1); // 1 byte long
 
         CPU::step(ctx);

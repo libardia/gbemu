@@ -1,4 +1,7 @@
-use crate::gb::hardware_interface::{HardwareInterface, warn_todo_read, warn_todo_write};
+use crate::gb::{
+    GameBoy,
+    hardware_interface::{HardwareInterface, warn_todo_read, warn_todo_write},
+};
 
 #[derive(Debug, Default)]
 pub struct PPU {
@@ -9,6 +12,10 @@ impl PPU {
     pub fn new() -> Self {
         Default::default()
     }
+}
+
+impl PPU {
+    pub fn tick(ctx: &mut GameBoy) {}
 }
 
 impl HardwareInterface for PPU {
