@@ -5,6 +5,7 @@ use crate::{
         GameBoy,
         cpu::{
             instructions::Instruction,
+            interrupts::INT_FLAGS_MASK,
             optables::{OPTABLE, PREFIX_OPTABLE},
         },
         hardware_interface::HardwareInterface,
@@ -20,6 +21,7 @@ use crate::{
 pub mod access;
 pub mod execute;
 pub mod instructions;
+pub mod interrupts;
 pub mod optables;
 
 #[derive(Debug, Default, Clone)]
@@ -42,8 +44,8 @@ pub struct CPU {
     pub sp: u16,
 
     pub ime: bool,
-    pub int_f: u8,
-    pub int_e: u8,
+    pub io_if: u8,
+    pub io_ie: u8,
 
     // Misc
     pub ime_timer: u8,
@@ -99,6 +101,24 @@ impl CPU {
         CPU::default()
     }
 
+    pub fn step(ctx: &mut GameBoy) {
+        CPU::handle_interrupts(ctx);
+
+        let inst = CPU::decode(ctx);
+        CPU::execute(ctx, inst);
+
+        // Special handling for IME flag
+        if ctx.cpu.ime_timer > 0 {
+            if ctx.cpu.ime_timer == 1 {
+                debug_interrupts!(on);
+                ctx.cpu.ime = true;
+            }
+
+            // Tick down
+            ctx.cpu.ime_timer -= 1;
+        }
+    }
+
     pub fn decode(ctx: &mut GameBoy) -> Instruction {
         let address = ctx.cpu.pc;
         let byte = CPU::next_byte(ctx) as usize;
@@ -115,23 +135,29 @@ impl CPU {
         );
         inst
     }
+}
 
-    pub fn step(ctx: &mut GameBoy) {
-        let inst = CPU::decode(ctx);
-        CPU::execute(ctx, inst);
+impl HardwareInterface for CPU {
+    fn read(&mut self, address: u16) -> u8 {
+        match address {
+            IO_IF => get_masked!(self.io_if; INT_FLAGS_MASK),
+            IO_IE => self.io_ie,
 
-        // Special handling for IME flag
-        if ctx.cpu.ime_timer > 0 {
-            if ctx.cpu.ime_timer == 1 {
-                debug_interrupts!(on);
-                ctx.cpu.ime = true;
-            }
-
-            // Tick down
-            ctx.cpu.ime_timer -= 1;
+            _ => unimplemented!("can't read address {} from the CPU", hex!(address, 4)),
         }
     }
 
+    fn write(&mut self, address: u16, byte: u8) {
+        match address {
+            IO_IF => self.io_if = set_masked!(self.io_if, byte; INT_FLAGS_MASK),
+            IO_IE => self.io_ie = byte,
+
+            _ => unimplemented!("can't write address {} to the CPU", hex!(address, 4)),
+        };
+    }
+}
+
+impl CPU {
     r16!(b + c);
     r16!(d + e);
     r16!(h + l);
@@ -238,26 +264,6 @@ impl CPU {
             self.f.as_byte(),
             self.sp
         );
-    }
-}
-
-impl HardwareInterface for CPU {
-    fn read(&mut self, address: u16) -> u8 {
-        match address {
-            IO_IF => get_masked!(self.int_f; 0x1F),
-            IO_IE => self.int_e,
-
-            _ => unimplemented!("can't read address {} from the CPU", hex!(address, 4)),
-        }
-    }
-
-    fn write(&mut self, address: u16, byte: u8) {
-        match address {
-            IO_IF => self.int_f = set_masked!(self.int_f, byte; 0x1F),
-            IO_IE => self.int_e = byte,
-
-            _ => unimplemented!("can't write address {} to the CPU", hex!(address, 4)),
-        };
     }
 }
 
