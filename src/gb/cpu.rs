@@ -102,20 +102,21 @@ impl CPU {
     }
 
     pub fn step(ctx: &mut GameBoy) {
-        CPU::handle_interrupts(ctx);
+        let interrupt_fired = CPU::handle_interrupts(ctx);
+        if !interrupt_fired {
+            let inst = CPU::decode(ctx);
+            CPU::execute(ctx, inst);
 
-        let inst = CPU::decode(ctx);
-        CPU::execute(ctx, inst);
+            // Special handling for IME flag
+            if ctx.cpu.ime_timer > 0 {
+                if ctx.cpu.ime_timer == 1 {
+                    debug_interrupts!(on);
+                    ctx.cpu.ime = true;
+                }
 
-        // Special handling for IME flag
-        if ctx.cpu.ime_timer > 0 {
-            if ctx.cpu.ime_timer == 1 {
-                debug_interrupts!(on);
-                ctx.cpu.ime = true;
+                // Tick down
+                ctx.cpu.ime_timer -= 1;
             }
-
-            // Tick down
-            ctx.cpu.ime_timer -= 1;
         }
     }
 

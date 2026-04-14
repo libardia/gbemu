@@ -31,16 +31,18 @@ pub const JOYPAD: Interrupt = Interrupt::new(0x10, 0x60, "JOYPAD");
 pub const ALL_INTERRUPS: [Interrupt; 5] = [VBLANK, LCD, TIMER, SERIAL, JOYPAD];
 
 impl CPU {
-    pub fn handle_interrupts(ctx: &mut GameBoy) {
+    pub fn handle_interrupts(ctx: &mut GameBoy) -> bool {
         if ctx.cpu.ime {
             let pending = ctx.cpu.pending_interrupts();
             for int in ALL_INTERRUPS {
                 if pending & int.flag != 0 {
                     CPU::fire_interrupt(ctx, int);
-                    break; // Stop checking interrupts
+                    return true; // Stop checking interrupts and report that one fired
                 }
             }
         }
+
+        false
     }
 
     pub fn fire_interrupt(ctx: &mut GameBoy, int: Interrupt) {
@@ -60,5 +62,43 @@ impl CPU {
 
     pub fn pending_interrupts(&self) -> u8 {
         self.io_ie & self.io_if & INT_FLAGS_MASK
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::testutil::{dummy_ctx, jump_test};
+
+    use super::*;
+    use test_log::test;
+
+    #[test]
+    fn test_fire_interrupt() {
+        for int in ALL_INTERRUPS {
+            let ctx = &mut dummy_ctx();
+            jump_test! {
+                ctx: ctx;
+                code: 0x48, pc_after: int.handler, cycles: 5
+                setup {
+                    // for the LD C B instruction which shouldn't happen
+                    ctx.cpu.b = 0xBB;
+                    ctx.cpu.c = 0xCC;
+
+                    // Enable interrupts and request one
+                    ctx.cpu.ime = true;
+                    ctx.cpu.io_ie = 0xFF;
+                    ctx.cpu.io_if = int.flag;
+                }
+                after {
+                    // B and C should not have changed
+                    assert_eq!(ctx.cpu.b, 0xBB);
+                    assert_eq!(ctx.cpu.c, 0xCC);
+
+                    // Interrupts were unset correctly
+                    assert!(!ctx.cpu.ime);
+                    assert_eq!(ctx.cpu.io_if, 0);
+                }
+            }
+        }
     }
 }

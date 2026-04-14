@@ -68,9 +68,10 @@ macro_rules! step_test {
 
         assert_eq!(
             $ctx.cpu.pc,
-            crate::testutil::INSTRUCTION_ADDRESS + $length
+            crate::testutil::INSTRUCTION_ADDRESS + $length,
+            "instruction length incorrect",
         );
-        assert_eq!($ctx.debug_timer, $cycles*4);
+        assert_eq!($ctx.debug_timer, $cycles*4, "instruction timing incorrect");
     };
 }
 pub(crate) use step_test;
@@ -94,8 +95,8 @@ macro_rules! jump_test {
 
         $($after)?
 
-        assert_eq!($ctx.cpu.pc, $pc_after);
-        assert_eq!($ctx.debug_timer, $cycles*4);
+        assert_eq!($ctx.cpu.pc, $pc_after, "instruction jump location incorrect");
+        assert_eq!($ctx.debug_timer, $cycles*4, "instruction timing incorrect");
     };
 }
 pub(crate) use jump_test;

@@ -79,6 +79,7 @@ pub fn ret(ctx: &mut GameBoy, enable_interrupts: bool) {
 
     if enable_interrupts {
         debug_interrupts!(on);
+        ctx.cpu.ime_timer = 0;
         ctx.cpu.ime = true;
     }
 

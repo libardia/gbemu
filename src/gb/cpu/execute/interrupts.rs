@@ -3,6 +3,7 @@ use crate::gb::{GameBoy, cpu::debug_interrupts};
 pub fn di(ctx: &mut GameBoy) {
     // unsetting IME happens immediately
     debug_interrupts!(off);
+    ctx.cpu.ime_timer = 0;
     ctx.cpu.ime = false;
 }
 
