@@ -185,12 +185,12 @@ impl CPU {
     }
 
     pub fn read_tick(ctx: &mut GameBoy, address: u16) -> u8 {
-        ctx.m_tick(); // Read takes 1 m-cycle
+        ctx.tick(); // Read takes 1 m-cycle
         MMU::read(ctx, address)
     }
 
     pub fn write_tick(ctx: &mut GameBoy, address: u16, byte: u8) {
-        ctx.m_tick(); // Write takes 1 m-cycle
+        ctx.tick(); // Write takes 1 m-cycle
         MMU::write(ctx, address, byte);
     }
 

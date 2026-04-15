@@ -37,8 +37,6 @@ pub struct GameBoy {
     pub apu: APU,
     pub sdu: SDU,
 
-    pub system_ticks: u64,
-
     pub debug_isntructions: bool,
     pub exit: bool,
 }
@@ -55,8 +53,6 @@ impl GameBoy {
             inu: INU::new(),
             apu: APU::new(),
             sdu: SDU::new(),
-
-            system_ticks: Default::default(),
 
             debug_isntructions: false,
             exit: false,
@@ -88,15 +84,17 @@ impl GameBoy {
         info!("Terminating.")
     }
 
-    pub fn m_tick(&mut self) {
+    pub fn tick(&mut self) {
         for _ in 0..4 {
             self.t_tick();
         }
+
+        // Timer tick is last
+        TMU::tick(self);
     }
 
     pub fn t_tick(&mut self) {
-        PPU::tick(self);
-        self.system_ticks += 1;
+        PPU::t_tick(self);
     }
 }
 
@@ -109,21 +107,11 @@ mod tests {
     #[test]
     fn test_m_tick() {
         let ctx = &mut dummy_ctx();
-        assert_eq!(ctx.system_ticks, 0);
-        ctx.m_tick();
-        assert_eq!(ctx.system_ticks, 4);
-        ctx.m_tick();
-        assert_eq!(ctx.system_ticks, 8);
-    }
-
-    #[test]
-    fn test_t_tick() {
-        let ctx = &mut dummy_ctx();
-        assert_eq!(ctx.system_ticks, 0);
-        ctx.t_tick();
-        assert_eq!(ctx.system_ticks, 1);
-        ctx.t_tick();
-        assert_eq!(ctx.system_ticks, 2);
+        assert_eq!(ctx.tmu.system_timer, 0);
+        ctx.tick();
+        assert_eq!(ctx.tmu.system_timer, 1);
+        ctx.tick();
+        assert_eq!(ctx.tmu.system_timer, 2);
     }
 
     #[test]

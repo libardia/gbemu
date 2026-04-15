@@ -15,7 +15,9 @@ impl PPU {
 }
 
 impl PPU {
-    pub fn tick(ctx: &mut GameBoy) {}
+    pub fn t_tick(_ctx: &mut GameBoy) {
+        // TODO: PPU tick
+    }
 }
 
 impl HardwareInterface for PPU {

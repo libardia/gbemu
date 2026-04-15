@@ -8,7 +8,7 @@ pub fn add_hl_r16(ctx: &mut GameBoy, target: WordLoc) {
     let rhs = CPU::get_word_at(ctx, target);
     let (result, overflow) = ctx.cpu.get_hl().overflowing_add(rhs);
 
-    ctx.m_tick();
+    ctx.tick();
     ctx.cpu.set_hl(result);
 
     ctx.cpu.f = Flags {
@@ -23,7 +23,7 @@ pub fn inc_r16(ctx: &mut GameBoy, target: WordLoc) {
     let before = CPU::get_word_at(ctx, target);
     let after = before.wrapping_add(1);
 
-    ctx.m_tick(); // Takes 2 ticks total
+    ctx.tick(); // Takes 2 ticks total
     CPU::set_word_at(ctx, target, after);
 }
 
@@ -31,7 +31,7 @@ pub fn dec_r16(ctx: &mut GameBoy, target: WordLoc) {
     let before = CPU::get_word_at(ctx, target);
     let after = before.wrapping_sub(1);
 
-    ctx.m_tick(); // Takes 2 ticks total
+    ctx.tick(); // Takes 2 ticks total
     CPU::set_word_at(ctx, target, after);
 }
 

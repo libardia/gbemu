@@ -14,7 +14,6 @@ mod tests {
 
     use crate::testutil::{dummy_ctx, step_test};
 
-
     #[test]
     fn scf_0() {
         let ctx = &mut dummy_ctx();

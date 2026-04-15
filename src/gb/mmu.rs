@@ -121,7 +121,7 @@ impl MMU {
                 IO_IF   => ctx.cpu.write(address, byte),
                 #IO_APU => ctx.apu.write(address, byte),
                 #IO_PPU => ctx.ppu.write(address, byte),
-                IO_BANK => if byte != 0 { ctx.mmu.boot_mode = false },
+                IO_BANK => ctx.mmu.boot_mode = false,
                 IO_IE   => ctx.cpu.write(address, byte),
 
                 // Anything else is unwritable

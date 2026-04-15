@@ -51,12 +51,12 @@ impl CPU {
         debug_interrupts!(off);
 
         debug!("firing {} interrupt handler", int.name);
-        ctx.m_tick();
-        ctx.m_tick(); // Nothing happens for 2 ticks
+        ctx.tick();
+        ctx.tick(); // Nothing happens for 2 ticks
 
         CPU::push_stack(ctx, ctx.cpu.pc); // Push PC to stack, 2 ticks
 
-        ctx.m_tick();
+        ctx.tick();
         ctx.cpu.pc = int.handler; // Setting PC takes one last tick
     }
 

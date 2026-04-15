@@ -25,7 +25,7 @@ pub fn jr_cc_e8(ctx: &mut GameBoy, cond: Condition) {
     let address = relative_from.wrapping_add_signed(offset);
 
     if CPU::test_condition(ctx, cond) {
-        ctx.m_tick(); // 1 tick longer if branch
+        ctx.tick(); // 1 tick longer if branch
         ctx.cpu.pc = address;
         trace_jump!(address);
     } else {
@@ -43,7 +43,7 @@ pub fn jp_cc_a16(ctx: &mut GameBoy, cond: Condition) {
     let address = CPU::next_word(ctx);
 
     if CPU::test_condition(ctx, cond) {
-        ctx.m_tick(); // 1 tick longer if branch
+        ctx.tick(); // 1 tick longer if branch
         ctx.cpu.pc = address;
         trace_jump!(address);
     } else {
@@ -56,7 +56,7 @@ pub fn call_cc_a16(ctx: &mut GameBoy, cond: Condition) {
     let address = CPU::next_word(ctx);
 
     if CPU::test_condition(ctx, cond) {
-        ctx.m_tick(); // One tick happens here, not sure why
+        ctx.tick(); // One tick happens here, not sure why
         CPU::push_stack(ctx, ctx.cpu.pc); // 2 ticks
         ctx.cpu.pc = address;
         trace_jump!(address);
@@ -66,7 +66,7 @@ pub fn call_cc_a16(ctx: &mut GameBoy, cond: Condition) {
 }
 
 pub fn rst(ctx: &mut GameBoy, address: u16) {
-    ctx.m_tick(); // One tick here
+    ctx.tick(); // One tick here
     CPU::push_stack(ctx, ctx.cpu.pc); // 2 ticks
     ctx.cpu.pc = address;
     trace_jump!(address);
@@ -74,7 +74,7 @@ pub fn rst(ctx: &mut GameBoy, address: u16) {
 
 pub fn ret(ctx: &mut GameBoy, enable_interrupts: bool) {
     let address = CPU::pop_stack(ctx); // 2 ticks
-    ctx.m_tick(); // 1 tick here?
+    ctx.tick(); // 1 tick here?
     ctx.cpu.pc = address;
 
     if enable_interrupts {
@@ -87,10 +87,10 @@ pub fn ret(ctx: &mut GameBoy, enable_interrupts: bool) {
 }
 
 pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
-    ctx.m_tick(); // 1 tick: internal branch decision?
+    ctx.tick(); // 1 tick: internal branch decision?
     if CPU::test_condition(ctx, cond) {
         let address = CPU::pop_stack(ctx); // 2 ticks
-        ctx.m_tick(); // 1 tick: internal?
+        ctx.tick(); // 1 tick: internal?
         ctx.cpu.pc = address;
         trace_jump!(address);
     } else {

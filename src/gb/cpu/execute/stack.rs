@@ -4,7 +4,7 @@ use crate::gb::{
 };
 
 pub fn push_r16(ctx: &mut GameBoy, src: WordLoc) {
-    ctx.m_tick(); // 1 tick
+    ctx.tick(); // 1 tick
     let word = CPU::get_word_at(ctx, src);
     CPU::push_stack(ctx, word); // 2 ticks
 }
@@ -26,8 +26,8 @@ pub fn add_sp_e8(ctx: &mut GameBoy) {
     weird_flags(ctx, off);
 
     // Okay, now do the real thing lol
-    ctx.m_tick();
-    ctx.m_tick(); // 2 ticks
+    ctx.tick();
+    ctx.tick(); // 2 ticks
     ctx.cpu.sp = ctx.cpu.sp.wrapping_add_signed(off as i16);
 }
 
@@ -39,7 +39,7 @@ pub fn ld_hl_sp_e8(ctx: &mut GameBoy) {
     weird_flags(ctx, off);
 
     // Now do the real thing
-    ctx.m_tick(); // 1 tick
+    ctx.tick(); // 1 tick
     ctx.cpu.set_hl(ctx.cpu.sp.wrapping_add_signed(off as i16));
 }
 
@@ -49,7 +49,7 @@ pub fn ld_sp_n16(ctx: &mut GameBoy) {
 }
 
 pub fn ld_sp_hl(ctx: &mut GameBoy) {
-    ctx.m_tick(); // 1 tick
+    ctx.tick(); // 1 tick
     ctx.cpu.sp = ctx.cpu.get_hl();
 }
 
