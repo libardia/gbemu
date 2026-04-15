@@ -93,13 +93,7 @@ impl Debug for MappedMemoryRegion {
 
 macro_rules! def_regions {
     ($($name:ident $begin:literal .. $end:literal)+) => {
-        $(
-            paste::paste!{
-                pub const [<$name _BEGIN>]: u16 = $begin;
-                pub const [<$name _END>]: u16 = $end;
-                pub const $name: MemoryRegion = MemoryRegion::new($begin, $end);
-            }
-        )+
+        $(pub const $name: MemoryRegion = MemoryRegion::new($begin, $end);)+
     };
 }
 

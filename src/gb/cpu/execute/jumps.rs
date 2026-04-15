@@ -101,7 +101,7 @@ pub fn ret_cc(ctx: &mut GameBoy, cond: Condition) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        gb::mmu::{MMU, region::HIGH_RAM_END},
+        gb::mmu::{MMU, region::HIGH_RAM},
         macros::make_word,
         testutil::{INSTRUCTION_ADDRESS, dummy_ctx, jump_test, step_test},
     };
@@ -109,7 +109,7 @@ mod tests {
     use super::*;
     use test_log::test;
 
-    const STACK_BEGIN: u16 = HIGH_RAM_END;
+    const STACK_BEGIN: u16 = HIGH_RAM.end;
     const OFFSET: u8 = -84i8 as u8;
     const FINAL_DEST: u16 = 0xDEAD;
     const FINAL_DEST_HIGH: u8 = 0xDE;

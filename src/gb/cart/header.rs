@@ -4,10 +4,7 @@ use std::{
 };
 
 use crate::{
-    gb::mmu::{
-        header_data::*,
-        region::{HEADER, HEADER_BEGIN},
-    },
+    gb::mmu::{header_data::*, region::HEADER},
     macros::make_word,
 };
 
@@ -107,7 +104,7 @@ pub fn read_header(f: &mut File) -> io::Result<CartHeader> {
     }
     /* #endregion */
 
-    f.seek(SeekFrom::Start(HEADER_BEGIN as u64))?;
+    f.seek(SeekFrom::Start(HEADER.begin as u64))?;
     f.read_exact(buf.as_mut_slice())?;
 
     let header = CartHeader {

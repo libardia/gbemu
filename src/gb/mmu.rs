@@ -39,7 +39,7 @@ macro_rules! address_dispatch {
 }
 
 impl MMU {
-    pub const ECHO_RAM_OFFSET: u16 = ECHO_RAM_BEGIN - WORK_RAM_BEGIN;
+    pub const ECHO_RAM_OFFSET: u16 = ECHO_RAM.begin - WORK_RAM.begin;
 
     pub fn new() -> Self {
         Self {
