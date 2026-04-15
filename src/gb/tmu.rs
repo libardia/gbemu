@@ -22,6 +22,7 @@ pub struct TMU {
     pub tima: u8,
 
     pub last_tick_bit: bool,
+    pub will_reset_tima: bool,
 }
 
 impl TMU {
@@ -30,12 +31,10 @@ impl TMU {
     }
 
     pub fn tick(ctx: &mut GameBoy) {
-        ctx.tmu.inc_systimer();
-        // TODO: more stuff to do?
-    }
-
-    pub fn inc_systimer(&mut self) {
-        self.set_systimer(self.system_timer + 1);
+        // TODO: test if this update tima function here (and before CPU step) is correct
+        // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+        ctx.tmu.update_tima();
+        ctx.tmu.set_systimer(ctx.tmu.system_timer + 1);
     }
 
     pub fn set_systimer(&mut self, value: u16) {
@@ -47,9 +46,18 @@ impl TMU {
     pub fn check_tima(&mut self) {
         let tick_bit = self.tick_bit();
         if self.last_tick_bit && !tick_bit {
-            // TODO: TIMA tick
+            let (new, overflow) = self.tima.overflowing_add(1);
+            self.tima = new;
+            self.will_reset_tima = overflow;
         }
         self.last_tick_bit = tick_bit;
+    }
+
+    pub fn update_tima(&mut self) {
+        if self.will_reset_tima {
+            self.will_reset_tima = false;
+            self.tima = self.tma;
+        }
     }
 }
 
@@ -70,7 +78,10 @@ impl HardwareInterface for TMU {
         // TODO: write TMU
         match address {
             IO_DIV => self.set_systimer(0),
-            IO_TIMA => self.tima = byte,
+            IO_TIMA => {
+                self.will_reset_tima = false;
+                self.tima = byte;
+            }
             IO_TMA => self.tma = byte,
             IO_TAC => self.unpack_tac(byte),
 

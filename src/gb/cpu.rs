@@ -102,6 +102,7 @@ impl CPU {
     }
 
     pub fn step(ctx: &mut GameBoy) {
+        ctx.tmu.update_tima(); // Special handling for delayed TIMA reset
         let interrupt_fired = CPU::handle_interrupts(ctx);
         if !interrupt_fired {
             let inst = CPU::decode(ctx);
