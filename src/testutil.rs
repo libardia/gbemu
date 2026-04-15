@@ -7,6 +7,13 @@ pub fn prepare_instruction(ctx: &mut GameBoy, address: u16, byte: u8) {
     ctx.cpu.pc = address;
 }
 
+pub fn prepare_program(ctx: &mut GameBoy, address: u16, prog: &[u8]) {
+    ctx.cpu.pc = address;
+    for i in 0..prog.len() {
+        MMU::write(ctx, address + i as u16, prog[i]);
+    }
+}
+
 pub fn registers_equal(cpu_a: &CPU, cpu_b: &CPU) -> bool {
     cpu_a.b == cpu_b.b
         && cpu_a.c == cpu_b.c

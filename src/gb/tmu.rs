@@ -114,11 +114,69 @@ impl TMU {
     pub fn tick_bit(&self) -> bool {
         self.tac_enable
             && match self.tac_clock {
-                TAC_CLOCK_4 => self.system_timer & (1 << 3) != 0,
-                TAC_CLOCK_16 => self.system_timer & (1 << 5) != 0,
-                TAC_CLOCK_64 => self.system_timer & (1 << 7) != 0,
-                TAC_CLOCK_256 => self.system_timer & (1 << 9) != 0,
+                TAC_CLOCK_4 => self.system_timer & (1 << 1) != 0,
+                TAC_CLOCK_16 => self.system_timer & (1 << 3) != 0,
+                TAC_CLOCK_64 => self.system_timer & (1 << 5) != 0,
+                TAC_CLOCK_256 => self.system_timer & (1 << 7) != 0,
                 _ => unimplemented!("bad tac clock value: {}", self.tac_clock),
             }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        gb::{
+            cpu::CPU,
+            mmu::{MMU, io::IO_IF},
+        },
+        testutil::{INSTRUCTION_ADDRESS, dummy_ctx, prepare_program},
+    };
+
+    use super::*;
+    use test_log::test;
+
+    // Ensure behavior is the same as described here:
+    // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+    // #[test]
+    fn overflow_test() {
+        let ctx = &mut dummy_ctx();
+
+        ctx.tmu.unpack_tac(0xFD);
+        ctx.tmu.system_timer = 3;
+        ctx.tmu.tima = 0xFE;
+        ctx.tmu.tma = 0x23;
+        ctx.cpu.io_if = 0xE0;
+        ctx.cpu.io_ie = 0x00;
+
+        prepare_program(
+            ctx,
+            INSTRUCTION_ADDRESS,
+            &[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], // NOP * 7
+        );
+
+        CPU::step(ctx);
+
+        assert_eq!(ctx.tmu.system_timer, 4);
+        assert_eq!(MMU::read(ctx, IO_TIMA), 0xFF);
+        assert_eq!(MMU::read(ctx, IO_IF), 0xE0);
+
+        CPU::step(ctx);
+
+        assert_eq!(ctx.tmu.system_timer, 5);
+        assert_eq!(MMU::read(ctx, IO_TIMA), 0xFF);
+        assert_eq!(MMU::read(ctx, IO_IF), 0xE0);
+
+        CPU::step(ctx);
+
+        assert_eq!(ctx.tmu.system_timer, 6);
+        assert_eq!(MMU::read(ctx, IO_TIMA), 0x00);
+        assert_eq!(MMU::read(ctx, IO_IF), 0xE0);
+
+        CPU::step(ctx);
+
+        assert_eq!(ctx.tmu.system_timer, 7);
+        assert_eq!(MMU::read(ctx, IO_TIMA), 0x23);
+        assert_eq!(MMU::read(ctx, IO_IF), 0xE4);
     }
 }
