@@ -1,0 +1,36 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "coverage report",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "llvm-cov",
+                "--ignore-filename-regex",
+                "main\\.rs",
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "continuous coverage",
+            "type": "shell",
+            "command": "RUST_LOG=debug",
+            "args": [
+                "cargo",
+                "watch",
+                "-x",
+                "llvm-cov --ignore-filename-regex 'main\\.rs' --lcov --output-path ./target/lcov.info",
+                "-w",
+                "src/"
+            ],
+            "problemMatcher": [],
+        }
+    ]
+}

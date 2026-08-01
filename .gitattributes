@@ -1,0 +1,4 @@
+reference/** linguist-vendored
+res/** linguist-vendored
+roms-boot/** linguist-vendored
+roms-test/** linguist-vendored
