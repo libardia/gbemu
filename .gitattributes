@@ -2,5 +2,3 @@ reference/** linguist-vendored
 res/** linguist-vendored
 roms-boot/** linguist-vendored
 roms-test/** linguist-vendored
-
-roms-boot/sha256sums.txt text eol=lf
