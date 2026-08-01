@@ -1,0 +1,6 @@
+[submodule "roms-test"]
+	path = roms-test
+	url = git@github.com:retrio/gb-test-roms.git
+[submodule "roms-boot"]
+	path = roms-boot
+	url = https://codeberg.org/ISSOtm/gb-bootroms.git
