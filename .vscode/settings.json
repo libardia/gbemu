@@ -1,5 +1,5 @@
 {
     "rgbdsz80.includePath": [
-        "gb-bootroms/src"
+        "roms-boot/src"
     ],
 }
